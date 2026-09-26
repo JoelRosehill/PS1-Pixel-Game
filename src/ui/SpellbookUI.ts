@@ -48,6 +48,7 @@ export class SpellbookUI {
   get paused(): boolean { return this.mode !== null; }
   open(mode: 'book' | 'wheel'): void {
     if (!this.player.active || !this.player.combat.alive || this.mode) return;
+    if (document.querySelector('dialog[open]')) return; // another menu (the map) is open
     this.mode = mode;
     this.index = SPELL_PAGES.findIndex(p => p.id === this.player.spells.book.selected);
     this.wheelIndex = this.index;

@@ -15,6 +15,8 @@ Job 6 opens the world: follow the northern valley past the ruin toward the Spire
 Citadel to leave The Threshold. Eight chapters of biomes surround it — Tranquil
 Wilderness, Violet Marshes, Sunkeeper's Terrace, Crystal Caverns and Bloodstone &
 Shadow among them — each with landmarks and enemy camps.
+Job 7 fills the atlas: 40 biomes in 8 chapters. Each chapter's pass is sealed by a
+veil of mist until you clear three of its camps; press M for the world map.
 
 ## Run it
 
@@ -36,6 +38,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run kinetictest` | First-person camera and kinetic movement (wall-run, slam, rebound) |
 | `npm run enemytest` | Deterministic enemy AI, combat rules and encounter checks |
 | `npm run worldtest` | World layout, terrain/prop streaming, biome moods and camps |
+| `npm run atlastest` | The 40-biome atlas, landmarks, chapter gates and the world map |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -53,6 +56,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | E | Cast the equipped spell using Momentum (Rune Burst initially) |
 | F | Bind a nearby Lost Page |
 | B | Open/close the spellbook; arrows or buttons turn pages and equip spells |
+| M | World map (pauses): discovered regions, landmarks, camps, gates, chapter progress |
 | Tab (hold) | Spell quick-wheel; mouse/arrows/1–8 choose, release Tab to equip; Esc cancels |
 | Shift | Dash (8-way, 3 charges, i-frames) |
 | Ctrl / C | Slide (keeps momentum, accelerates downhill) · in the air: gravity slam (Space on landing to rebound) |

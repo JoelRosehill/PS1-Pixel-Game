@@ -50,8 +50,22 @@ export class WorldTerrain {
     if (r <= WORLD.hubInner) return this.hub.baseHeight(x, z);
     const world = this.worldHeight(x, z, r);
     const hubW = 1 - smoothstep(WORLD.hubInner, WORLD.hubOuter, r);
-    return hubW > 0 ? lerp(world, this.hub.baseHeight(x, z), hubW) : world;
+    const h = hubW > 0 ? lerp(world, this.hub.baseHeight(x, z), hubW) : world;
+    return h + this.rampart(x, z, r);
   };
+
+  /**
+   * Mountains ringing the hub (450–760 m), broken only by the northern valley toward
+   * the Spire Citadel — the hub's single way out, matching its enclosing wall.
+   */
+  private rampart(x: number, z: number, r: number): number {
+    const ring = smoothstep(450, 540, r) * (1 - smoothstep(640, 780, r));
+    if (ring <= 0) return 0;
+    const az = azimuthOf(x, z);
+    const off = Math.abs(Math.atan2(Math.sin(az - CITADEL_AZ), Math.cos(az - CITADEL_AZ)));
+    const open = Math.exp(-((off / 0.085) ** 2));
+    return ring * (1 - open) * (55 + this.global.ridged(x * 0.008, z * 0.008, 4) * 75);
+  }
 
   /** Blended biome ground only (no ridges, passes or edge). */
   private blendedHeight(x: number, z: number): number {

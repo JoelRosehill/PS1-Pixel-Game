@@ -64,6 +64,16 @@ const VIEWS = {
   'world-high': { cam: '0,420,700', look: '0,0,-900', preset: 'cosmic-violet' },
   // Walking out of the hub along the northern valley.
   'hub-exit': { at: '40,6,-560', yaw: 0 },
+  // Job 7 landmark kinds and chapter gates (positions resolved in the page).
+  'lm-bones': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('bones:')); const p = new V(lm.x + 55, L.heightAt(lm.x + 55, lm.z + 40) + 18, lm.z + 40); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 6, lm.z)); L.setViewer(p, true);", holdMs: 300 },
+  'lm-tree': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('great-tree:')); const p = new V(lm.x + 60, L.heightAt(lm.x + 60, lm.z + 50) + 14, lm.z + 50); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 22, lm.z)); L.setViewer(p, true);", holdMs: 300 },
+  'lm-portal': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('portal:')); const p = new V(lm.x + 40, L.heightAt(lm.x + 40, lm.z + 35) + 8, lm.z + 35); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 10, lm.z)); L.setViewer(p, true);", holdMs: 300 },
+  'lm-ruins': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('ruins:')); const p = new V(lm.x + 50, L.heightAt(lm.x + 50, lm.z + 45) + 16, lm.z + 45); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 6, lm.z)); L.setViewer(p, true);", holdMs: 300 },
+  'lm-arch': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('arch:')); const p = new V(lm.x + 60, L.heightAt(lm.x + 60, lm.z + 45) + 12, lm.z + 45); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 12, lm.z)); L.setViewer(p, true);", holdMs: 300 },
+  gate: { cam: '0,20,0', look: '0,20,-10', holdMs: 300,
+    eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const gate = L.gates.gates[0]; const a = gate.pass.azimuth - 0.05; const p = new V(Math.sin(a) * (gate.pass.r - 40), 0, -Math.cos(a) * (gate.pass.r - 40)); p.y = L.heightAt(p.x, p.z) + 6; g.fly.setPose(p, new V(gate.pass.x, L.heightAt(gate.pass.x, gate.pass.z) + 14, gate.pass.z)); L.setViewer(p, true);" },
+  map: { at: '6,2.1,11', yaw: 186, holdMs: 400,
+    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0', 'c8-0']) g.progress.discover(id); g.progress.clear(g.level.encounters.find(e => e.id.startsWith('camp:c1-0')).id); g.worldMap.open();" },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 

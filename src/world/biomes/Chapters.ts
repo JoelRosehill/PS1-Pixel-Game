@@ -1,24 +1,17 @@
 import type { ChapterDef } from '../engine/WorldAtlas';
-import { ARCHETYPES } from './Archetypes';
-import type { BiomeDef } from './BiomeTypes';
-
-const five = (b: BiomeDef): BiomeDef[] => [b, b, b, b, b];
+import { ATLAS } from './Atlas';
 
 /**
  * The eight chapters, clockwise from due north (Pillar 4: 8 chapters × 5 biomes).
- * Job 6 fills each chapter with its anchor archetype; Job 7 replaces these with the
- * full 40-biome atlas of data variants.
+ * Chapters I–V are anchored by the five required archetypes; VI–VIII are expansions
+ * that remix them (ash, frost, and the celestial finale). See `Atlas.ts`.
  */
-export const CHAPTERS: ChapterDef[] = [
-  { index: 1, name: 'The Tranquil Reach', biomes: five(ARCHETYPES.wilderness) },
-  { index: 2, name: 'The Violet Fen', biomes: five(ARCHETYPES.marsh) },
-  { index: 3, name: "The Sunkeepers' Coast", biomes: five(ARCHETYPES.terrace) },
-  { index: 4, name: 'The Crystal Deep', biomes: five(ARCHETYPES.caverns) },
-  { index: 5, name: 'The Bloodstone Wastes', biomes: five(ARCHETYPES.bloodstone) },
-  { index: 6, name: 'The Ashen March', biomes: five(ARCHETYPES.bloodstone) },
-  { index: 7, name: 'The Frozen Choir', biomes: five(ARCHETYPES.caverns) },
-  { index: 8, name: 'The Last Garden', biomes: five(ARCHETYPES.terrace) },
+const NAMES = [
+  'The Tranquil Reach', 'The Violet Fen', "The Sunkeepers' Coast", 'The Crystal Deep',
+  'The Bloodstone Wastes', 'The Ashen March', 'The Frozen Choir', 'The Last Garden',
 ];
+
+export const CHAPTERS: ChapterDef[] = NAMES.map((name, i) => ({ index: i + 1, name, biomes: ATLAS[i] }));
 
 export function roman(n: number): string {
   return ['0', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n] ?? String(n);

@@ -9,6 +9,7 @@ export const ARCHETYPES: Record<Archetype, BiomeDef> = {
     id: 'tranquil-wilderness',
     name: 'Tranquil Wilderness',
     archetype: 'wilderness',
+    landmark: { kind: 'watchtower', color: 0xffa04a, name: 'Wayward Watchtower' },
     sky: 'sunlit-wilderness',
     mood: 'Pine and still water. Here the world still remembers peace.',
     terrain: {
@@ -35,6 +36,7 @@ export const ARCHETYPES: Record<Archetype, BiomeDef> = {
     id: 'violet-marshes',
     name: 'Violet Marshes',
     archetype: 'marsh',
+    landmark: { kind: 'obelisks', color: 0x5affc8, name: 'The Drowned Circle' },
     sky: 'violet-marsh',
     mood: 'The water glows where the dead once walked.',
     terrain: {
@@ -61,6 +63,7 @@ export const ARCHETYPES: Record<Archetype, BiomeDef> = {
     id: 'sunkeepers-terrace',
     name: "Sunkeeper's Terrace",
     archetype: 'terrace',
+    landmark: { kind: 'temple', color: 0xffd36a, name: 'Temple of the Low Sun' },
     sky: 'sunkeeper-dusk',
     mood: 'Marble steps descend into water the colour of dawn.',
     terrain: {
@@ -88,6 +91,7 @@ export const ARCHETYPES: Record<Archetype, BiomeDef> = {
     id: 'crystal-caverns',
     name: 'Crystal Caverns',
     archetype: 'caverns',
+    landmark: { kind: 'crystalHall', color: 0xff7ae0, name: 'The Singing Hall' },
     sky: 'crystal-cavern',
     mood: 'Beneath the stone, the cold sings in pink and blue.',
     terrain: {
@@ -113,6 +117,7 @@ export const ARCHETYPES: Record<Archetype, BiomeDef> = {
     id: 'bloodstone-and-shadow',
     name: 'Bloodstone & Shadow',
     archetype: 'bloodstone',
+    landmark: { kind: 'citadel', color: 0xff2a44, name: 'Citadel of the Red Hour' },
     sky: 'blood-moon',
     mood: 'Red canyons, black spires, and doors that should stay shut.',
     terrain: {
