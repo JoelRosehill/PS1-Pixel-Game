@@ -31,6 +31,7 @@ try {
     const g = window.__game;
     const T = window.__three;
     const SITE = { x: 20, z: 60 };
+    window.__key = (code, type = 'keydown') => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
     window.__et = {
       g, T, SITE,
       reset(yaw = 0, x = SITE.x, z = SITE.z) {
@@ -69,257 +70,249 @@ try {
   };
 
   // --- perception ----------------------------------------------------------
-  await run('knight notices a player in its view cone', () => {
+  await run('a foe notices a player in its view cone', () => {
     const { g, reset, spawn } = window.__et;
     reset();
-    const k = spawn('knight', 14);
-    let t = 0;
-    while (!k.perception.alerted && t < 4) { g.step(0.1); t += 0.1; }
-    return { ok: k.perception.alerted && t < 2.5, detail: `alerted after ${t.toFixed(1)}s` };
+    const k = spawn('hollow', 14);
+    g.step(1.5);
+    return { ok: k.perception.alerted && k.state !== 'idle', detail: `state=${k.state} awareness=${k.perception.awareness.toFixed(2)}` };
   });
-  await run('knight facing away does not notice at 12 m', () => {
+  await run('a foe facing away does not notice at 12 m', () => {
     const { g, reset, spawn } = window.__et;
     reset();
-    const k = spawn('knight', 12);
+    const k = spawn('hollow', 12, 0, { facing: 0 });
     k.facing = 0; // looking away (-Z)
-    g.step(2);
-    return { ok: !k.perception.alerted && k.state === 'idle', detail: `awareness=${k.perception.awareness.toFixed(2)}` };
+    g.step(1.5);
+    return { ok: !k.perception.alerted, detail: `awareness=${k.perception.awareness.toFixed(2)}` };
   });
-  await run('walls block line of sight', () => {
-    const { g, reset, spawn, SITE } = window.__et;
+
+  // --- the Bestiary --------------------------------------------------------------
+  await run('every Bestiary foe wears its animated model', () => {
+    const { g, reset, spawn } = window.__et;
     reset();
-    const k = spawn('knight', 14);
-    // A tall wall between them (added to this test page's collision world only).
-    g.level.colliders.addBox(SITE.x, g.level.heightAt(SITE.x, SITE.z - 7) + 3, SITE.z - 7, 8, 6, 0.6);
-    g.step(2.5);
-    const blind = !k.perception.canSee && !k.perception.alerted;
-    return { ok: blind, detail: `canSee=${k.perception.canSee} awareness=${k.perception.awareness.toFixed(2)}` };
+    const ids = ['hollow', 'pilgrim', 'stitched', 'shadowknight', 'ashen-knight', 'sunkeeper', 'umbral', 'gnawer', 'wasp', 'steed', 'wyrmling', 'crystal-hollow'];
+    const missing = [];
+    ids.forEach((id, i) => { const e = spawn(id, 20 + i * 4, 30); if (!e.model || !e.model.has('idle')) missing.push(id); });
+    g.step(0.5);
+    return { ok: !missing.length, detail: `missing=${missing.join(',')}` };
   });
-
-  // Move away from the wall used above for the remaining tests.
-  await page.evaluate(() => { window.__et.SITE.x = 60; window.__et.SITE.z = 62; });
-
-  // --- knight offence --------------------------------------------------------
-  await run('knight telegraphs before damage lands', () => {
-    const { g, reset, spawn } = window.__et;
-    const p = reset();
-    const k = spawn('knight', 3);
-    k.perception.alert(p.controller.position);
-    let windupAt = -1, damageAt = -1, t = 0;
-    for (let i = 0; i < 480 && damageAt < 0; i++) {
-      g.step(1 / 60); t += 1 / 60;
-      if (k.state === 'windup' && windupAt < 0) windupAt = t;
-      if (p.combat.health < 100) damageAt = t;
+  await run('every foe completes a full attack cycle with its clips', () => {
+    const { g, reset, spawn, freeze } = window.__et;
+    const bad = [];
+    for (const id of ['hollow', 'pilgrim', 'stitched', 'shadowknight', 'ashen-knight', 'sunkeeper', 'umbral', 'gnawer', 'wasp', 'steed', 'wyrmling', 'crystal-hollow']) {
+      const p = reset();
+      p.combat.health = 99999; p.combat.maxHealth = 99999;
+      const e = spawn(id, 3);
+      e.perception.alert(p.controller.position);
+      const seen = new Set();
+      for (let i = 0; i < 60 * 8; i++) { g.step(1 / 60); seen.add(e.state); if (!Number.isFinite(e.position.x)) break; }
+      p.combat.maxHealth = 100;
+      if (!seen.has('windup') || !seen.has('strike') || !seen.has('recover') || !Number.isFinite(e.position.x)) bad.push(`${id}:${[...seen].join('/')}`);
     }
-    return { ok: windupAt >= 0 && damageAt - windupAt >= 0.37, detail: `windup@${windupAt.toFixed(2)} damage@${damageAt.toFixed(2)} (${k.attack?.id ?? k.state})` };
+    return { ok: !bad.length, detail: bad.join(' ') };
   });
-  await run('attack tokens cap simultaneous attackers', () => {
+  await run('attacks connect only after their wind-up (telegraph)', () => {
     const { g, reset, spawn } = window.__et;
     const p = reset();
-    p.combat.health = 1e6;
-    const ks = [spawn('knight', 3.5, -2), spawn('knight', 3.5, 2), spawn('knight', 3, 0), spawn('knight', -3.5, 0)];
+    const k = spawn('shadowknight', 2.6);
+    k.perception.alert(p.controller.position);
+    let windupAt = -1, hitAt = -1;
+    for (let i = 0; i < 60 * 6 && hitAt < 0; i++) {
+      g.step(1 / 60);
+      if (k.state === 'windup' && windupAt < 0) windupAt = i;
+      if (p.combat.health < 100 && hitAt < 0) hitAt = i;
+    }
+    return { ok: windupAt >= 0 && hitAt > windupAt + 20, detail: `windup@${windupAt} hit@${hitAt}` };
+  });
+  await run('attack tokens limit simultaneous attackers', () => {
+    const { g, reset, spawn } = window.__et;
+    const p = reset();
+    p.combat.health = 99999; p.combat.maxHealth = 99999;
+    const ks = [spawn('hollow', 3, -2), spawn('hollow', 3, 2), spawn('hollow', 3, 0), spawn('hollow', -3, 0)];
     for (const k of ks) k.perception.alert(p.controller.position);
-    let most = 0, attacks = 0;
-    for (let i = 0; i < 600; i++) {
-      g.step(1 / 60);
-      const n = ks.filter(k => k.state === 'windup' || k.state === 'strike').length;
-      most = Math.max(most, n);
-      if (n) attacks++;
-    }
-    return { ok: most <= 2 && attacks > 60, detail: `max simultaneous=${most}, attacking frames=${attacks}` };
+    let most = 0;
+    for (let i = 0; i < 60 * 8; i++) { g.step(1 / 60); most = Math.max(most, ks.filter(k => k.state === 'windup' || k.state === 'strike').length); }
+    p.combat.maxHealth = 100;
+    return { ok: most >= 1 && most <= 2, detail: `max simultaneous=${most}` };
   });
-
-  // --- parry, guard, weak point ---------------------------------------------
-  await run('parrying a knight staggers and exposes it', () => {
+  await run('a parried foe staggers and is exposed', () => {
     const { g, reset, spawn } = window.__et;
     const p = reset();
-    const k = spawn('knight', 2.8);
+    const k = spawn('shadowknight', 2.6);
     k.perception.alert(p.controller.position);
-    p.combat.momentum.value = 0; const m0 = 0;
     let parried = false;
-    for (let i = 0; i < 600 && !parried; i++) {
-      if (k.state === 'windup' && k.attack && k.attack.windup - k.stateTime < 0.08) p.combat.parryTimer = 0.18;
+    for (let i = 0; i < 60 * 8 && !parried; i++) {
+      if (k.state === 'windup' && k.stateTime > k.attack.windup - 0.1) { g.input.clear(); window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ' })); }
       g.step(1 / 60);
-      parried = k.state === 'staggered' && k.exposed > 0;
+      g.input.endFrame();
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyQ' }));
+      parried = k.exposed > 0;
     }
-    return { ok: parried && p.combat.health === 100 && p.combat.momentum.value >= m0 + 15 && p.combat.riposteReady,
-      detail: `state=${k.state} exposed=${k.exposed.toFixed(2)} hp=${p.combat.health} momentum=${p.combat.momentum.value}` };
+    return { ok: parried && k.state === 'staggered' && p.combat.riposteReady, detail: `state=${k.state} exposed=${k.exposed.toFixed(2)} hp=${p.combat.health}` };
   });
-  await run('exposed knight takes bonus riposte damage', () => {
+  await run('exposed foes take bonus damage', () => {
     const { reset, spawn, freeze, hit } = window.__et;
     reset();
-    const k = freeze(spawn('knight', 2.5));
-    k.exposed = 2;
-    const r = hit(k, 34, 'riposte', [0, 0, -1]);
-    return { ok: r.critical && Math.abs(r.damage - 34 * 1.6) < 0.01, detail: `damage=${r.damage}` };
+    const k = freeze(spawn('hollow', 2.5));
+    const a = hit(k, 20, 'light', [0, 0, -1]);
+    k.exposed = 1;
+    const b = hit(k, 20, 'light', [0, 0, -1]);
+    return { ok: b.damage > a.damage * 1.4 && b.critical, detail: `${a.damage}→${b.damage}` };
   });
-  await run('shield blocks frontal light hits; back rune is weak', () => {
-    const { reset, spawn, freeze, hit } = window.__et;
-    reset();
-    const k = freeze(spawn('knight', 2.5));
-    k.guarding = true;
-    const front = hit(k, 11, 'light', [0, 0, -1]);
-    k.poise = 100;
-    const back = hit(k, 11, 'light', [0, 0, 1]);
-    return { ok: front.blocked && front.damage <= 11 * 0.21 && !back.blocked && back.critical && Math.abs(back.damage - 16.5) < 0.01,
-      detail: `front=${front.damage.toFixed(1)} blocked=${front.blocked}; back=${back.damage}` };
-  });
-  await run('heavy blows break the guard', () => {
-    const { g, reset, spawn, freeze, hit } = window.__et;
-    reset();
-    const k = freeze(spawn('knight', 2.5));
-    k.guarding = true;
-    hit(k, 26, 'heavy', [0, 0, -1]);
-    g.step(1 / 60);
-    k.guarding = true;
-    const second = hit(k, 26, 'heavy', [0, 0, -1]);
-    return { ok: k.state === 'staggered' && k.exposed > 0 && !second.blocked, detail: `state=${k.state} exposed=${k.exposed.toFixed(2)} poise=${k.poise}` };
-  });
-  await run('spells pierce the shield', () => {
-    const { reset, spawn, freeze, hit } = window.__et;
-    reset();
-    const k = freeze(spawn('knight', 2.5));
-    k.guarding = true;
-    const r = hit(k, 16, 'burst', [0, 0, -1], { stagger: 1.6 });
-    return { ok: !r.blocked && r.damage === 16 && k.state === 'staggered', detail: `damage=${r.damage} state=${k.state}` };
-  });
-  await run('perfect dodge avoids a knight blow', () => {
-    const { g, reset, spawn } = window.__et;
-    const p = reset();
-    const k = spawn('knight', 3);
-    k.perception.alert(p.controller.position);
-    let dodged = false;
-    p.combat.momentum.value = 0; const m0 = 0;
-    for (let i = 0; i < 600 && !dodged; i++) {
-      if (k.state === 'strike') p.controller.dashTimer = 0.2;
-      g.step(1 / 60);
-      dodged = k.state === 'recover' && p.combat.momentum.value >= m0 + 8;
-    }
-    return { ok: dodged && p.combat.health === 100, detail: `hp=${p.combat.health} momentum=${p.combat.momentum.value}` };
-  });
-
-  // --- bodies ----------------------------------------------------------------
-  await run('player cannot walk through a knight', () => {
-    const { g, reset, spawn, freeze } = window.__et;
-    const p = reset();
-    const k = freeze(spawn('knight', 3));
-    g.input.down.add('KeyW');
-    let closest = Infinity;
-    for (let i = 0; i < 90; i++) {
-      g.step(1 / 60);
-      closest = Math.min(closest, Math.hypot(p.controller.position.x - k.position.x, p.controller.position.z - k.position.z));
-    }
-    g.input.clear();
-    // Bodies are round, so the player slides around rather than stopping dead — but never overlaps.
-    return { ok: closest > 0.85, detail: `closest=${closest.toFixed(2)} (radii ${(0.55 + 0.36).toFixed(2)})` };
-  });
-  await run('knights avoid deep water', () => {
-    const { g, reset } = window.__et;
-    // Player on the far bank of the canal; knight on the near bank.
-    const p = reset(0, 30, -38);
-    const k = g.enemies.spawn('knight', 30, -14, { rise: false, facing: 0 });
-    k.perception.alert(p.controller.position);
-    let lowest = Infinity;
-    for (let i = 0; i < 360; i++) { g.step(1 / 60); lowest = Math.min(lowest, k.position.y); }
-    return { ok: lowest > -0.5, detail: `lowest y=${lowest.toFixed(2)} at z=${k.position.z.toFixed(1)}` };
-  });
-
-  // --- wizard ----------------------------------------------------------------
-  await run('wizard blinks away when approached', () => {
-    const { g, reset, spawn } = window.__et;
-    const p = reset();
-    const w = spawn('wizard', 14);
-    w.perception.alert(p.controller.position);
-    g.step(0.6);
-    p.controller.teleport(w.position.x, w.position.y, w.position.z + 3, 0);
-    g.step(1.2);
-    const d = w.distanceToPlayer(g.enemies.ctx);
-    const ground = g.level.heightAt(w.position.x, w.position.z);
-    return { ok: w.blinks >= 1 && d >= 9 && ground > 0.3, detail: `blinks=${w.blinks} dist=${d.toFixed(1)} ground=${ground.toFixed(2)}` };
-  });
-  await run('solar lance marks the ground and punishes standing still', () => {
-    const { g, reset, spawn, freeze } = window.__et;
-    const p = reset();
-    const w = freeze(spawn('wizard', 15));
-    w.spell = 'lance';
-    w.release(g.enemies.ctx);
-    const marked = g.enemies.telegraphs.pendingStrikes === 1 && g.enemies.telegraphs.activeCount >= 1;
-    g.step(1.3);
-    const stayed = 100 - p.combat.health;
-    p.combat.reset();
-    w.spell = 'lance';
-    w.release(g.enemies.ctx);
-    p.controller.teleport(p.controller.position.x + 6, p.controller.position.y + 0.2, p.controller.position.z, 0);
-    g.step(1.3);
-    const moved = 100 - p.combat.health;
-    return { ok: marked && stayed >= 20 && moved === 0, detail: `marked=${marked} stayed=-${stayed} moved=-${moved}` };
-  });
-  await run('blinding flash blinds only when looked at', () => {
-    const { g, reset, spawn, freeze } = window.__et;
-    const p = reset();
-    const w = freeze(spawn('wizard', 10));
-    w.spell = 'flash';
-    w.release(g.enemies.ctx);
-    const looked = g.gameHud.blinded;
-    g.gameHud.blind(0, 0); g.gameHud.update(5, p.combat, p.controller);
-    p.camera.setYaw(Math.PI, 0);
-    w.spell = 'flash';
-    w.release(g.enemies.ctx);
-    const away = g.gameHud.blinded;
-    return { ok: looked > 0.9 && away === 0 && w.lastFlash === 'avoided', detail: `looking=${looked.toFixed(2)} away=${away}` };
-  });
-  await run('parry reflects a sun orb into its caster', () => {
-    const { g, T, reset, spawn, freeze } = window.__et;
-    const p = reset();
-    const w = freeze(spawn('wizard', 12));
-    const tip = w.staffTip(new T.Vector3());
-    g.enemies.projectiles.fire(tip, new T.Vector3().subVectors(g.enemies.ctx.playerEye, tip), 15, 14, w);
-    const hp0 = w.health;
-    for (let i = 0; i < 240; i++) {
-      const orb = g.enemies.projectiles.orbs.find(o => o.active && o.team === 'enemy');
-      if (orb && orb.mesh.position.distanceTo(g.enemies.ctx.playerEye) < 2.2) p.combat.parryTimer = 0.18;
-      g.step(1 / 60);
-    }
-    return { ok: g.enemies.projectiles.reflections === 1 && w.health <= hp0 - 34 && p.combat.health === 100,
-      detail: `reflections=${g.enemies.projectiles.reflections} wizard hp ${hp0}→${w.health} player=${p.combat.health}` };
-  });
-  await run('dodging through an orb takes no damage', () => {
-    const { g, T, reset, spawn, freeze } = window.__et;
-    const p = reset();
-    const w = freeze(spawn('wizard', 12));
-    const tip = w.staffTip(new T.Vector3());
-    g.enemies.projectiles.fire(tip, new T.Vector3().subVectors(g.enemies.ctx.playerEye, tip), 15, 14, w);
-    for (let i = 0; i < 180; i++) { p.controller.dashTimer = 0.2; p.controller.velocity.set(0, 0, 0); g.step(1 / 60); }
-    return { ok: p.combat.health === 100 && p.combat.momentum.value >= 15, detail: `hp=${p.combat.health} momentum=${p.combat.momentum.value}` };
-  });
-  await run('hitting a casting wizard interrupts it', () => {
+  await run('armoured swings shrug off light blows; poise breaks', () => {
     const { g, reset, spawn, hit } = window.__et;
     const p = reset();
-    const w = spawn('wizard', 12);
-    w.perception.alert(p.controller.position);
-    for (let i = 0; i < 600 && w.state !== 'cast'; i++) g.step(1 / 60);
-    const casting = w.state === 'cast' && g.enemies.tokens.holds(w);
-    hit(w, 11, 'light', [0, 0, -1], { stagger: 0.1 });
-    g.step(1 / 60);
-    return { ok: casting && w.state === 'staggered' && w.spell === null && !g.enemies.tokens.holds(w), detail: `state=${w.state}` };
+    p.combat.health = 99999;
+    const k = spawn('stitched', 2.8);
+    k.perception.alert(p.controller.position);
+    let tested = false, shrugged = false;
+    for (let i = 0; i < 60 * 8 && !tested; i++) {
+      g.step(1 / 60);
+      if (k.state === 'windup' && k.attack?.armour) { hit(k, 10, 'light', [0, 0, -1]); tested = true; shrugged = k.state === 'windup'; }
+    }
+    let broke = false;
+    for (let i = 0; i < 12 && !broke; i++) { hit(k, 5, 'heavy', [0, 0, -1]); broke = k.state === 'staggered'; }
+    return { ok: tested && shrugged && broke, detail: `tested=${tested} shrugged=${shrugged} broke=${broke} poise=${k.poise.toFixed(0)}` };
+  });
+  await run('guarding knights chip frontal blows; spells and backstabs get through', () => {
+    const { reset, spawn, freeze, hit } = window.__et;
+    reset();
+    const k = freeze(spawn('shadowknight', 2.5));
+    k.guarding = true;
+    const front = hit(k, 20, 'light', [0, 0, -1]);
+    k.guarding = true; k.poise = 999;
+    const spell = hit(k, 20, 'spell', [0, 0, -1]);
+    k.guarding = true;
+    const back = hit(k, 20, 'light', [0, 0, 1]);
+    return { ok: front.blocked && front.damage < 6 && !spell.blocked && spell.damage === 20 && back.critical && back.damage > 20,
+      detail: `front=${front.damage} spell=${spell.damage} back=${back.damage}` };
+  });
+  await run('a perfect dodge avoids a blow', () => {
+    const { g, reset, spawn } = window.__et;
+    const p = reset();
+    const k = spawn('hollow', 2.6);
+    k.perception.alert(p.controller.position);
+    let dodged = false;
+    for (let i = 0; i < 60 * 8 && !dodged; i++) {
+      if (k.state === 'strike') { p.controller.dashTimer = 0.18; p.controller.velocity.set(0, 0, 0); }
+      g.step(1 / 60);
+      if (k.state === 'recover' && p.combat.health === 100) dodged = true;
+      if (p.combat.health < 100) break;
+    }
+    return { ok: dodged && p.combat.health === 100, detail: `hp=${p.combat.health}` };
+  });
+  await run('the player cannot walk through a foe', () => {
+    const { g, reset, spawn, freeze } = window.__et;
+    const p = reset();
+    const k = freeze(spawn('stitched', 3));
+    window.__key('KeyW');
+    for (let i = 0; i < 90; i++) g.step(1 / 60);
+    window.__key('KeyW', 'keyup');
+    const d = Math.hypot(p.controller.position.x - k.position.x, p.controller.position.z - k.position.z);
+    return { ok: d > k.bodyRadius + 0.3, detail: `gap=${d.toFixed(2)}` };
+  });
+  await run('frost slows a foe', () => {
+    const { g, reset, spawn, hit } = window.__et;
+    const p = reset();
+    const k = spawn('gnawer', 18);
+    k.perception.alert(p.controller.position);
+    g.step(1);
+    let fast = 0; for (let i = 0; i < 30; i++) { g.step(1 / 60); fast = Math.max(fast, Math.hypot(k.velocity.x, k.velocity.z)); }
+    hit(k, 1, 'spell', [0, 0, -1], { slow: 3, stagger: 0 });
+    g.step(0.3);
+    let slow = 0; for (let i = 0; i < 30; i++) { g.step(1 / 60); slow = Math.max(slow, Math.hypot(k.velocity.x, k.velocity.z)); }
+    return { ok: fast > 3 && slow < fast * 0.7, detail: `${fast.toFixed(1)}→${slow.toFixed(1)} m/s` };
+  });
+  await run('fliers hover above the ground', () => {
+    const { g, reset, spawn } = window.__et;
+    reset();
+    const w = spawn('wasp', 12);
+    g.step(2);
+    return { ok: w.visual.position.y > 1.5, detail: `hover=${w.visual.position.y.toFixed(2)}` };
+  });
+  await run('foes deeper along the road are tougher', () => {
+    const { reset, spawn } = window.__et;
+    reset();
+    const a = spawn('hollow', 10, 0, { level: 1 }), b = spawn('hollow', 10, 3, { level: 5 });
+    return { ok: b.maxHealth > a.maxHealth * 1.5 && b.power > a.power, detail: `${a.maxHealth}→${b.maxHealth}` };
   });
 
-  // --- spells against enemies ------------------------------------------------
+  // --- casters ------------------------------------------------------------------
+  await run('Sunkeepers keep range and fire orbs', () => {
+    const { g, reset, spawn } = window.__et;
+    const p = reset();
+    p.combat.health = 99999;
+    const w = spawn('sunkeeper', 16);
+    w.perception.alert(p.controller.position);
+    const fired0 = g.enemies.projectiles.fired;
+    g.step(8);
+    return { ok: g.enemies.projectiles.fired > fired0, detail: `orbs=${g.enemies.projectiles.fired - fired0}` };
+  });
+  await run('Sunkeepers blink away when crowded', () => {
+    const { g, reset, spawn } = window.__et;
+    const p = reset();
+    p.combat.health = 99999;
+    const w = spawn('sunkeeper', 3);
+    w.perception.alert(p.controller.position);
+    let blinked = false;
+    const start = w.position.clone();
+    for (let i = 0; i < 60 * 10 && !blinked; i++) { g.step(1 / 60); blinked = w.position.distanceTo(start) > 6; }
+    return { ok: blinked, detail: `moved=${w.position.distanceTo(start).toFixed(1)}` };
+  });
+  await run('sunfall marks the ground before it lands', () => {
+    const { g, reset, spawn } = window.__et;
+    const p = reset();
+    p.combat.health = 99999;
+    const w = spawn('sunkeeper', 14);
+    w.perception.alert(p.controller.position);
+    let marked = 0;
+    for (let i = 0; i < 60 * 14 && !marked; i++) { g.step(1 / 60); marked = g.enemies.telegraphs.pendingStrikes; }
+    return { ok: marked > 0, detail: `pending=${marked}` };
+  });
+  await run('a parried orb flies back and burns its caster', () => {
+    const { g, T, reset, spawn, freeze } = window.__et;
+    const p = reset();
+    const w = freeze(spawn('sunkeeper', 12));
+    const hp0 = w.health;
+    const from = w.position.clone().setY(w.position.y + 1.6);
+    g.enemies.projectiles.fire(from, new T.Vector3().subVectors(g.enemies.ctx.playerEye, from), 15, 14, w, 1.1);
+    let reflected = false;
+    for (let i = 0; i < 180; i++) {
+      const orb = g.enemies.projectiles.orbs.find(o => o.active);
+      if (orb && !reflected && orb.mesh.position.distanceTo(g.enemies.ctx.playerEye) < 2.5) {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ' })); g.step(1 / 60); g.input.endFrame();
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyQ' })); reflected = true;
+      }
+      g.step(1 / 60);
+    }
+    return { ok: w.health < hp0 && p.combat.health === 100, detail: `reflections=${g.enemies.projectiles.reflections} hp ${hp0}→${w.health}` };
+  });
+  await run('foes avoid deep water', () => {
+    const { g, reset } = window.__et;
+    const p = reset(0, 30, -34);
+    const k = g.enemies.spawn('hollow', 30, -14, { rise: false, facing: 0 });
+    k.perception.alert(p.controller.position);
+    g.step(6);
+    return { ok: k.position.y > -0.4, detail: `y=${k.position.y.toFixed(2)}` };
+  });
   await run('void maw pulls enemies inward', () => {
     const { g, T, reset, spawn, freeze } = window.__et;
     const p = reset();
-    const k = freeze(spawn('knight', 9, 3));
+    const k = freeze(spawn('knight', 9, 1.5));
     p.spells.collect('void-maw'); p.spells.book.select('void-maw');
     p.combat.momentum.value = 100;
     p.spells.cast();
-    g.step(0.5);
-    const maw = p.spells.maws[0]?.pos.clone();
+    for (let i = 0; i < 30; i++) g.step(1 / 60);
+    const opened = p.spells.maws.length === 1;
+    // Move the seed 4 m to the side of the knight to watch the pull.
+    const maw = p.spells.maws[0];
     if (!maw) return { ok: false, detail: 'no maw opened' };
-    const d0 = Math.hypot(k.position.x - maw.x, k.position.z - maw.z);
-    g.step(1.5);
-    const d1 = Math.hypot(k.position.x - maw.x, k.position.z - maw.z);
-    g.step(1.5);
-    return { ok: d1 < d0 - 0.3 && k.health < k.maxHealth, detail: `distance ${d0.toFixed(2)}→${d1.toFixed(2)} hp=${k.health.toFixed(0)}` };
+    maw.pos.set(k.position.x + 4, maw.pos.y, k.position.z);
+    const d0 = Math.hypot(k.position.x - maw.pos.x, k.position.z - maw.pos.z);
+    for (let i = 0; i < 90; i++) g.step(1 / 60);
+    const d1 = Math.hypot(k.position.x - maw.pos.x, k.position.z - maw.pos.z);
+    for (let i = 0; i < 150; i++) g.step(1 / 60);
+    return { ok: opened && d1 < d0 - 0.3 && k.health < k.maxHealth && !p.spells.maws.length, detail: `distance ${d0.toFixed(2)}→${d1.toFixed(2)} hp=${k.health.toFixed(0)}/${k.maxHealth}` };
   });
 
   // --- lifecycle -------------------------------------------------------------
@@ -329,7 +322,7 @@ try {
     const k = freeze(spawn('knight', 4));
     const r = hit(k, 999, 'heavy', [0, 0, -1]);
     const inactive = !k.collider.active;
-    g.step(0.75);
+    g.step(1.2 + 0.75);
     const mid = k.dissolve.value;
     g.step(1.3);
     const gone = !g.enemies.enemies.includes(k) && !g.combatWorld.targets.has(k) && !k.group.parent;

@@ -28,7 +28,7 @@ export class BossArena {
   private walls = false;
 
   constructor(readonly def: BossArenaDef, private readonly colliders: ColliderWorld) {
-    const color = new THREE.Color(def.boss.kind === 'dragon' ? 0xff5a2a : def.boss.kind === 'beast' ? 0xb07cff : 0xc8e8ff);
+    const color = new THREE.Color(def.boss.color ?? (def.boss.kind === 'dragon' ? 0xff5a2a : def.boss.kind === 'beast' ? 0xb07cff : 0xc8e8ff));
     const material = new THREE.ShaderMaterial({
       uniforms: { uTime: sharedUniforms.uWindTime, uColor: { value: color.multiplyScalar(1.5) } },
       transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,

@@ -447,7 +447,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | 11 | Creature Forge — rig and animate the user's models | ✅ |
 | 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ✅ |
 | 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ✅ |
-| 14 | Bestiary — model-based enemies and hard, animated bosses | ⏳ |
+| 14 | Bestiary — model-based enemies and hard, animated bosses | ✅ |
 | 15 | The Long Road — one handcrafted 40-biome journey | ⏳ |
 | 16 | The Story — a specific storyline, characters and beats | ⏳ |
 | 17 | Integration — tests, performance, docs | ⏳ |
@@ -535,3 +535,35 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
       Next Art, Flask; "Return to shrine" moves to K
 - [x] `npm run spelltest` rewritten (50 checks); combat 11, kinetic 19, enemy 26, ui 20,
       save 25, boss 15 updated/passing
+
+## Job 14 — Bestiary ✅
+
+- [x] **The old enemies are gone.** `ShadowKnight` and `SunkeeperWizard` (primitive meshes)
+      are replaced by one data-driven `CreatureEnemy` driven by the **Bestiary**
+      (`Bestiary.ts`): every foe is an animated Creature Forge model holding one of the
+      supplied weapons
+  - Pale Hollow, Crystal Hollow (pale) · Hollow Pilgrim with the sickle · Stitched Brute
+    with the machete · **Shadow Knight** with the long sword and a guard · Ashen Knight
+    with the war axe (nemesis) · **Sunkeeper** caster with orbs, blink and sunfall
+    (wanderer) · Umbral Stalker (demon) · Pale Gnawer (bingus) · Gloom Wasp (bee, flies)
+    · Nightmare Steed (horse) · Wyrmling (small dragon)
+- [x] **Elden Ring rules for normal foes:** readable wind-ups with telegraphs, clips
+      stretched so the blow lands on the animation's hit frame, attack tokens (at most
+      two attackers at once), poise and armour (heavy swings shrug off light blows),
+      guards that chip frontal hits (spells and backstabs get through), parry → stagger →
+      exposed ×1.6, backstab ×1.3, combos, lunges, volleys, breath, blinks, fliers
+- [x] **Level scaling** along the road: health +16 % and damage +10 % per level
+- [x] **Eight real bosses** (`bosses/CreatureBoss.ts` + one file each), all animated,
+      6–10 moves, multi-phase, hard (an idle player dies in 6–20 s):
+  - Morrow the Gravewarden (nemesis, war axe) · Gloomhorn the Drowned Shadow (demon) ·
+    Solenne the Blind Sunkeeper (wanderer under a sun halo) · The Glutton Below (bingus) ·
+    **Vermilion the Red Calamity** — the dragon fights on the ground *and* in the air
+    (takeoff, fireball volleys, burning dive lanes, landing slam), a reflected fireball
+    knocks it down, and its wing tears in the last phase · Sir Caddoc (rider on the horse;
+    dismounts in phase two) · The Hive Queen (flying, summons daughters) · Maelor the
+    Pale Sovereign (three phases, blade combos, moon pillars, chains)
+- [x] Every boss has an arena in its chapter (the world rebuild in Job 15 moves them)
+- [x] Tests: `enemytest` rewritten for the Bestiary (27), `bosstest` for all eight bosses
+      (22: arenas, animation, difficulty, whole movesets per phase, parry, knockdown,
+      gates, finale); combat 11, ui 20, save 25, spell 50, kinetic 19, move 11 passing
+

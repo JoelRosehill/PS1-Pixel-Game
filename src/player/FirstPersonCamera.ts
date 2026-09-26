@@ -85,8 +85,15 @@ export class FirstPersonCamera {
       this.dipVel -= Math.min(4.5, (player.landingSpeed - 3) * 0.16);
       this.kick += Math.min(0.03, player.landingSpeed * 0.0012);
     }
-    this.dipVel += (-this.dip * 170 - this.dipVel * 16) * dt;
-    this.dip += this.dipVel * dt;
+    // Sub-stepped spring: stable at any frame rate (a single large step diverges).
+    const steps = Math.min(30, Math.ceil(dt / (1 / 240)));
+    for (let i = 0; i < steps; i++) {
+      const h = dt / steps;
+      this.dipVel += (-this.dip * 170 - this.dipVel * 16) * h;
+      this.dip += this.dipVel * h;
+    }
+    this.dip = THREE.MathUtils.clamp(this.dip, -0.4, 0.15);
+    if (!Number.isFinite(this.dip)) { this.dip = 0; this.dipVel = 0; }
 
     this.breath += dt;
     const idleBreath = Math.sin(this.breath * 1.7) * 0.006 * (1 - Math.min(1, this.bobAmount));

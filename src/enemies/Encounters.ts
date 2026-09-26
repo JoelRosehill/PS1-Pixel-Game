@@ -2,7 +2,8 @@ import type { Enemy } from './Enemy';
 
 /** One enemy placed by an encounter wave. `y` defaults to the terrain height. */
 export interface SpawnDef {
-  kind: 'knight' | 'wizard';
+  /** A Bestiary id ('hollow', 'umbral', ...); 'knight'/'wizard' map to Shadow Knights/Sunkeepers. */
+  kind: string;
   x: number;
   z: number;
   y?: number;
@@ -25,6 +26,8 @@ export interface EncounterDef {
   /** Vantage points Sunkeeper Wizards blink between: [x, y, z]. */
   perches?: [number, number, number][];
   reward?: { vigour: number; momentum: number };
+  /** Chapter of the road: scales the foes' health and damage. */
+  level?: number;
 }
 
 export type EncounterState = 'dormant' | 'active' | 'cleared';

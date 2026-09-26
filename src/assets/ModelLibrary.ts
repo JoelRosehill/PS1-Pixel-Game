@@ -27,6 +27,8 @@ export interface ModelInstance {
 export class ModelLibrary {
   private readonly loader = new GLTFLoader();
   private readonly cache = new Map<string, Promise<GLTF>>();
+  /** Loads that have finished (for synchronous instancing after `preload`). */
+  private readonly ready = new Map<string, { gltf: GLTF; info: ModelInfo }>();
   private manifestPromise?: Promise<Record<string, ModelInfo>>;
 
   manifest(): Promise<Record<string, ModelInfo>> {
@@ -35,6 +37,17 @@ export class ModelLibrary {
         if (!response.ok) throw new Error(`Model manifest: HTTP ${response.status}`);
         return (await response.json()).models as Record<string, ModelInfo>;
       }).catch(error => { this.manifestPromise = undefined; throw error; });
+  }
+
+  /** Loads models ahead of time so `instantiateSync` can clone them immediately. */
+  async preload(ids: string[]): Promise<void> {
+    await Promise.all(ids.map(id => this.instantiate(id).then(() => undefined, () => undefined)));
+  }
+
+  /** A clone of an already-loaded model, or null (see `preload`). */
+  instantiateSync(id: string, options: { height?: number; size?: number; grounded?: boolean } = {}): ModelInstance | null {
+    const r = this.ready.get(id);
+    return r ? this.build(id, r.gltf, r.info, options) : null;
   }
 
   async instantiate(id: string, options: { height?: number; size?: number; grounded?: boolean; omitPresentation?: boolean } = {}): Promise<ModelInstance> {
@@ -48,6 +61,11 @@ export class ModelLibrary {
       this.cache.set(id, promise);
     }
     const gltf = await promise;
+    this.ready.set(id, { gltf, info });
+    return this.build(id, gltf, info, options);
+  }
+
+  private build(id: string, gltf: GLTF, info: ModelInfo, options: { height?: number; size?: number; grounded?: boolean; omitPresentation?: boolean }): ModelInstance {
     const content = clone(gltf.scene);
     // Keep the source credit badge in the GLB and asset viewer; its presentation
     // billboard is not part of the creature's in-world model. Credits are recorded
