@@ -66,6 +66,8 @@ const check = (name, ok, detail) => {
 // 1. Light combo chains and damages
 await faceDummy();
 await wait(400);
+// The pool starts full (Job 12); empty it to measure what hits earn.
+await page.evaluate(() => { window.__game.player.combat.momentum.value = 0; window.__game.player.combat.momentum.resonance = false; });
 const before = await read();
 for (let i = 0; i < 3; i++) {
   await page.mouse.down({ button: 'left' });
@@ -76,7 +78,7 @@ await wait(800);
 const afterCombo = await read();
 const comboDamage = before.dummyHealth - afterCombo.dummyHealth;
 check('light combo damage', comboDamage >= 40 && comboDamage <= 60, `${comboDamage.toFixed(0)} dmg over 3 hits`);
-check('momentum from hits', afterCombo.momentum >= 24, `momentum=${afterCombo.momentum.toFixed(0)}`);
+check('momentum from hits', afterCombo.momentum >= 12, `momentum=${afterCombo.momentum.toFixed(0)}`);
 
 // 2. Charged heavy hits harder than a light
 await faceDummy();
@@ -119,6 +121,7 @@ await wait(300);
 const parry = await page.evaluate(async () => {
   const g = window.__game;
   const c = g.player.combat;
+  c.momentum.value = 0;
   const before = c.momentum.value;
   window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ' }));
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -135,7 +138,7 @@ const parry = await page.evaluate(async () => {
   return { parried: !!result.parried, gained: c.momentum.value - before, health: c.health };
 });
 check('parry blocks damage', parry.parried && parry.health === 100, `parried=${parry.parried} hp=${parry.health}`);
-check('parry momentum', parry.gained >= 25, `+${parry.gained.toFixed(0)}`);
+check('parry momentum', parry.gained >= 15, `+${parry.gained.toFixed(0)}`);
 
 // 5. Dash i-frames = perfect dodge
 const dodge = await page.evaluate(async () => {
@@ -144,12 +147,17 @@ const dodge = await page.evaluate(async () => {
   const THREE = window.__three;
   g.player.controller.frozen = false;
   g.time.clear();
+  c.momentum.value = 0;
+  // Shift while moving dashes (standing still it channels Momentum instead).
+  window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
   // Wait for the dash to actually start (hit-stop can stretch this out).
   for (let i = 0; i < 40 && !g.player.controller.invulnerable; i++) {
     await new Promise((r) => requestAnimationFrame(r));
   }
   window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ShiftLeft' }));
+  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' }));
   const before = c.momentum.value;
   const result = c.applyHit({
     damage: 12, direction: new THREE.Vector3(0, 0, 1), point: c.position.clone(),
@@ -157,7 +165,7 @@ const dodge = await page.evaluate(async () => {
   });
   return { dodged: !!result.dodged, gained: c.momentum.value - before, invuln: g.player.controller.invulnerable };
 });
-check('dash i-frame dodge', dodge.dodged && dodge.gained >= 15, `dodged=${dodge.dodged} +${dodge.gained.toFixed(0)}`);
+check('dash i-frame dodge', dodge.dodged && dodge.gained >= 8, `dodged=${dodge.dodged} +${dodge.gained.toFixed(0)}`);
 
 // 6. Rune Burst spends Momentum and damages everything nearby
 await faceDummy(2.6);

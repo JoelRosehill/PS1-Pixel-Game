@@ -44,6 +44,9 @@ export class SoundDirector {
     this.audio.play(name, { strength, kind });
   }
 
+  private channelTimer = 0;
+  private channelFull = true;
+
   /** After each fixed step. */
   fixedStep(): void {
     const g = this.game, p = g.player, c = p.controller, combat = p.combat;
@@ -54,7 +57,14 @@ export class SoundDirector {
     if (ev.dashed) this.play('dash');
     if (ev.slid) this.play('slide');
     if (ev.slammed) this.play('slam');
-    else if (ev.landed) this.play('land', 0.7);
+    else if (ev.landed) this.play('land', Math.min(1, 0.4 + c.landingSpeed / 25));
+    if (ev.step) this.play('step', Math.min(1, 0.45 + c.speed / 20));
+    if (combat.channelGain > 0) {
+      this.channelTimer -= 1 / 60;
+      if (this.channelTimer <= 0) { this.channelTimer = 0.32; this.play('channel', combat.momentum.fraction); }
+      if (combat.momentum.value >= combat.momentum.max && !this.channelFull) this.play('channelFull');
+    } else this.channelTimer = 0;
+    this.channelFull = combat.momentum.value >= combat.momentum.max;
 
     if (combat.phase === 'active' && this.phase !== 'active' && combat.attack) {
       const heavy = combat.attack.kind === 'heavy' || combat.attack.arc === 'overhead' || combat.attack.kind === 'plunge';

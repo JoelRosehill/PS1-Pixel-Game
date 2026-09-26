@@ -16,6 +16,8 @@ import { SpellCasting } from '../spells/SpellCasting';
  * Owns the character: controller (fixed 60 Hz), procedural model and first-person camera
  * (both interpolated for the render frame).
  */
+const UP = new THREE.Vector3(0, 1, 0);
+
 export class Player implements GameSystem {
   readonly controller: PlayerController;
   readonly model = new PlayerModel();
@@ -27,6 +29,8 @@ export class Player implements GameSystem {
   private readonly spawnPoint = new THREE.Vector3();
   private spawnFacing = 0;
   private readonly renderPos = new THREE.Vector3();
+  private readonly tmp = new THREE.Vector3();
+  private channelFx = 0;
 
   constructor(
     camera: THREE.PerspectiveCamera,
@@ -89,6 +93,17 @@ export class Player implements GameSystem {
       this.deps.effects.sparkBurst(this.controller.position, new THREE.Vector3(0, 1, 0), 0x8be8ff, 12, 5);
       this.camera.addShake(0.3);
     }
+    // Channelling: motes spiral up from the ground into the open book.
+    if (this.combat.channelGain > 0) {
+      this.channelFx -= dt;
+      if (this.channelFx <= 0) {
+        this.channelFx = 0.22;
+        const full = this.combat.momentum.fraction;
+        this.deps.effects.ring(this.controller.position, full >= 1 ? 0xffd070 : 0xb07cff, 1.6 - full * 0.6, 0.35);
+        this.deps.effects.sparkBurst(this.tmp.copy(this.controller.position).setY(this.controller.position.y + 0.2),
+          UP, full >= 1 ? 0xffd070 : 0xc9a0ff, 6, 3);
+      }
+    } else this.channelFx = 0;
     if (this.controller.position.y < -60) this.respawn();
   }
 
@@ -105,6 +120,6 @@ export class Player implements GameSystem {
       facing: this.controller.facing,
       position: this.renderPos,
     });
-    this.view.update(dt, this.model, this.combat, this.controller, this.camera.motionScale);
+    this.view.update(dt, this.model, this.combat, this.controller, this.camera.motionScale, this.camera);
   }
 }

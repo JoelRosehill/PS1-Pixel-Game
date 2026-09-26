@@ -278,3 +278,23 @@ body {
 #gamehud .save-indicator { position: absolute; left: 24px; top: 20px; display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; color: #ffcf8a; opacity: 0; transition: opacity 0.5s; text-shadow: 1px 1px 0 #100a1d; }
 #gamehud .save-indicator.shown { opacity: 1; }
 #gamehud .save-indicator i { width: 8px; height: 8px; background: #ff8a3a; box-shadow: 0 0 8px #ff6a1a; transform: rotate(45deg); }
+
+/* Job 12: channelling Momentum (hold Shift standing still). */
+#gamehud.channelling .momentum {
+  border-color: #b07cff;
+  animation: channel 0.35s ease-in-out infinite;
+}
+
+#gamehud.channelling .momentum .fill {
+  background: linear-gradient(#f0d8ff, #9a5cff);
+}
+
+@keyframes channel {
+  50% {
+    box-shadow: 0 0 0 2px #0a0414, 0 0 12px rgba(176, 124, 255, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #gamehud.channelling .momentum { animation: none; }
+}

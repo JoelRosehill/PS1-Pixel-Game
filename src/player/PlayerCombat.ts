@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { CombatWorld } from '../combat/CombatWorld';
-import { MOMENTUM_GAINS, Momentum } from '../combat/Momentum';
+import { CHANNEL, MOMENTUM_GAINS, Momentum } from '../combat/Momentum';
 import type { Damageable, HitInfo, HitKind, HitResult } from '../combat/types';
 import type { Input } from '../core/Input';
 import type { TimeControl } from '../core/TimeControl';
@@ -101,6 +101,10 @@ export class PlayerCombat implements Damageable {
   onReset: (() => void) | null = null;
   wardTime = 0;
   wardReduction = 0.5;
+  /** Momentum gained by channelling this step (for effects and sound). */
+  channelGain = 0;
+  /** A hit while channelling locks the channel until Shift is released. */
+  channelBroken = false;
 
   private timer = 0;
   private queued: string | null = null;
@@ -161,7 +165,11 @@ export class PlayerCombat implements Damageable {
 
   fixedUpdate(dt: number): void {
     this.wardTime = Math.max(0, this.wardTime - dt);
-    this.momentum.update(dt);
+    const shiftHeld = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight');
+    if (!shiftHeld) this.channelBroken = false;
+    const channelling = this.alive && this.controller.channelling && !this.channelBroken && (this.phase === 'idle' || this.phase === 'recovery');
+    this.channelGain = this.momentum.update(dt, channelling);
+    if (channelling) this.controller.moveScale = 0;
     this.parryTimer = Math.max(0, this.parryTimer - dt);
     this.riposteTimer = Math.max(0, this.riposteTimer - dt);
     this.sheatheTimer = Math.max(0, this.sheatheTimer - dt);
@@ -447,7 +455,7 @@ export class PlayerCombat implements Damageable {
     // Dash i-frames: a perfect dodge pays Momentum and a slow-motion beat.
     if (this.controller.invulnerable) {
       this.momentum.add(MOMENTUM_GAINS.perfectDodge);
-      this.time.slowMotion(0.35, 0.28);
+      this.time.slowMotion(0.45, 0.18);
       this.effects.number(this.position.clone().addScaledVector(UP, 2.1), '+', 0x7fffd4, 1.2);
       return { hit: false, dodged: true };
     }
@@ -479,6 +487,12 @@ export class PlayerCombat implements Damageable {
     }
 
     let damage = hit.damage * (this.wardTime > 0 ? 1 - this.wardReduction : 1);
+    // Standing still to channel is the gamble: a hit breaks it and lands harder.
+    if (this.momentum.channelTime > 0) {
+      damage *= CHANNEL.exposed;
+      this.momentum.channelTime = 0;
+      this.channelBroken = true;
+    }
     const blocked = this.guarding && fromFront;
     if (blocked) {
       damage *= COMBAT_TUNING.guardReduction;

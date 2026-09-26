@@ -3,6 +3,7 @@ import { toon } from '../render/Materials';
 import type { PlayerCombat } from './PlayerCombat';
 import type { PlayerController } from './PlayerController';
 import type { PlayerModel } from './PlayerModel';
+import type { FirstPersonCamera } from './FirstPersonCamera';
 import { SpellbookModel } from './SpellbookModel';
 
 /** Separate near-field scene: hands never clip into walls or obscure the horizon. */
@@ -18,6 +19,9 @@ export class FirstPersonRig {
   private swingX = 0;
   private swingZ = 0;
   private swingDepth = 0;
+  private swayX = 0;
+  private swayY = 0;
+  private channel = 0;
   constructor() {
     this.scene.name = 'first-person-hands';
     this.scene.add(new THREE.HemisphereLight(0xe1dfff, 0x39274f, 2.4));
@@ -36,7 +40,7 @@ export class FirstPersonRig {
     this.bookHand.add(this.book.root);
     this.book.root.scale.setScalar(0.95);
   }
-  update(dt: number, model: PlayerModel, combat: PlayerCombat, controller: PlayerController, motion: number): void {
+  update(dt: number, model: PlayerModel, combat: PlayerCombat, controller: PlayerController, motion: number, view?: FirstPersonCamera): void {
     if (this.version !== model.weaponVersion) {
       this.weapon.clear();
       const visual = model.cloneSword();
@@ -44,8 +48,15 @@ export class FirstPersonRig {
       this.weapon.add(visual); this.version = model.weaponVersion;
     }
     if (this.book.pageCount !== model.book.pageCount) this.book.setPages(model.book.pageCount, model.book.tier);
-    this.stride += dt * Math.min(controller.speed, 18);
-    const bob = Math.sin(this.stride) * 0.008 * motion * Math.min(1, controller.speed / 9);
+    // Hands follow the camera's stride: a figure-eight that lags the head a little, plus
+    // sway against mouse motion so the weapon feels held rather than glued to the lens.
+    this.stride = view ? view.stride : this.stride + dt * Math.min(controller.speed, 18);
+    const amount = (view ? view.bobAmount : Math.min(1, controller.speed / 9)) * motion;
+    const bob = (Math.abs(Math.cos(this.stride - 0.3)) - 0.6) * 0.03 * amount;
+    const bobSide = Math.sin(this.stride - 0.3) * 0.022 * amount;
+    this.swayX = THREE.MathUtils.damp(this.swayX, THREE.MathUtils.clamp(-(view?.lookDX ?? 0) * 0.0016, -0.06, 0.06) * motion, 10, dt);
+    this.swayY = THREE.MathUtils.damp(this.swayY, THREE.MathUtils.clamp((view?.lookDY ?? 0) * 0.0016, -0.05, 0.05) * motion, 10, dt);
+    this.channel = THREE.MathUtils.damp(this.channel, controller.channelling && !combat.channelBroken ? 1 : 0, 8, dt);
     const c = combat, arc = c.attack?.arc;
     const wind = c.phase === 'windup', active = c.phase === 'active', t = c.phaseT;
     let x = 0, z = -0.18, depth = 0;
@@ -60,14 +71,18 @@ export class FirstPersonRig {
     this.swingZ = THREE.MathUtils.damp(this.swingZ, z, 32, dt);
     this.swingDepth = THREE.MathUtils.damp(this.swingDepth, depth, 32, dt);
     const crouch = controller.sliding ? -0.04 : 0;
-    this.swordHand.position.set(0.38 - Math.max(0, this.swingZ) * 0.17, -0.35 + bob + crouch, -0.65 + this.swingDepth);
-    this.swordHand.rotation.set(this.swingX + 0.08, -0.12, this.swingZ);
-    const open = model.book.openness;
+    const ch = this.channel;
+    this.swordHand.position.set(0.38 - Math.max(0, this.swingZ) * 0.17 + bobSide + this.swayX + ch * 0.06,
+      -0.35 + bob + crouch + this.swayY - ch * 0.12, -0.65 + this.swingDepth);
+    this.swordHand.rotation.set(this.swingX + 0.08 - ch * 0.5, -0.12, this.swingZ + bobSide * 2);
+    // Channelling: the book rises to the chest, open, and trembles with gathered power.
+    const open = Math.max(model.book.openness, ch);
+    const tremble = ch * Math.sin(performance.now() * 0.045) * 0.004;
     this.book.pose(open);
     this.book.root.position.set(0, 0.07, -0.06);
-    this.book.root.rotation.set(0.45 + open * 0.45, 0.1, 0.08);
-    this.bookHand.position.set(-0.4, -0.46 + open * 0.16 - bob, -0.68);
-    this.bookHand.rotation.set(0, 0, -0.08);
+    this.book.root.rotation.set(0.45 + open * 0.45 - ch * 0.25, 0.1, 0.08);
+    this.bookHand.position.set(-0.4 + ch * 0.22 + bobSide * 0.8 + this.swayX, -0.46 + open * 0.16 - bob + ch * 0.1 + this.swayY + tremble, -0.68 + ch * 0.08);
+    this.bookHand.rotation.set(0, ch * 0.3, -0.08 - ch * 0.1);
     this.scene.visible = combat.alive;
   }
 }

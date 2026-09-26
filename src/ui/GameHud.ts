@@ -1,5 +1,5 @@
 import type { PlayerCombat } from '../player/PlayerCombat';
-import type { PlayerController } from '../player/PlayerController';
+import { PLAYER_TUNING, type PlayerController } from '../player/PlayerController';
 
 /**
  * In-game HUD: health, the Momentum Pool (Pillar 2) and dash charges, drawn as chunky
@@ -36,7 +36,7 @@ export class GameHud {
   private showHints = true;
   /** Last value written per element and property: the DOM is only touched on change. */
   private readonly written = new Map<HTMLElement, Record<string, string>>();
-  private keys = { slide: 'Ctrl', jump: 'Space' };
+  private keys = { slide: 'Ctrl', jump: 'Space', dash: 'Shift' };
   /** Called with every title card (audio stinger). */
   onAnnounce: (title: string) => void = () => {};
 
@@ -81,7 +81,7 @@ export class GameHud {
       for (let deg = 0; deg < 360; deg += 15) ticks += `<span class="${names[deg] ? (deg % 90 ? 'mid' : 'card') : ''}">${names[deg] ?? '·'}</span>`;
     this.compassStrip.innerHTML = ticks;
     const pipHolder = container.querySelector('.pips')!;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < PLAYER_TUNING.dashCharges; i++) {
       const pip = document.createElement('div');
       pip.className = 'pip';
       pipHolder.appendChild(pip);
@@ -118,10 +118,10 @@ export class GameHud {
     this.savedTime = 1.8;
   }
 
-  setOptions(o: { hints: boolean; compass: boolean; slideKey?: string; jumpKey?: string }): void {
+  setOptions(o: { hints: boolean; compass: boolean; slideKey?: string; jumpKey?: string; dashKey?: string }): void {
     this.showHints = o.hints;
     this.compass.hidden = !o.compass;
-    this.keys = { slide: o.slideKey ?? 'Ctrl', jump: o.jumpKey ?? 'Space' };
+    this.keys = { slide: o.slideKey ?? 'Ctrl', jump: o.jumpKey ?? 'Space', dash: o.dashKey ?? 'Shift' };
   }
 
   private css(el: HTMLElement, prop: 'width' | 'opacity' | 'transform', value: string): void {
@@ -175,7 +175,9 @@ export class GameHud {
     const m = combat.momentum;
     this.css(this.momentumFill, 'width', `${(m.fraction * 100).toFixed(1)}%`);
     this.root.classList.toggle('resonance', m.resonance);
-    this.text(this.momentumLabel, m.resonance ? 'RESONANCE' : `MOMENTUM ${Math.round(m.value)}`);
+    const channelling = m.channelTime > 0;
+    this.text(this.momentumLabel, channelling ? `CHANNELLING ${Math.round(m.value)}` : m.resonance ? 'RESONANCE' : `MOMENTUM ${Math.round(m.value)}`);
+    this.root.classList.toggle('channelling', channelling);
 
     for (let i = 0; i < this.pips.length; i++) {
       this.pips[i].classList.toggle('spent', i >= controller.dashCharges);
@@ -203,6 +205,7 @@ export class GameHud {
     const k = this.keys;
     this.text(this.movementHint, dead || !this.showHints ? '' : controller.wallRunning ? `WALL RUN ${controller.wallRunRemaining.toFixed(1)}s · ${k.jump.toUpperCase()} kick` :
       controller.slamming ? `SLAM · ${k.jump.toUpperCase()} at impact to rebound` : controller.techniqueTime > 0 ? controller.lastTechnique :
-      `${k.slide} slide → ${k.jump} launch · in air: slam`);
+      m.value < 30 && !channelling ? `Low Momentum · stand still and hold ${k.dash} to channel` :
+      `${k.dash} dash · hold ${k.dash} standing still to channel · ${k.slide} slide`);
   }
 }

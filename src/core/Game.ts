@@ -435,7 +435,7 @@ export class Game {
     cam.invertY = s.invertY;
     cam.baseFov = s.fov;
     cam.motionScale = s.motion ? 1 : 0;
-    this.gameHud.setOptions({ hints: s.hints, compass: s.compass, slideKey: keyName(s.keys.slide), jumpKey: keyName(s.keys.jump) });
+    this.gameHud.setOptions({ hints: s.hints, compass: s.compass, slideKey: keyName(s.keys.slide), jumpKey: keyName(s.keys.jump), dashKey: keyName(s.keys.dash) });
     const debug = this.debugHudOverride ?? s.debugHud;
     if (this.hud.visible !== debug) this.hud.toggle();
     setKeyBindings(s.keys, Object.fromEntries(ACTIONS.map(a => [a.id, a.key])));
