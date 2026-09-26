@@ -7,7 +7,8 @@ import type { AIContext } from './AIContext';
 import type { AttackTokens } from './AttackTokens';
 import { Perception, type PerceptionSpec } from './Perception';
 
-export type EnemyKind = 'knight' | 'wizard' | 'boss';
+/** 'foe': a Bestiary creature (Job 14); 'knight'/'wizard': the old procedural enemies. */
+export type EnemyKind = 'knight' | 'wizard' | 'boss' | 'foe';
 
 /** What a subclass decides about an incoming blow before health changes. */
 export interface Received {
@@ -72,9 +73,13 @@ export abstract class Enemy implements Damageable {
   protected spawnTimer = 0;
   protected spawnDuration = 1.2;
   protected deathTime = 0;
+  /** Seconds a death animation plays before the dissolve starts. */
+  protected deathDelay = 0;
+  /** Colour of spawn/death effects. */
+  fxColor = 0xb07cff;
   private pendingAlert = false;
   private justDied = false;
-  private hitFlash = 0;
+  protected hitFlash = 0;
   private barTimer = 0;
   private readonly flashMaterials: THREE.MeshToonMaterial[] = [];
   protected readonly bar = new THREE.Group();
@@ -260,11 +265,11 @@ export abstract class Enemy implements Damageable {
 
     if (!this.alive) {
       this.deathTime += dt;
-      this.dissolve.value = Math.min(1, this.deathTime / 1.5);
-      this.visual.position.y = -this.deathTime * 0.25;
-      this.visual.rotation.z = Math.min(0.5, this.deathTime * 0.6);
+      const t = this.deathTime - this.deathDelay;
+      this.dissolve.value = Math.max(0, Math.min(1, t / 1.5));
+      this.deathPose(dt, t);
       this.bar.visible = false;
-      if (this.deathTime > 1.7) this.removed = true;
+      if (t > 1.7) this.removed = true;
       this.group.position.copy(this.position);
       return;
     }
@@ -370,6 +375,13 @@ export abstract class Enemy implements Damageable {
   }
 
   // --- subclass hooks ------------------------------------------------------
+
+  /** Per step while dead; `t` is seconds since the dissolve began (negative before). */
+  protected deathPose(dt: number, t: number): void {
+    void dt;
+    this.visual.position.y = -Math.max(0, t) * 0.25;
+    this.visual.rotation.z = Math.min(0.5, Math.max(0, t) * 0.6);
+  }
 
   protected abstract think(dt: number, ctx: AIContext): void;
   protected abstract animate(dt: number, ctx: AIContext): void;

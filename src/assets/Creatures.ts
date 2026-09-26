@@ -117,8 +117,10 @@ export class CreatureModel {
         c = (m as THREE.MeshToonMaterial).clone();
         if (options.tint !== undefined) c.color.multiply(new THREE.Color(options.tint));
         if (options.emissive !== undefined) {
+          // The glow follows the texture (seams, eyes, skin), never a flat silhouette.
           c.emissive.setHex(options.emissive);
           c.emissiveIntensity = options.emissiveIntensity ?? 1;
+          if (c.map && !c.emissiveMap) c.emissiveMap = c.map;
         }
         if (options.dissolve) dissolvable(c, options.dissolve);
         cache.set(m, c);
@@ -203,4 +205,24 @@ export class CreatureModel {
   attach(boneName: string, object: THREE.Object3D): void {
     (this.bone(boneName) ?? this.content).add(object);
   }
+}
+
+/**
+ * Puts a library weapon in a creature's fist: the weapon's longest axis is turned along
+ * the grip socket's forward and the grip sits about a third of the way up the blade.
+ * The container undoes the creature's scale so the weapon keeps its own size.
+ */
+export function gripWeapon(model: CreatureModel, weapon: THREE.Object3D, socket = 'grip.R'): THREE.Object3D | null {
+  if (!model.bone(socket)) return null;
+  const size = new THREE.Box3().setFromObject(weapon).getSize(new THREE.Vector3());
+  if (size.y >= size.x && size.y >= size.z) weapon.rotation.x = Math.PI / 2;
+  else if (size.x >= size.z) weapon.rotation.y = Math.PI / 2;
+  const holder = new THREE.Group();
+  holder.add(weapon);
+  holder.position.z = Math.max(size.x, size.y, size.z) * 0.35;
+  const container = new THREE.Group();
+  container.add(holder);
+  container.scale.setScalar(1 / model.scale);
+  model.attach(socket, container);
+  return container;
 }

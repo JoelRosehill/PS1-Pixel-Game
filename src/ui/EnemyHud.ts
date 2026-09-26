@@ -1,9 +1,8 @@
 import type { Enemy } from '../enemies/Enemy';
-import { KNIGHT_TUNING, ShadowKnight } from '../enemies/ShadowKnight';
+import { CreatureEnemy } from '../enemies/CreatureEnemy';
 
 /**
- * Target frame for the enemy being fought: name, Vigour and — for Shadow Knights —
- * the guard (poise) meter, plus text cues for states that colour alone would hide.
+ * Target frame for the enemy being fought: name, Vigour and the poise meter, plus text cues for states that colour alone would hide.
  */
 export class EnemyHud {
   private readonly root = document.createElement('div');
@@ -42,12 +41,12 @@ export class EnemyHud {
     this.ghostValue = this.ghostValue > f ? Math.max(f, this.ghostValue - dt * 0.6) : f;
     this.fill.style.transform = `scaleX(${f})`;
     this.ghost.style.transform = `scaleX(${this.ghostValue})`;
-    const knight = enemy instanceof ShadowKnight ? enemy : null;
+    const knight = enemy instanceof CreatureEnemy ? enemy : null;
     this.poise.style.display = knight ? '' : 'none';
-    if (knight) this.poiseFill.style.transform = `scaleX(${Math.max(0, knight.poise / KNIGHT_TUNING.poise)})`;
+    if (knight) this.poiseFill.style.transform = `scaleX(${Math.max(0, knight.poise / knight.spec.poise)})`;
     let cue = '';
     if (knight?.exposed) cue = 'EXPOSED · strike now';
-    else if (knight?.guarding) cue = 'GUARDING · heavy or flank';
+    else if (knight?.guarding) cue = 'GUARDING · heavy, spells or flank';
     else if (enemy.state === 'staggered') cue = 'STAGGERED';
     else if (enemy.state === 'cast' || enemy.state === 'windup') cue = 'ATTACKING';
     this.cue.textContent = cue;

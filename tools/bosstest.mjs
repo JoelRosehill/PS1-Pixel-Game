@@ -1,5 +1,6 @@
-// Boss suite (Job 8): arenas, cinematic intro, phases, moves, posture, parry windows,
-// Vermilion's knockdown, jumpable shockwaves, defeat/reset, gates and the finale.
+// Boss suite (Jobs 8, 14): eight animated creature bosses — arenas, cinematic intro,
+// phases, whole movesets, real damage, posture, parry windows, Vermilion's flight and
+// knockdown, jumpable shockwaves, defeat/reset, gates and the finale.
 //
 //   npm run bosstest
 import puppeteer from 'puppeteer-core';
@@ -47,7 +48,7 @@ try {
     try { const r = await page.evaluate(fn); check(name, r.ok, r.detail ?? ''); } catch (e) { check(name, false, e.message); }
   };
 
-  await run('three arenas on level, dry ground in their chapters', () => {
+  await run('eight arenas on level, dry ground in their chapters', () => {
     const L = window.__game.level;
     const out = L.bossArenas.map(a => {
       let spread = 0, lowest = Infinity;
@@ -58,7 +59,7 @@ try {
       }
       return { id: a.boss.id, chapter: L.atlas.chapterAt(a.center.x, a.center.z), want: a.boss.chapter, spread, lowest };
     });
-    return { ok: out.length === 3 && out.every(o => o.chapter === o.want && o.spread < 0.2 && o.lowest > 1), detail: out.map(o => `${o.id}: ch${o.chapter} spread ${o.spread.toFixed(2)}`).join(' | ') };
+    return { ok: out.length === 8 && out.every(o => o.chapter === o.want && o.spread < 0.2 && o.lowest > 1), detail: out.map(o => `${o.id}: ch${o.chapter} spread ${o.spread.toFixed(2)}`).join(' | ') };
   });
   await run('entering an arena plays the intro, then seals the fight', () => {
     const g = window.__game;
@@ -72,7 +73,45 @@ try {
     const wall = g.level.colliders.overlaps(new V(c.x + r, g.level.heightAt(c.x + r, c.z) + 2, c.z), 1);
     return { ok: intro && fight && wall && hurt.damage === 0, detail: `intro=${intro} fight=${fight} wall=${wall} introDamage=${hurt.damage}` };
   });
-  for (const id of ['gloomhorn', 'vermilion', 'sovereign']) {
+  const ALL = ['morrow', 'gloomhorn', 'solenne', 'glutton', 'vermilion', 'caddoc', 'hivequeen', 'sovereign'];
+  await run('every boss is an animated creature', () => {
+    const g = window.__game;
+    const out = [];
+    for (const a of g.level.bossArenas) {
+      const boss = window.__enter(a.boss.id).boss;
+      const t0 = boss.model?.mixer?.time ?? 0;
+      const clips = new Set();
+      for (let i = 0; i < 8 * 60; i++) {
+        g.step(1 / 60);
+        if (g.player.combat.health < 50) g.player.combat.health = 100;
+        const c = boss.model?.current;
+        if (c) clips.add(c);
+      }
+      out.push({ id: a.boss.id, model: !!boss.model, moved: (boss.model?.mixer?.time ?? 0) > t0, clips: clips.size });
+    }
+    return { ok: out.every(o => o.model && o.moved && o.clips >= 3), detail: out.map(o => `${o.id}:${o.model ? o.clips + ' clips' : 'NO MODEL'}`).join(' ') };
+  });
+  await run('bosses are hard: an idle player falls to each within a minute', () => {
+    const g = window.__game;
+    const out = [];
+    for (const id of ['morrow', 'gloomhorn', 'solenne', 'glutton', 'vermilion', 'caddoc', 'hivequeen', 'sovereign']) {
+      const arena = window.__enter(id);
+      const p = g.player;
+      const c = arena.def.center;
+      p.controller.teleport(c.x + 6, g.level.heightAt(c.x + 6, c.z) + 0.2, c.z, 0);
+      let t = 0, biggest = 0, last = p.combat.health;
+      for (; t < 60 * 60 && p.combat.alive; t++) {
+        g.step(1 / 60);
+        biggest = Math.max(biggest, last - p.combat.health);
+        last = p.combat.health;
+      }
+      out.push({ id, dead: !p.combat.alive, s: t / 60, biggest });
+      p.combat.reset();
+      g.step(3);
+    }
+    return { ok: out.every(o => o.dead && o.s < 45), detail: out.map(o => `${o.id}:${o.dead ? o.s.toFixed(0) + 's' : 'SURVIVED'} max ${o.biggest.toFixed(0)}`).join(' ') };
+  });
+  for (const id of ALL) {
     await run(`${id} uses its whole moveset across its phases`, `(() => {
       const g = window.__game;
       const arena = window.__enter('${id}');
@@ -81,9 +120,20 @@ try {
       const thresholds = boss.def.phases;
       for (let k = 0; k <= thresholds.length; k++) {
         if (k > 0) boss.health = boss.maxHealth * (thresholds[k - 1] - 0.02);
-        for (let i = 0; i < 40 * 60; i++) {
+        for (let i = 0; i < 60 * 60; i++) {
+          // Alternate between pressing in close and hanging back so range-bound moves come up.
+          if (i % 360 === 0) {
+            const pc = g.player.controller, c = arena.def.center;
+            const near = (i / 360) % 2 === 0;
+            const a = Math.random() * Math.PI * 2, r = near ? 4 : arena.def.radius * 0.7;
+            const x = near ? boss.position.x + Math.sin(a) * r : c.x + Math.sin(a) * r, z = near ? boss.position.z + Math.cos(a) * r : c.z + Math.cos(a) * r;
+            const off = Math.hypot(x - c.x, z - c.z), lim = arena.def.radius * 0.8;
+            const f = off > lim ? lim / off : 1;
+            const px = c.x + (x - c.x) * f, pz = c.z + (z - c.z) * f;
+            pc.teleport(px, g.level.heightAt(px, pz) + 0.2, pz, 0);
+          }
           g.step(1 / 60);
-          if (g.player.combat.health < 50) g.player.combat.health = 100;
+          g.player.combat.health = 100;
           if (!g.player.combat.alive) break;
           if (boss.state === 'staggered') boss.staggerTimer = 0;
         }
@@ -132,13 +182,13 @@ try {
     const boss = arena.boss;
     const ctx = g.enemies.ctx;
     const p = g.player;
-    // Stand in front, let it wind up its great cleave, parry at the tell.
+    // Stand in front, let it wind up Sever, parry at the tell.
     p.controller.teleport(boss.position.x, boss.position.y + 0.2, boss.position.z + 5, 0);
     boss.facing = Math.PI;
-    boss.startMove('greatCleave', ctx);
+    boss.startMove('sever', ctx);
     let parried = false;
     for (let i = 0; i < 120 && !parried; i++) {
-      if (boss.current && boss.moveTime > 0.62 && boss.moveTime < 0.7) p.combat.parryTimer = 0.18;
+      if (boss.current && boss.moveTime > 0.58 && boss.moveTime < 0.66) p.combat.parryTimer = 0.18;
       g.step(1 / 60);
       parried = boss.state === 'staggered' && boss.exposed > 0;
     }
@@ -150,7 +200,9 @@ try {
     const boss = arena.boss;
     const ctx = g.enemies.ctx;
     const p = g.player;
-    boss.startMove('fireVolley', ctx);
+    boss.airborne = true; boss.collider.active = false;
+    for (let i = 0; i < 90; i++) g.step(1 / 60);
+    boss.startMove('fireballs', ctx);
     const hp0 = boss.health;
     let knocked = false;
     for (let i = 0; i < 360 && !knocked; i++) {

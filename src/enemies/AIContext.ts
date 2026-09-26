@@ -21,7 +21,7 @@ export interface AIContext {
   readonly projectiles: EnemyProjectiles;
   readonly hazards: Hazards;
   /** Raises a regular enemy (bosses summon reinforcements). */
-  spawn(kind: 'knight' | 'wizard', x: number, z: number): void;
+  spawn(kind: string, x: number, z: number): void;
   /** Whites out the player's view (Sunkeeper flash). `strength` 0..1. */
   blind(seconds: number, strength: number): void;
   /** Seconds of simulated time since the director started. */

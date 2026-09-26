@@ -11,15 +11,15 @@ import { AttackTokens } from './AttackTokens';
 import { Enemy } from './Enemy';
 import { EnemyProjectiles } from './EnemyProjectiles';
 import { Encounter, type EncounterDef } from './Encounters';
-import { ShadowKnight } from './ShadowKnight';
-import { SunkeeperWizard } from './SunkeeperWizard';
+import { CreatureEnemy } from './CreatureEnemy';
+import { foeFor } from './Bestiary';
+import type { CreatureLibrary } from '../assets/Creatures';
 import { Telegraphs } from './Telegraphs';
 import { Hazards } from './Hazards';
 import type { ModelLibrary } from '../assets/ModelLibrary';
 import type { Boss } from './bosses/Boss';
 import { BossArena, type BossArenaDef, INTRO_SECONDS } from './bosses/BossArena';
-import { Gloomhorn } from './bosses/Gloomhorn';
-import { Sovereign } from './bosses/Sovereign';
+import { createBoss } from './bosses/Roster';
 import { Vermilion } from './bosses/Vermilion';
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -31,6 +31,8 @@ export interface SpawnOptions {
   encounterId?: string;
   perches?: THREE.Vector3[];
   alert?: boolean;
+  /** Chapter of the road (scales health and damage). */
+  level?: number;
 }
 
 /**
@@ -74,6 +76,7 @@ export class EnemyDirector implements GameSystem {
     encounters?: EncounterDef[];
     blind: (seconds: number, strength: number) => void;
     models?: ModelLibrary;
+    creatures?: CreatureLibrary;
     /** True while the world should hold still (debug fly camera). */
     isPaused?: () => boolean;
   }) {
@@ -91,21 +94,20 @@ export class EnemyDirector implements GameSystem {
 
   // --- spawning ------------------------------------------------------------
 
-  spawn(kind: 'knight' | 'wizard', x: number, z: number, opts: SpawnOptions = {}): Enemy {
-    const enemy = kind === 'knight' ? new ShadowKnight() : new SunkeeperWizard();
+  spawn(kind: string, x: number, z: number, opts: SpawnOptions = {}): Enemy {
+    const enemy = new CreatureEnemy(foeFor(kind), this.deps.creatures ?? null, this.deps.models ?? null, opts.level ?? 1);
     const y = opts.y ?? this.deps.colliders.heightAt(x, z);
     enemy.spawn(x, y, z, opts.facing ?? 0, opts.rise ?? true);
     enemy.tokens = this.tokens;
     enemy.encounterId = opts.encounterId ?? '';
-    if (enemy instanceof SunkeeperWizard && opts.perches) enemy.perches = opts.perches;
     if (opts.alert) enemy.perception.alert(this.deps.player.controller.position);
     this.enemies.push(enemy);
     this.group.add(enemy.group);
     this.deps.combat.register(enemy);
     this.deps.colliders.addBody(enemy.collider);
     if (opts.rise ?? true) {
-      this.deps.effects.ring(enemy.position.clone().setY(y + 0.1), kind === 'knight' ? 0x9a5aff : 0xffd36a, 2.4, 0.9);
-      this.deps.effects.sparkBurst(enemy.position.clone().setY(y + 0.2), UP, kind === 'knight' ? 0xb07cff : 0xffe9a0, 18, 5);
+      this.deps.effects.ring(enemy.position.clone().setY(y + 0.1), enemy.fxColor, 2.4, 0.9);
+      this.deps.effects.sparkBurst(enemy.position.clone().setY(y + 0.2), UP, enemy.fxColor, 18, 5);
     }
     return enemy;
   }
@@ -149,18 +151,17 @@ export class EnemyDirector implements GameSystem {
   }
 
   private spawnBoss(arena: BossArena): Boss {
-    const kind = arena.def.boss.kind;
-    const boss = kind === 'dragon' ? new Vermilion() : kind === 'beast' ? new Gloomhorn() : new Sovereign();
+    const boss = createBoss(arena.def.boss, this.deps.creatures ?? null, this.deps.models ?? null);
     const c = arena.def.center;
     const toPlayer = this.deps.player.controller.position;
     const facing = Math.atan2(-(toPlayer.x - c.x), -(toPlayer.z - c.z));
-    const y = this.deps.colliders.heightAt(c.x, c.z) + (kind === 'dragon' ? 18 : 0);
+    const y = this.deps.colliders.heightAt(c.x, c.z) + (boss.airborne ? boss.altitude : 0);
     boss.spawn(c.x, y, c.z, facing, false);
+    boss.home.y = this.deps.colliders.heightAt(c.x, c.z);
     boss.arena.copy(c);
     boss.arenaRadius = arena.def.radius;
     boss.tokens = this.tokens;
     boss.encounterId = `boss:${arena.id}`;
-    if (this.deps.models && 'loadModel' in boss) (boss as unknown as { loadModel(l: ModelLibrary): void }).loadModel(this.deps.models);
     this.enemies.push(boss);
     this.group.add(boss.group);
     this.deps.combat.register(boss);
@@ -279,12 +280,12 @@ export class EnemyDirector implements GameSystem {
   private onDeath(enemy: Enemy): void {
     this.kills++;
     const chest = enemy.position.clone().addScaledVector(UP, enemy.bodyHeight * 0.6);
-    const color = enemy.kind === 'knight' ? 0xb07cff : 0xffd36a;
+    const color = enemy.fxColor;
     this.deps.effects.sparkBurst(chest, UP, color, 30, 7);
     this.deps.effects.ring(enemy.position.clone().setY(enemy.position.y + 0.1), color, 3, 0.6);
     this.deps.time.slowMotion(0.4, 0.25);
     // Felling a foe feeds the Momentum loop.
-    this.deps.player.combat.momentum.add(enemy.kind === 'knight' ? 15 : enemy.kind === 'boss' ? 100 : 10);
+    this.deps.player.combat.momentum.add(enemy.kind === 'boss' ? 100 : 10);
   }
 
   private updateEncounters(dt: number): void {
@@ -330,7 +331,7 @@ export class EnemyDirector implements GameSystem {
     const perches = (enc.def.perches ?? []).map(([x, y, z]) => new THREE.Vector3(x, y, z));
     for (const s of enc.def.waves[enc.wave]) {
       const facing = s.facing ?? Math.atan2(-(t.x - s.x), -(t.z - s.z));
-      const enemy = this.spawn(s.kind, s.x, s.z, { y: s.y, facing, encounterId: enc.def.id, perches, alert: true });
+      const enemy = this.spawn(s.kind, s.x, s.z, { y: s.y, facing, encounterId: enc.def.id, perches, alert: true, level: enc.def.level });
       enc.enemies.push(enemy);
     }
   }
@@ -350,7 +351,7 @@ export class EnemyDirector implements GameSystem {
     enc.enemies.length = 0;
     const reward = enc.def.reward ?? { vigour: 35, momentum: 30 };
     const combat = this.deps.player.combat;
-    combat.health = Math.min(100, combat.health + reward.vigour);
+    combat.health = Math.min(combat.maxHealth, combat.health + reward.vigour);
     combat.momentum.add(reward.momentum);
     this.onAnnounce('ENCOUNTER CLEARED', enc.def.name);
     this.onCleared(enc);

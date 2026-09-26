@@ -1,3 +1,6 @@
+import { CreatureLibrary } from '../assets/Creatures';
+import { FOE_WEAPONS } from '../enemies/Bestiary';
+import { BOSS_PROPS } from '../enemies/bosses/Roster';
 import { SPELL_PAGES } from '../spells/SpellBook';
 import * as THREE from 'three';
 import { ModelLibrary } from '../assets/ModelLibrary';
@@ -84,6 +87,8 @@ export class Game {
   readonly time = new TimeControl();
   readonly systems: GameSystem[] = [];
   readonly models = new ModelLibrary();
+  /** The animated creatures of the Creature Forge (Job 11), preloaded at start. */
+  readonly creatures = new CreatureLibrary();
   readonly assetsReady: Promise<void>;
   readonly assetErrors: string[] = [];
   readonly pages: PagePickups;
@@ -183,6 +188,7 @@ export class Game {
       encounters: this.level.encounters,
       blind: (seconds, strength) => this.gameHud.blind(seconds, strength),
       models: this.models,
+      creatures: this.creatures,
       isPaused: () => this.flyMode,
     });
     for (const arena of this.level.bossArenas) this.enemies.addArena(arena);
@@ -308,6 +314,9 @@ export class Game {
         .then(asset => this.player.model.setSwordModel(asset.root))
         .catch(error => { this.assetErrors.push(`sword: ${error}`); }),
       this.level.loadAssets?.(this.models).then(errors => this.assetErrors.push(...errors)),
+      this.creatures.preload().then(() => this.assetErrors.push(...this.creatures.errors))
+        .catch(error => { this.assetErrors.push(`creatures: ${error}`); }),
+      this.models.preload([...FOE_WEAPONS, ...BOSS_PROPS]),
     ]);
     for (const error of this.assetErrors) console.warn(`Asset fallback: ${error}`);
   }

@@ -6,10 +6,7 @@ import type { Atmosphere } from '../render/Atmosphere';
 import { Progress } from '../core/Progress';
 import { ChapterGates } from './engine/ChapterGates';
 import type { BossArenaDef } from '../enemies/bosses/BossArena';
-import type { BossDef } from '../enemies/bosses/Boss';
-import { GLOOMHORN } from '../enemies/bosses/Gloomhorn';
-import { SOVEREIGN } from '../enemies/bosses/Sovereign';
-import { VERMILION } from '../enemies/bosses/Vermilion';
+import { BOSSES } from '../enemies/bosses/Roster';
 import { rangeUniforms } from '../render/Materials';
 import { buildBiomeLandmark, type Landmark, type LightAnchor } from './biomes/BiomeLandmarks';
 import { CHAPTERS, roman } from './biomes/Chapters';
@@ -82,12 +79,10 @@ export class World implements Level {
     }
     for (const pass of this.atlas.passes) this.reserved.add(pass.x, pass.z, 45);
     // Boss arenas: the flattest dry ground near a landmark in each boss's chapter.
-    for (const [boss, preferred, radius] of [
-      [GLOOMHORN, ['c2-4', 'c2-3', 'c2-1', 'c2-2', 'c2-0'], 34],
-      [VERMILION, ['c5-0', 'c5-3', 'c5-1', 'c5-2', 'c5-4'], 36],
-      [SOVEREIGN, ['c8-4', 'c8-3', 'c8-1', 'c8-2', 'c8-0'], 34],
-    ] as [BossDef, string[], number][]) {
-      const center = this.findArena(preferred, radius);
+    for (const boss of BOSSES) {
+      const c = boss.chapter;
+      const radius = boss.kind === 'dragon' || boss.kind === 'swarm' ? 38 : 34;
+      const center = this.findArena([4, 3, 1, 2, 0].map(i => `c${c}-${i}`), radius, c === 1 ? 420 : 900);
       this.bossArenas.push({ boss, center, radius });
       this.reserved.add(center.x, center.z, radius + 8);
     }
@@ -137,7 +132,7 @@ export class World implements Level {
   }
 
   /** The flattest dry circle of `radius` near the landmarks of the preferred sites. */
-  private findArena(siteIds: string[], radius: number): THREE.Vector3 {
+  private findArena(siteIds: string[], radius: number, clearOfHub = 900): THREE.Vector3 {
     const h = this.terrain.heightAt;
     let best: { x: number; z: number; score: number } | null = null;
     siteIds.forEach((id, rank) => {
@@ -146,7 +141,7 @@ export class World implements Level {
         for (let k = 0; k < 12; k++) {
           const a = (k / 12) * Math.PI * 2 + ring * 0.01;
           const x = lm.x + Math.sin(a) * ring, z = lm.z + Math.cos(a) * ring;
-          if (this.atlas.boundary(x, z).distance < radius + 60 || Math.hypot(x, z) < 900) continue;
+          if (this.atlas.boundary(x, z).distance < radius + 60 || Math.hypot(x, z) < clearOfHub) continue;
           if (this.reserved.blocked(x, z, radius)) continue;
           const h0 = h(x, z);
           let spread = 0, wet = 0;

@@ -3,7 +3,7 @@ import type { HitInfo } from '../../combat/types';
 import type { AIContext } from '../AIContext';
 import { Enemy, type Received } from '../Enemy';
 
-export type BossKind = 'beast' | 'dragon' | 'sovereign';
+export type BossKind = 'beast' | 'dragon' | 'sovereign' | 'knight' | 'caster' | 'swarm';
 
 export interface BossDef {
   id: string;
@@ -16,6 +16,10 @@ export interface BossDef {
   phases: number[];
   /** Posture: damage it can absorb before breaking into a long stun. */
   poise: number;
+  /** Arena veil and effect colour. */
+  color?: number;
+  /** What the fight feels like, for the title card and the journal. */
+  remembrance?: string;
 }
 
 /** One boss attack, run as a timed script. */
@@ -193,7 +197,7 @@ export abstract class Boss extends Enemy {
     if (this.exposed > 0) { damage *= 1.5; critical = true; }
     if (hit.kind === 'plunge' || hit.kind === 'reflect') { damage *= 1.25; critical = true; }
     // Posture: heavy tools and spells break it; a broken boss collapses for a while.
-    const postureHit = { light: 1, spin: 1.4, thrust: 1.1, sweep: 1.2, heavy: 2.4, plunge: 2.6, riposte: 3, burst: 1.6, reflect: 2.5 }[hit.kind as string] ?? 1;
+    const postureHit = { light: 1, spin: 1.4, thrust: 1.1, sweep: 1.2, heavy: 2.4, plunge: 2.6, riposte: 3, burst: 1.6, reflect: 2.5, wave: 1.2, bolt: 0.4, spell: 1.4 }[hit.kind as string] ?? 1;
     this.posture -= hit.damage * postureHit;
     this.postureDelay = 3;
     if (this.posture <= 0) {
