@@ -109,6 +109,13 @@ Missing pages have location clues in the book. Windstep is the reward at the end
 of the Wayfarer's Trial. Spells have individual recovery times and cannot be cast
 while staggered, dead, charging or in an active sword strike.
 
+## Version
+
+The title screen and menus show the version in the bottom-right corner:
+`v<major>.<minor>.<commits>` — major/minor come from `package.json`, the last number is
+the git commit count, so every commit bumps it automatically. `-dev` means the build has
+uncommitted changes. Raise major/minor in `package.json` for big releases.
+
 ## Sound and settings
 
 The music is generated live: each chapter has its own key, chords and tempo, fights make

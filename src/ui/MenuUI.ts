@@ -25,6 +25,9 @@ export interface MenuHost {
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
+export const VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
+const COMMIT = typeof __APP_COMMIT__ === 'string' ? __APP_COMMIT__ : '';
+
 /**
  * Title screen, pause menu, settings (audio, display, controls with rebinding) and the
  * ending card (Job 10). One native modal dialog pauses the world like the other menus.
@@ -182,6 +185,12 @@ export class MenuUI {
       case 'settings': this.renderSettings(); break;
       case 'ending': this.renderEnding(); break;
     }
+    // Version in the corner of every menu screen (never during play).
+    const version = document.createElement('small');
+    version.className = 'menu-version';
+    version.textContent = VERSION;
+    if (COMMIT) version.title = `Build ${COMMIT}`;
+    this.dialog.append(version);
   }
 
   private renderTitle(): void {
