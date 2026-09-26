@@ -11,6 +11,10 @@ Job 4 adds the physical Living Spellbook, seven discoverable pages and eight
 Momentum-powered spells. Find the first page beside the central Ember Shrine.
 Job 5 adds Shadow Knights and Sunkeeper Wizards. Cross the castle bridge, visit the
 graves by the western chapel, or climb the Sunkeeper ruin north of the castle.
+Job 6 opens the world: follow the northern valley past the ruin toward the Spire
+Citadel to leave The Threshold. Eight chapters of biomes surround it — Tranquil
+Wilderness, Violet Marshes, Sunkeeper's Terrace, Crystal Caverns and Bloodstone &
+Shadow among them — each with landmarks and enemy camps.
 
 ## Run it
 
@@ -31,6 +35,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run spelltest` | Spell effects, collisions, pickups, book growth and keyboard/menu checks |
 | `npm run kinetictest` | First-person camera and kinetic movement (wall-run, slam, rebound) |
 | `npm run enemytest` | Deterministic enemy AI, combat rules and encounter checks |
+| `npm run worldtest` | World layout, terrain/prop streaming, biome moods and camps |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -55,7 +60,8 @@ npm run dev        # open http://localhost:5173 and click to explore
 | R | Respawn |
 | V | Debug fly camera (then WASD · Shift fast · Space/C up-down · G walk) |
 | F6 | Toggle camera motion (FOV kick, wall-run roll, shake) |
-| 1–4 | Sky presets: Cosmic Violet, Crimson Vigil, Sunlit Wilderness, Verdigris Mist |
+| 1–4 | Debug sky presets: Cosmic Violet, Crimson Vigil, Sunlit Wilderness, Verdigris Mist |
+| 0 | Return the sky to the biomes (after a 1–4 preset) |
 | F1 | Render mode: Smart-Pixel / Flat HD / Global pixel filter (comparison) |
 | F2 | Colour-code the depth bands |
 | F3 · F4 | Toggle pixel outlines · palette quantisation |

@@ -20,8 +20,8 @@ that mention a chase camera or third person describe the state at the time.
 | 3.5 | Blender Asset Pipeline & Hero Models | 1, 5 | ✅ Done |
 | 4 | The Living Spellbook | 3 | ✅ Done |
 | 5 | Enemy Ecology I: Shadow Knights & Sunkeeper Wizards | 5 | ✅ Done |
-| 6 | World Engine & Biome Framework (5 archetypes) | 1, 4 | ⏳ Next |
-| 7 | The 40-Biome Atlas & Chapter Structure | 4 | — |
+| 6 | World Engine & Biome Framework (5 archetypes) | 1, 4 | ✅ Done |
+| 7 | The 40-Biome Atlas & Chapter Structure | 4 | ⏳ Next |
 | 8 | Colossal Bosses & Dragon-kin | 5 | — |
 | 9 | Narrative, Rest Shrines & Save System | 4 | — |
 | 10 | Audio, UI, Bloom & Polish Pass | all | — |
@@ -217,12 +217,57 @@ hitboxes. The procedural player and its future book are unchanged.
 - Enemy count is small by design (≤ ~8 live). Each knight is ~18 meshes, wizard ~11,
   drawn once per depth band.
 
-## Job 6 — World Engine & Biome Framework
-- Biome definition data (terrain gen, palette, sky preset, props, fauna, mood)
-- Chunk streaming with LOD matched to the Smart-Pixel bands
-- Sky/fog blends smoothly at biome borders
-- Fully built: Violet Marshes, Sunkeeper's Terrace, Crystal Caverns,
-  Tranquil Wilderness, Bloodstone & Shadow
+## Job 6 — World Engine & Biome Framework ✅
+- [x] **Biome definitions as data** (`src/world/biomes/BiomeTypes.ts`): terrain shape
+      (base, hills, ridged mountains, domain warp, lakes, terraces, craters, canyons),
+      palette (elevation bands, shore, rock strata, accents, peaks), props with density /
+      slope / height / clumping / tint / far flag, fauna (camp density, Knight/Wizard mix,
+      wave sizes), sky preset, ambient motes and a mood line
+- [x] **World layout** (`WorldAtlas`): The Threshold hub at the centre (untouched inside
+      380 m), eight 45° chapter sectors clockwise from north, five biome sites each (40),
+      soft-Voronoi blend weights, jagged ridges between chapters with one pass per
+      consecutive pair (VIII→I sealed), world-edge mountains at 4.1–4.75 km
+- [x] **Analytic ground** (`WorldTerrain`): per-biome height and colour blended across
+      borders, ridges, walkable pass ramps, the hub blended in 380–600 m; one function
+      serves rendering, collision and AI
+- [x] **Quadtree terrain streaming** (`TerrainStreamer`): 32×32 tiles from 36 m leaves
+      (1.1 m spacing) to 1.15 km tiles; vertex spacing ≈ distance/30, i.e. a few screen
+      pixels per vertex in every Smart-Pixel band. Split/merge only when replacements are
+      built (no holes), skirts, 4 ms/frame build budget, LRU cache, instant prewarm
+- [x] **Prop streaming** (`PropStreamer`, `PropLibrary`): near ring (grass, flowers, reeds
+      ≤ 96 m), mid ring (trees, rocks, crystals, ruins ≤ 280 m, colliders within 210 m in
+      removable collider groups), far ring (280–1500 m, simplified silhouettes). Mid/far
+      hand off at exactly 280 m in the shader, so nothing is drawn twice. 15 prop kinds
+- [x] **Biome mood:** `Atmosphere.setWeights` blends sky presets by the biome mix at the
+      viewer and eases toward it; three new presets (Violet Marshes, Sunkeeper's Dusk,
+      Crystal Caverns); per-biome motes (fireflies, spores, gold dust, snow, embers);
+      region title cards; 0 returns the sky to the biomes after a 1–4 debug preset
+- [x] **Fully built archetypes**, each with a signature landmark per site:
+      Tranquil Wilderness (pines, lakes, meadows · Wayward Watchtower), Violet Marshes
+      (glowing pools, reeds, mushrooms, dead trees · the Drowned Circle), Sunkeeper's
+      Terrace (stepped lawns over turquoise pools, columns, blossom trees · Temple of the
+      Low Sun), Crystal Caverns (ice basin under a rock roof with an oculus, crystals,
+      ice spikes · the Singing Hall), Bloodstone & Shadow (red canyons, spires, bones ·
+      a scaled Citadel of the Red Hour with a blood portal)
+- [x] **Fauna:** 47 generated enemy camps (at least one per site) on dry ground away from
+      ridges and landmarks, with biome-weighted waves and dressing
+- [x] The hub's Spire Citadel is now a real place: twice as far and twice as large (still
+      against the moon from spawn), solid, 1.5 km north in Chapter I
+- [x] `npm run worldtest`: 19 checks (layout, hub preservation, border continuity, ridges
+      and passes, archetype signatures, tile coverage/LOD, budgets, prop colliders, sky,
+      crossfade, titles, camps, walking out of the hub)
+
+**Notes for Job 7:**
+- `CHAPTERS` in `src/world/biomes/Chapters.ts` currently repeats each anchor archetype five
+  times (chapters VI–VIII reuse archetypes). Job 7 replaces it with 40 distinct variants —
+  derive them from `ARCHETYPES` by overriding terrain/palette/props/fauna/sky fields.
+- Site slots and pass radii live in `WorldAtlas` (`SLOTS`, `PASS_RADII`). Gates for chapter
+  gating belong at `atlas.passes` (45 m around each pass is already reserved from props).
+- Landmarks are one builder per archetype (`BiomeLandmarks.ts`); the landmark generator
+  should add variety per site (citadels, portals, ruins, colossal bones).
+- Only three point lights exist for landmarks (`World.assignLights`); keep new lights as
+  anchors, never scene lights.
+- Enemy camps are generated at load; encounters are keyed by `camp:<site>:<n>` for saves.
 
 ## Job 7 — The 40-Biome Atlas
 - 8 chapters × 5 biomes, each a data-driven variant with its own landmarks

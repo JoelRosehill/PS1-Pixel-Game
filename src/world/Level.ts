@@ -18,6 +18,12 @@ export interface Level {
   /** Enemy encounters (Job 5): trigger circles that raise Shadow Knights and Sunkeepers. */
   readonly encounters?: EncounterDef[];
   loadAssets?(library: ModelLibrary): Promise<string[]>;
+  /** Streamed levels (Job 6): the camera position; `instant` builds everything now. */
+  setViewer?(position: THREE.Vector3, instant?: boolean): void;
+  /** When true, the level drives the sky from the biomes around the viewer. */
+  readonly biomeDriven?: boolean;
+  /** Region title hook for streamed levels. */
+  onRegion?: (title: string, subtitle: string) => void;
   heightAt(x: number, z: number): number;
   update(dt: number, elapsed: number): void;
 }

@@ -17,7 +17,8 @@
     "assettest": "node tools/assettest.mjs",
     "spelltest": "node tools/spelltest.mjs",
     "kinetictest": "node tools/kinetictest.mjs",
-    "enemytest": "node tools/enemytest.mjs"
+    "enemytest": "node tools/enemytest.mjs",
+    "worldtest": "node tools/worldtest.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

@@ -5,13 +5,13 @@ import { DebugHud } from '../debug/DebugHud';
 import { FlyCamera } from '../debug/FlyCamera';
 import { Atmosphere } from '../render/Atmosphere';
 import { sharedUniforms } from '../render/Materials';
-import { SKY_PRESETS, getSkyPreset } from '../render/sky/SkyPresets';
+import { DEBUG_PRESETS, getSkyPreset } from '../render/sky/SkyPresets';
 import { Effects } from '../render/effects/Effects';
 import { PIXEL_MODES, SmartPixelRenderer } from '../render/SmartPixelRenderer';
 import { GameHud } from '../ui/GameHud';
 import { Player } from '../player/Player';
 import type { Level } from '../world/Level';
-import { ProvingGrounds } from '../world/ProvingGrounds';
+import { World } from '../world/World';
 import { Input } from './Input';
 import { TimeControl } from './TimeControl';
 import { PagePickups } from '../spells/PagePickups';
@@ -46,7 +46,7 @@ const FIXED_DT = 1 / 60;
 
 export class Game {
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(62, 1, 0.1, 4000);
+  readonly camera = new THREE.PerspectiveCamera(62, 1, 0.1, 9000);
   readonly input: Input;
   readonly atmosphere: Atmosphere;
   readonly pixel: SmartPixelRenderer;
@@ -94,8 +94,11 @@ export class Game {
     this.input = new Input(this.pixel.renderer.domElement);
     this.hud = new DebugHud(hudEl);
 
-    this.level = new ProvingGrounds(this.atmosphere);
-    if (!opts.preset) this.atmosphere.setPreset(this.level.skyPreset, 0);
+    this.level = new World(this.atmosphere);
+    if (!opts.preset) {
+      this.atmosphere.setPreset(this.level.skyPreset, 0);
+      this.atmosphere.biomeDriven = !!this.level.biomeDriven;
+    }
     this.scene.add(this.level.root, this.atmosphere.group);
 
     this.player = new Player(this.camera, this.input, this.level.colliders, this.level.spawn, {
@@ -121,6 +124,7 @@ export class Game {
       blind: (seconds, strength) => this.gameHud.blind(seconds, strength),
     });
     this.enemies.onAnnounce = (title, subtitle) => this.gameHud.announce(title, subtitle);
+    this.level.onRegion = (title, subtitle) => this.gameHud.announce(title, subtitle);
     this.systems.push(this.enemies);
     this.scene.add(this.enemies.group);
     this.enemyHud = new EnemyHud(gameHudEl);
@@ -144,6 +148,8 @@ export class Game {
     }
     this.frozenTime = opts.time;
     this.renderEnabled = opts.render ?? true;
+    // Build the streamed world around the first viewpoint before the first frame.
+    this.level.setViewer?.(opts.camera ? opts.camera.position : this.player.controller.position, true);
     this.assetsReady = this.loadAssets();
 
     window.addEventListener('resize', () => this.pixel.resize());
@@ -186,6 +192,7 @@ export class Game {
     for (const s of this.systems) s.update?.(dt, alpha);
 
     if (this.flyMode) this.fly.update(dt);
+    this.level.setViewer?.(this.camera.position);
     this.level.update(dt, this.elapsed);
     sharedUniforms.uWindTime.value = this.elapsed;
     this.atmosphere.setFocus(
@@ -269,8 +276,10 @@ export class Game {
     if (inp.pressed('KeyH')) this.hud.toggle();
     if (inp.pressed('KeyV')) this.setFlyMode(!this.flyMode);
     if (inp.pressed('KeyR') && !this.flyMode) this.player.respawn();
-    SKY_PRESETS.forEach((p, i) => {
+    DEBUG_PRESETS.forEach((p, i) => {
       if (inp.pressed(`Digit${i + 1}`)) this.atmosphere.setPreset(p.id, 2);
     });
+    // 0 hands the sky back to the biomes after a debug preset.
+    if (inp.pressed('Digit0')) this.atmosphere.biomeDriven = true;
   }
 }

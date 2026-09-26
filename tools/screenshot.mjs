@@ -55,6 +55,15 @@ const VIEWS = {
     eval: "const g = window.__game; for (const [x, y, z] of g.level.encounters[2].perches) g.enemies.spawn('wizard', x, z, { y, rise: false, facing: 0.9 });" },
   'wizard-cast': { at: '22,2.2,-76', yaw: 0, preset: 'blood-moon', holdMs: 400,
     eval: "const g = window.__game; g.manual = true; const [x, y, z] = g.level.encounters[2].perches[3]; const w = g.enemies.spawn('wizard', 22, -86, { rise: false, facing: 0 }); w.perception.alert(g.player.controller.position); w.think = () => {}; w.spell = 'flash'; w.state = 'cast'; w.stateTime = 0.85; g.step(1 / 60); const pp = g.player.controller.position.clone(); pp.x += 2.5; pp.z -= 3; pp.y = g.level.heightAt(pp.x, pp.z); g.enemies.telegraphs.circle(pp, 3.2, 30, 0xffd36a); g.enemies.telegraphs.update(0.6, 1); g.enemies.projectiles.fire(w.staffTip(new window.__three.Vector3()), new window.__three.Vector3(0.1, -0.15, 1), 0, 14, w, 0); g.gameHud.announce('SUNKEEPER WATCH', '2 waves'); g.player.camera.setYaw(0, 0.12);" },
+  // Biomes (Job 6): fly-camera views of each archetype's anchor site.
+  wilderness: { cam: '-45,26,-990', look: '15,14,-1056' },
+  marsh: { cam: '650,14,-610', look: '708,6,-670' },
+  terrace: { cam: '960,20,95', look: '1018,10,40' },
+  caverns: { cam: '560,14,560', look: '659,30,653' },
+  bloodstone: { cam: '-110,70,1030', look: '-30,60,1139' },
+  'world-high': { cam: '0,420,700', look: '0,0,-900', preset: 'cosmic-violet' },
+  // Walking out of the hub along the northern valley.
+  'hub-exit': { at: '40,6,-560', yaw: 0 },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 
