@@ -420,3 +420,63 @@ hitboxes. The procedural player and its future book are unchanged.
 - The score is data (`MOODS` in `Music.ts`); new areas can add moods or intensities.
 - Possible next steps: controller support, positional (panned) enemy audio, more boss
   music variety, localisation of the lore.
+
+---
+
+# Part II — The Remake (Jobs 11–17)
+
+After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
+
+- **Enemies look bad.** Use the PS1 creature models they supplied, **animated in Blender**.
+  Bosses must be real, moving, **hard** creatures — no statues, no frozen dragon.
+- **A specific storyline**, long, told Elden Ring style.
+- **Movement and combat feel shallow:** no view bob; the dash is liked but unbalanced.
+  They want **lots of ranged attacks** — the sword is for short range but should also
+  have ranged swings and abilities; the spellbook looks fine but its spells are weak.
+- **Momentum:** spells must always be available. Momentum is charged by **holding Shift
+  while standing still** — easy on your own, risky in a fight.
+- **Difficulty:** Elden Ring style — normal enemies average, bosses hard.
+- **The map is random.** They want one long, specific journey through **40 biomes**,
+  huge walking distances, majestic Elden-Ring landscapes and huge structures, with their
+  supplied structures placed **properly on the ground, in the biomes they belong to**.
+  Nothing piled up at spawn (no floating church, parkour course or statues).
+- **Keep:** the forest, the stars and the sky.
+
+| Job | Title | Status |
+|---|---|---|
+| 11 | Creature Forge — rig and animate the user's models | ✅ |
+| 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ⏳ |
+| 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ⏳ |
+| 14 | Bestiary — model-based enemies and hard, animated bosses | ⏳ |
+| 15 | The Long Road — one handcrafted 40-biome journey | ⏳ |
+| 16 | The Story — a specific storyline, characters and beats | ⏳ |
+| 17 | Integration — tests, performance, docs | ⏳ |
+
+## Job 11 — Creature Forge ✅
+
+- [x] Blender (`bpy` 4.2) pipeline in `tools/creatures/`: `forge.py` (normalise to metres,
+      facing −Y → three.js +Z, canonical bone names, distance skinning with side/limb
+      rules, IK re-posing, pose-as-rest, clip baking, export), `humanoid.py`,
+      `quadruped.py`, `dragon.py` clip libraries, `build.py` per-creature builders,
+      `strip.mjs` (drops still channels, prunes), `preview.py` (contact sheets)
+- [x] **Nine animated creatures** in `public/models/creatures/` (3.4 MB total):
+  - `nemesis` (Valve rig) — brutes, Shadow Knights, the Gravewarden · 21 clips
+  - `pale` (HumanIK rig, T-pose lowered) — blade-armed Hollows · 21 clips
+  - `demon` (rigged from scratch, IK'd out of its lunge) — Umbral Stalkers, Gloomhorn · 21 clips
+  - `wanderer` (rigged from scratch) — Oswin the Wanderer, Sunkeeper casters · 21 clips
+  - `bingus` (quadruped rig) — Pale Gnawers, the Glutton Below · 12 clips
+  - `horse` (source rig, stretch scale removed) — Nightmare Steeds, Sir Caddoc's mount · 12 clips
+  - `bee` (rigged, flapping wings) — Gloom Wasps, the Hive Queen · 8 clips
+  - `chicken` (rigged) — livestock · 5 clips
+  - `dragon` (source rig; IK targets re-parented to FK) — Vermilion: fly, glide, hover,
+    dive, breath (air/ground), bite, claw, tail sweep, wing buffet, roar, takeoff, land,
+    hit, stagger, death · 19 clips. (The source's 10 "animations" were single frozen poses.)
+- [x] Sockets for the game: `grip.R/L`, `mouth`, `stinger`, `saddle`, `head`
+- [x] `creatures.json`: clip lengths, loop flags and `hit` events for AI timing
+- [x] Runtime `src/assets/Creatures.ts`: `CreatureLibrary` (preload, per-instance
+      materials with tint/emissive/dissolve), `CreatureModel` (cross-fades, stretched
+      one-shots, sockets, hit flash, attachments)
+- [x] `tools/creature-preview.html` review page; `npm run creaturetest` (63 checks)
+
+**Rebuild:** `pip install bpy==4.2.0` (Python 3.11), then
+`python tools/creatures/build.py -- all` and `node tools/creatures/strip.mjs`.

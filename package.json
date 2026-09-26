@@ -24,12 +24,16 @@
     "savetest": "node tools/savetest.mjs",
     "uitest": "node tools/uitest.mjs",
     "buildtest": "node tools/buildtest.mjs",
-    "perf": "node tools/perf.mjs"
+    "perf": "node tools/perf.mjs",
+    "creaturetest": "node tools/creaturetest.mjs",
+    "creatures:build": "echo \"python tools/creatures/build.py -- all (Blender bpy), then node tools/creatures/strip.mjs\""
   },
   "dependencies": {
     "three": "^0.186.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@types/three": "^0.186.0",
     "gltf-validator": "^2.0.0-dev.3.10",
     "puppeteer-core": "^25.11.0",

@@ -1,0 +1,895 @@
+{
+ "bee": {
+  "bytes": 49484,
+  "clips": {
+   "attack_sting": {
+    "events": {
+     "hit": 0.48
+    },
+    "loop": false,
+    "seconds": 1
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.4
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.4
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.6
+   },
+   "roar": {
+    "events": {
+     "hit": 0.4
+    },
+    "loop": false,
+    "seconds": 1.2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.6
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.6
+   }
+  },
+  "height": 0.64,
+  "url": "models/creatures/bee.glb"
+ },
+ "bingus": {
+  "bytes": 218136,
+  "clips": {
+   "attack_bite": {
+    "events": {
+     "hit": 0.45
+    },
+    "loop": false,
+    "seconds": 0.99
+   },
+   "attack_pounce": {
+    "events": {
+     "hit": 0.855
+    },
+    "loop": false,
+    "seconds": 1.53
+   },
+   "attack_stomp": {
+    "events": {
+     "hit": 0.648
+    },
+    "loop": false,
+    "seconds": 1.305
+   },
+   "attack_swipe": {
+    "events": {
+     "hit": 0.45
+    },
+    "loop": false,
+    "seconds": 1.035
+   },
+   "attack_swipe_r": {
+    "events": {
+     "hit": 0.45
+    },
+    "loop": false,
+    "seconds": 1.035
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.34
+   },
+   "roar": {
+    "events": {
+     "hit": 0.5
+    },
+    "loop": false,
+    "seconds": 2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.558
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.26
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.99
+   }
+  },
+  "height": 1.3,
+  "url": "models/creatures/bingus.glb"
+ },
+ "chicken": {
+  "bytes": 65332,
+  "clips": {
+   "attack_peck": {
+    "events": {
+     "hit": 0.25
+    },
+    "loop": false,
+    "seconds": 0.9
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.3
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.6
+   }
+  },
+  "height": 0.5,
+  "url": "models/creatures/chicken.glb"
+ },
+ "demon": {
+  "bytes": 728708,
+  "clips": {
+   "attack_backslash": {
+    "events": {
+     "hit": 0.437
+    },
+    "loop": false,
+    "seconds": 1.14
+   },
+   "attack_combo": {
+    "events": {
+     "hit": 0.418
+    },
+    "loop": false,
+    "seconds": 1.995
+   },
+   "attack_leap": {
+    "events": {
+     "hit": 0.997
+    },
+    "loop": false,
+    "seconds": 1.9
+   },
+   "attack_overhead": {
+    "events": {
+     "hit": 0.665
+    },
+    "loop": false,
+    "seconds": 1.52
+   },
+   "attack_slash": {
+    "events": {
+     "hit": 0.475
+    },
+    "loop": false,
+    "seconds": 1.1875
+   },
+   "attack_sweep": {
+    "events": {
+     "hit": 0.522
+    },
+    "loop": false,
+    "seconds": 1.235
+   },
+   "attack_thrust": {
+    "events": {
+     "hit": 0.418
+    },
+    "loop": false,
+    "seconds": 1.045
+   },
+   "block": {
+    "events": {},
+    "loop": true,
+    "seconds": 1
+   },
+   "cast": {
+    "events": {
+     "hit": 0.627
+    },
+    "loop": false,
+    "seconds": 1.2825
+   },
+   "cast_loop": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.2
+   },
+   "cast_sky": {
+    "events": {
+     "hit": 0.76
+    },
+    "loop": false,
+    "seconds": 1.425
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "dodge": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.28
+   },
+   "kneel": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "roar": {
+    "events": {
+     "hit": 0.85
+    },
+    "loop": false,
+    "seconds": 2.2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.7128
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.33
+   },
+   "talk": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.0863
+   }
+  },
+  "height": 2.4,
+  "url": "models/creatures/demon.glb"
+ },
+ "dragon": {
+  "bytes": 1167112,
+  "clips": {
+   "attack_bite": {
+    "events": {
+     "hit": 0.56
+    },
+    "loop": false,
+    "seconds": 1.3
+   },
+   "attack_buffet": {
+    "events": {
+     "hit": 0.8
+    },
+    "loop": false,
+    "seconds": 1.7
+   },
+   "attack_claw": {
+    "events": {
+     "hit": 0.6
+    },
+    "loop": false,
+    "seconds": 1.35
+   },
+   "attack_tail": {
+    "events": {
+     "hit": 0.72
+    },
+    "loop": false,
+    "seconds": 1.7
+   },
+   "breath": {
+    "events": {
+     "end": 2.4,
+     "hit": 0.85
+    },
+    "loop": false,
+    "seconds": 2.9
+   },
+   "breath_air": {
+    "events": {
+     "end": 2.3,
+     "hit": 0.7
+    },
+    "loop": false,
+    "seconds": 2.7
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 3
+   },
+   "dive": {
+    "events": {},
+    "loop": true,
+    "seconds": 1
+   },
+   "fly": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.1
+   },
+   "glide": {
+    "events": {},
+    "loop": true,
+    "seconds": 3.3
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.5
+   },
+   "hover": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.9
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 3.4
+   },
+   "land": {
+    "events": {
+     "hit": 1
+    },
+    "loop": false,
+    "seconds": 1.6
+   },
+   "roar": {
+    "events": {
+     "hit": 0.7
+    },
+    "loop": false,
+    "seconds": 2.6
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.9
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 2.2
+   },
+   "takeoff": {
+    "events": {
+     "hit": 0.55
+    },
+    "loop": false,
+    "seconds": 1.7
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.6
+   }
+  },
+  "height": 3.361,
+  "url": "models/creatures/dragon.glb"
+ },
+ "horse": {
+  "bytes": 285548,
+  "clips": {
+   "attack_bite": {
+    "events": {
+     "hit": 0.5
+    },
+    "loop": false,
+    "seconds": 1.1
+   },
+   "attack_pounce": {
+    "events": {
+     "hit": 0.95
+    },
+    "loop": false,
+    "seconds": 1.7
+   },
+   "attack_stomp": {
+    "events": {
+     "hit": 0.72
+    },
+    "loop": false,
+    "seconds": 1.45
+   },
+   "attack_swipe": {
+    "events": {
+     "hit": 0.5
+    },
+    "loop": false,
+    "seconds": 1.15
+   },
+   "attack_swipe_r": {
+    "events": {
+     "hit": 0.5
+    },
+    "loop": false,
+    "seconds": 1.15
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.6
+   },
+   "roar": {
+    "events": {
+     "hit": 0.5
+    },
+    "loop": false,
+    "seconds": 2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.62
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.4
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.1
+   }
+  },
+  "height": 2.1,
+  "url": "models/creatures/horse.glb"
+ },
+ "nemesis": {
+  "bytes": 359548,
+  "clips": {
+   "attack_backslash": {
+    "events": {
+     "hit": 0.506
+    },
+    "loop": false,
+    "seconds": 1.32
+   },
+   "attack_combo": {
+    "events": {
+     "hit": 0.484
+    },
+    "loop": false,
+    "seconds": 2.31
+   },
+   "attack_leap": {
+    "events": {
+     "hit": 1.155
+    },
+    "loop": false,
+    "seconds": 2.2
+   },
+   "attack_overhead": {
+    "events": {
+     "hit": 0.77
+    },
+    "loop": false,
+    "seconds": 1.76
+   },
+   "attack_slash": {
+    "events": {
+     "hit": 0.55
+    },
+    "loop": false,
+    "seconds": 1.375
+   },
+   "attack_sweep": {
+    "events": {
+     "hit": 0.605
+    },
+    "loop": false,
+    "seconds": 1.43
+   },
+   "attack_thrust": {
+    "events": {
+     "hit": 0.484
+    },
+    "loop": false,
+    "seconds": 1.21
+   },
+   "block": {
+    "events": {},
+    "loop": true,
+    "seconds": 1
+   },
+   "cast": {
+    "events": {
+     "hit": 0.726
+    },
+    "loop": false,
+    "seconds": 1.485
+   },
+   "cast_loop": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.2
+   },
+   "cast_sky": {
+    "events": {
+     "hit": 0.88
+    },
+    "loop": false,
+    "seconds": 1.65
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "dodge": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.64
+   },
+   "kneel": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "roar": {
+    "events": {
+     "hit": 0.85
+    },
+    "loop": false,
+    "seconds": 2.2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.7344
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.54
+   },
+   "talk": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.1275
+   }
+  },
+  "height": 2.2,
+  "url": "models/creatures/nemesis.glb"
+ },
+ "pale": {
+  "bytes": 287796,
+  "clips": {
+   "attack_backslash": {
+    "events": {
+     "hit": 0.391
+    },
+    "loop": false,
+    "seconds": 1.02
+   },
+   "attack_combo": {
+    "events": {
+     "hit": 0.374
+    },
+    "loop": false,
+    "seconds": 1.785
+   },
+   "attack_leap": {
+    "events": {
+     "hit": 0.892
+    },
+    "loop": false,
+    "seconds": 1.7
+   },
+   "attack_overhead": {
+    "events": {
+     "hit": 0.595
+    },
+    "loop": false,
+    "seconds": 1.36
+   },
+   "attack_slash": {
+    "events": {
+     "hit": 0.425
+    },
+    "loop": false,
+    "seconds": 1.0625
+   },
+   "attack_sweep": {
+    "events": {
+     "hit": 0.468
+    },
+    "loop": false,
+    "seconds": 1.105
+   },
+   "attack_thrust": {
+    "events": {
+     "hit": 0.374
+    },
+    "loop": false,
+    "seconds": 0.935
+   },
+   "block": {
+    "events": {},
+    "loop": true,
+    "seconds": 1
+   },
+   "cast": {
+    "events": {
+     "hit": 0.561
+    },
+    "loop": false,
+    "seconds": 1.1475
+   },
+   "cast_loop": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.2
+   },
+   "cast_sky": {
+    "events": {
+     "hit": 0.68
+    },
+    "loop": false,
+    "seconds": 1.275
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "dodge": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.04
+   },
+   "kneel": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "roar": {
+    "events": {
+     "hit": 0.85
+    },
+    "loop": false,
+    "seconds": 2.2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.6984
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.19
+   },
+   "talk": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.0588
+   }
+  },
+  "height": 2,
+  "url": "models/creatures/pale.glb"
+ },
+ "wanderer": {
+  "bytes": 309136,
+  "clips": {
+   "attack_backslash": {
+    "events": {
+     "hit": 0.414
+    },
+    "loop": false,
+    "seconds": 1.08
+   },
+   "attack_combo": {
+    "events": {
+     "hit": 0.396
+    },
+    "loop": false,
+    "seconds": 1.89
+   },
+   "attack_leap": {
+    "events": {
+     "hit": 0.945
+    },
+    "loop": false,
+    "seconds": 1.8
+   },
+   "attack_overhead": {
+    "events": {
+     "hit": 0.63
+    },
+    "loop": false,
+    "seconds": 1.44
+   },
+   "attack_slash": {
+    "events": {
+     "hit": 0.45
+    },
+    "loop": false,
+    "seconds": 1.125
+   },
+   "attack_sweep": {
+    "events": {
+     "hit": 0.495
+    },
+    "loop": false,
+    "seconds": 1.17
+   },
+   "attack_thrust": {
+    "events": {
+     "hit": 0.396
+    },
+    "loop": false,
+    "seconds": 0.99
+   },
+   "block": {
+    "events": {},
+    "loop": true,
+    "seconds": 1
+   },
+   "cast": {
+    "events": {
+     "hit": 0.594
+    },
+    "loop": false,
+    "seconds": 1.215
+   },
+   "cast_loop": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.2
+   },
+   "cast_sky": {
+    "events": {
+     "hit": 0.72
+    },
+    "loop": false,
+    "seconds": 1.35
+   },
+   "death": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.6
+   },
+   "dodge": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.6
+   },
+   "hit": {
+    "events": {},
+    "loop": false,
+    "seconds": 0.45
+   },
+   "idle": {
+    "events": {},
+    "loop": true,
+    "seconds": 2.16
+   },
+   "kneel": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "roar": {
+    "events": {
+     "hit": 0.85
+    },
+    "loop": false,
+    "seconds": 2.2
+   },
+   "run": {
+    "events": {},
+    "loop": true,
+    "seconds": 0.7056
+   },
+   "stagger": {
+    "events": {},
+    "loop": false,
+    "seconds": 1.26
+   },
+   "talk": {
+    "events": {},
+    "loop": true,
+    "seconds": 3
+   },
+   "walk": {
+    "events": {},
+    "loop": true,
+    "seconds": 1.0725
+   }
+  },
+  "height": 1.9,
+  "url": "models/creatures/wanderer.glb"
+ }
+}
