@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { createServer } from 'vite';
-import { browserPath } from './browser.mjs';
+import { browserPath, launchArgs } from './browser.mjs';
 
 const VIEWS = {
   spawn: { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet' },
@@ -78,14 +78,10 @@ const server = await createServer({ logLevel: 'error', server: { port: 5199, str
 await server.listen();
 const base = server.resolvedUrls.local[0];
 
-const gpuArgs =
-  process.env.GPU === '0'
-    ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']
-    : ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'];
 const browser = await puppeteer.launch({
   executablePath,
   headless: true,
-  args: [...gpuArgs, `--window-size=${W},${H}`],
+  args: launchArgs([`--window-size=${W},${H}`]),
 });
 
 let failed = false;

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import puppeteer from 'puppeteer-core';
 import { createServer } from 'vite';
-import { browserPath } from './browser.mjs';
+import { browserPath, launchArgs, logicQuery } from './browser.mjs';
 
 const server = await createServer({ logLevel: 'error', server: { port: 5194, strictPort: false } });
 await server.listen();
@@ -9,7 +9,7 @@ let browser;
 const errors = [];
 try {
   browser = await puppeteer.launch({ executablePath: browserPath(), headless: true,
-    args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist'] });
+    args: launchArgs() });
   const page = await browser.newPage();
   await page.setViewport({ width: 720, height: 600 });
   page.on('pageerror', e => errors.push(e.message));

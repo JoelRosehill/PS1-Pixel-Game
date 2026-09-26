@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import { createServer } from 'vite';
-import { browserPath } from './browser.mjs';
+import { browserPath, launchArgs, logicQuery } from './browser.mjs';
 const server = await createServer({ logLevel: 'error', server: { port: 5194, strictPort: false } });
 await server.listen();
 let browser;
@@ -8,11 +8,11 @@ const failures = [];
 let total = 0;
 const check = (name, ok, detail = '') => { total++; console.log(`${ok ? 'PASS' : 'FAIL'} ${name} ${JSON.stringify(detail)}`); if (!ok) failures.push(name); };
 try {
-  browser = await puppeteer.launch({ executablePath: browserPath(), headless: true, args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] });
+  browser = await puppeteer.launch({ executablePath: browserPath(), headless: true, args: launchArgs() });
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 720 });
   page.on('pageerror', e => failures.push(e.message));
-  await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8`);
+  await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8${logicQuery}`);
   await page.waitForFunction('window.__ready || window.__error');
   check('camera sits at player eye; world body hidden', await page.evaluate(() => {
     const g = window.__game, c = g.player.controller, p = g.camera.position;
@@ -33,9 +33,10 @@ try {
     p.combat.reset(); p.respawn(); return ok;
   }));
   const beforeMotion = await page.evaluate(() => window.__game.player.camera.motionScale);
-  await page.keyboard.press('F6');
+  const nextFrames = () => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.keyboard.press('F6'); await nextFrames();
   check('F6 toggles camera motion', await page.evaluate(before => window.__game.player.camera.motionScale !== before, beforeMotion));
-  await page.keyboard.press('F6');
+  await page.keyboard.press('F6'); await nextFrames();
 
   const results = await page.evaluate(async () => {
     const { PlayerController } = await import('/src/player/PlayerController.ts');

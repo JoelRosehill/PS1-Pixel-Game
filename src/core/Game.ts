@@ -36,6 +36,8 @@ export interface GameOptions {
   playerAt?: THREE.Vector3;
   /** Chase-camera yaw in radians. */
   playerYaw?: number;
+  /** false skips drawing (logic-only test harnesses on software WebGL). */
+  render?: boolean;
 }
 
 const FIXED_DT = 1 / 60;
@@ -69,6 +71,7 @@ export class Game {
   private last = 0;
   private fps = 60;
   private readonly frozenTime: number | undefined;
+  private readonly renderEnabled: boolean;
   private readonly focus = new THREE.Vector3();
   private readonly billboard = new THREE.Quaternion();
 
@@ -120,6 +123,7 @@ export class Game {
       this.player.camera.setYaw(opts.playerYaw ?? 0, -0.14);
     }
     this.frozenTime = opts.time;
+    this.renderEnabled = opts.render ?? true;
     this.assetsReady = this.loadAssets();
 
     window.addEventListener('resize', () => this.pixel.resize());
@@ -179,7 +183,7 @@ export class Game {
     this.gameHud.update(realDt, this.player.combat, this.player.controller);
     this.spellbookUI.update(realDt);
 
-    this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
+    if (this.renderEnabled) this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
     const pc = this.player.controller;
     this.hud.update(dt, this.pixel, {
       fps: this.fps,
