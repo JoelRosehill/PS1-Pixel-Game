@@ -449,6 +449,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ✅ |
 | 14 | Bestiary — model-based enemies and hard, animated bosses | ✅ |
 | 15 | The Long Road — one handcrafted 40-biome journey | ✅ |
+| 15b | The Blade — a real sword and swings you can read | ✅ |
 | 16 | The Story — a specific storyline, characters and beats | ⏳ |
 | 17 | Integration — tests, performance, docs | ⏳ |
 
@@ -615,4 +616,26 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
       boss 21, combat 11, move 11, kinetic 19, spell 54, save 25, ui 20, asset, build 9,
       creature 63 passing; `tools/screenshot.mjs` views and `tools/perf.mjs` scenarios moved
       onto the road
+
+## Job 15b — The Blade ✅
+
+Feedback during Job 15: the sword "looks unfinished with that blue strange LED rod", and
+the sword tactics of the earlier build felt poor.
+
+- [x] **No more rod:** the cyan rune inlay strip is gone (in both views, and from the
+      fallback blade). The weapon is the supplied **ps1-sword-b** — a broad blade with a
+      fuller and a gilded guard, the small twin of the 150 m Oathblade in the Sword Graveyard
+- [x] Imported swords are oriented automatically: longest axis = blade, tip = the end
+      farther from the vertex centroid (the hilt is heavier), grip at the origin; the
+      blade length is exposed for effects (`PlayerModel.swordLength`)
+- [x] **Swings are arcs** (`FirstPersonRig`): the hand travels around a shoulder pivot
+      in the direction the blade points, so each attack sweeps across the view — keyed
+      cocked and follow-through poses per arc (right-to-left, backhand, spin, overhead,
+      thrust, low sweep, plunge), an eased wind-up, a strike that accelerates through the
+      middle, recovery back to guard; chained swings flow on from wherever the last left off
+- [x] Guard, charge (raised behind the head, trembling) and block poses; the forearm
+      always runs from the wrist to an elbow below the view
+- [x] **The blade draws its own ribbon** (base to tip, additive, in the attack's colour)
+      during each strike, replacing the flat world-space sheet
+- [x] Tests: kinetic 19, combat 11, ui 20, spell 54 passing
 

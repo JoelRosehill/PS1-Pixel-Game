@@ -125,9 +125,9 @@ export class PlayerModel {
     this.legL = makeLeg(-1);
     this.legR = makeLeg(1);
 
-    // Greatsword: built grip-at-origin, blade along +Y, runes lit.
+    // Longsword (until the supplied model loads): grip at the origin, blade along +Y.
     add(this.sword, box(0.08, 1.0, 0.03, 1).translate(0, 0.5, 0), steel);
-    add(this.sword, box(0.035, 0.78, 0.04, 1).translate(0, 0.46, 0), runes);
+    add(this.sword, box(0.02, 0.78, 0.035, 1).translate(0, 0.46, 0), steelDark);
     add(this.sword, box(0.3, 0.06, 0.07, 1), gold);
     add(this.sword, box(0.05, 0.22, 0.05, 1).translate(0, -0.15, 0), leather);
     // Two anchors: slung across the back, or gripped in the right fist. The sword swaps
@@ -146,28 +146,47 @@ export class PlayerModel {
     this.root.name = 'player';
   }
 
-  /** Replaces the visual weapon without changing analytic combat hitboxes. */
+  /** Blade length (m) from the grip to the tip, for effects along the blade. */
+  swordLength = 1.02;
+
+  /**
+   * Replaces the visual weapon without changing analytic combat hitboxes. Imported
+   * weapons have different authoring axes: the longest axis becomes the blade (+Y), and
+   * the tip is the end farther from the vertex centroid (the hilt carries the mass of
+   * guard, grip and pommel). The grip sits at the origin, a little above the pommel.
+   */
   setSwordModel(model: THREE.Group): void {
-    // Imported weapons have different authoring axes. Keep the existing grip
-    // anchors and combat poses, and align the longest axis with the blade (+Y).
     model.updateMatrixWorld(true);
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
-    if (size.z > size.y && size.z > size.x) model.rotation.x = -Math.PI / 2;
-    else if (size.x > size.y) model.rotation.z = Math.PI / 2;
-    model.updateMatrixWorld(true);
-    bounds.setFromObject(model);
-    const center = bounds.getCenter(new THREE.Vector3());
-    model.position.set(-center.x, -bounds.min.y - 0.22, -center.z);
+    const centre = bounds.getCenter(new THREE.Vector3());
+    const axis = size.x >= size.y && size.x >= size.z ? 'x' : size.y >= size.z ? 'y' : 'z';
+    const centroid = new THREE.Vector3();
+    let n = 0;
+    const v = new THREE.Vector3();
+    model.traverse(o => {
+      if (!(o instanceof THREE.Mesh)) return;
+      const pos = o.geometry.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld); centroid.add(v); n++; }
+    });
+    centroid.divideScalar(Math.max(1, n));
+    const tipDir = new THREE.Vector3();
+    tipDir[axis] = centroid[axis] > centre[axis] ? -1 : 1;
+    const holder = new THREE.Group();
+    const inner = new THREE.Group();
+    inner.add(model);
+    inner.position.copy(centre).multiplyScalar(-1);
+    holder.add(inner);
+    holder.quaternion.setFromUnitVectors(tipDir, new THREE.Vector3(0, 1, 0));
+    const length = size[axis];
+    // The pommel end sits 12 % of the length below the grip.
+    holder.position.y = length / 2 - length * 0.12;
+    this.swordLength = length * 0.88;
     for (const child of [...this.sword.children]) {
       this.sword.remove(child);
       if (child instanceof THREE.Mesh) child.geometry.dispose();
     }
-    this.sword.add(model);
-    // Keep the spellblade's cyan rune inlay on the imported steel blade.
-    const inlay = new THREE.Mesh(box(0.018, 0.72, 0.025, 1), glow(0x6ad8ff, 2.6));
-    inlay.position.set(0, 0.48, 0.018);
-    this.sword.add(inlay);
+    this.sword.add(holder);
     this.weaponVersion++;
   }
 

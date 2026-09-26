@@ -453,7 +453,7 @@ export class PlayerCombat implements Damageable {
         this.timer = def.active;
         this.phaseT = 0;
         if (!def.leap) this.lunge(def);
-        this.effects.beginTrail(def.trail);
+        // The first-person rig traces the blade's own ribbon (FirstPersonRig).
         this.bladeAt(def, 0, this.prevHilt, this.prevTip);
         if (def.arc === 'plunge') this.controller.velocity.y = Math.min(this.controller.velocity.y, def.leap ? 4 : -26);
         if (def.emit && def.arc !== 'plunge') this.emitters[def.emit]?.(this.releasedCharge);

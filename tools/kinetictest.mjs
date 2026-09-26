@@ -20,7 +20,7 @@ try {
   }));
   check('first-person sword and book are rendered separately', await page.evaluate(() => {
     const p = window.__game.player;
-    return p.view.scene.children.includes(p.view.swordHand) && p.view.book.root.parent === p.view.bookHand && p.view.swordHand.children.length > 3;
+    return p.view.scene.children.includes(p.view.swordHand) && p.view.book.root.parent === p.view.bookHand && !!p.view.swordHand.getObjectByName('asset:ps1-sword-b');
   }));
   check('projectile follows vertical and horizontal aim', await page.evaluate(() => {
     const g = window.__game, p = g.player;

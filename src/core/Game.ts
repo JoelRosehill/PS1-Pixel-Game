@@ -311,7 +311,7 @@ export class Game {
 
   private async loadAssets(): Promise<void> {
     await Promise.all([
-      this.models.instantiate('ps1-italian-broadsword', { size: 1.35, grounded: false })
+      this.models.instantiate('ps1-sword-b', { size: 1.4, grounded: false })
         .then(asset => this.player.model.setSwordModel(asset.root))
         .catch(error => { this.assetErrors.push(`sword: ${error}`); }),
       this.level.loadAssets?.(this.models, this.creatures).then(errors => this.assetErrors.push(...errors)),
