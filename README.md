@@ -65,19 +65,24 @@ npm run dev        # open http://localhost:5173 and click to explore
 | Mouse | Look (click the canvas to capture the mouse) |
 | WASD | Move (camera-relative) |
 | Space | Jump · wall-jump (hold for a higher jump) |
-| LMB | Light attack (chains ×3; contextual while dashing, sliding or airborne) |
-| RMB (hold) | Charged heavy overhead |
+| LMB | Light attack (chains ×3; the finisher throws a crescent; contextual while dashing — lance of light, sliding — ground wave, airborne — plunge shockwave) |
+| LMB (hold) | After a slash, charge a heavy; release to cleave and loose a crescent (three at full charge) |
+| RMB (hold) | Starbolts from the book: free, rapid, lightly homing |
 | Q | Parry (tap) · guard (hold) |
-| E | Cast the equipped spell using Momentum (Rune Burst initially) |
+| E | Cast the equipped page (Momentum). Hold for Comet Lance (gather) and Prism Ray (pour) |
+| Mouse wheel | Cycle owned spell pages |
+| R | Sword Art (Momentum + cooldown) · X cycles arts |
+| G | Drink an Ember Flask (3, refilled at shrines) |
 | F | Use: bind a Lost Page · kindle/rest at an Ember Shrine · read lore · speak with the Wanderer |
 | J | Journal (pauses): chapter arcs, lore read, remembrances |
 | B | Open/close the spellbook; arrows or buttons turn pages and equip spells |
 | M | World map (pauses): discovered regions, landmarks, camps, gates, chapter progress |
-| Tab (hold) | Spell quick-wheel; mouse/arrows/1–8 choose, release Tab to equip; Esc cancels |
-| Shift | Dash (8-way, 3 charges, i-frames) |
+| Tab (hold) | Spell quick-wheel (12 pages); mouse/arrows/1–0,−,= choose, release Tab to equip; Esc cancels |
+| Shift | Dash while moving (2 charges, short i-frame window, one per jump in the air) |
+| Shift (hold, standing still) | Channel Momentum — fast, but rooted; a hit breaks it and lands 30 % harder |
 | Ctrl / C | Slide (keeps momentum, accelerates downhill) · in the air: gravity slam (Space on landing to rebound) |
 | W into a wall at speed | Wall-run (per-wall budget) · Space kicks off and refunds a dash |
-| R | Return to the last shrine rested at |
+| K | Return to the last shrine rested at |
 | V | Debug fly camera (then WASD · Shift fast · Space/C up-down · G walk) |
 | F6 | Toggle camera motion (FOV kick, wall-run roll, shake) |
 | 1–4 | Debug sky presets: Cosmic Violet, Crimson Vigil, Sunlit Wilderness, Verdigris Mist |

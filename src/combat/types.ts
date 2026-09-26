@@ -5,7 +5,9 @@ import type { CombatWorld } from './CombatWorld';
 export type Team = 'player' | 'enemy';
 
 /** 'hazard': ground effects (shockwaves, fire, falling light) — dodge or jump, never parry or block. */
-export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy' | 'reflect' | 'hazard';
+/** 'wave': ranged sword arts (crescents); 'bolt': Starbolts; 'spell': spell damage. */
+export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy' | 'reflect' | 'hazard' |
+  'wave' | 'bolt' | 'spell';
 
 export interface HitInfo {
   damage: number;
@@ -22,6 +24,8 @@ export interface HitInfo {
   attacker?: Damageable;
   /** This blow is the recoil of a successful parry (enemies open up for a riposte). */
   parry?: boolean;
+  /** Seconds the target is slowed (frost). */
+  slow?: number;
 }
 
 export interface HitResult {

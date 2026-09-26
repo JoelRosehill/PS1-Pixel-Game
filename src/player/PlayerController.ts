@@ -98,6 +98,8 @@ export class PlayerController {
   swimming = false;
   dashCharges: number;
   invulnerable = false;
+  /** Forced invulnerability (Bloodmoon Rend, Phoenix Flight). */
+  invulnerableOverride = false;
   wallRunning = false;
   wallSide = 0;
   wallRunRemaining = PLAYER_TUNING.wallRunDuration;
@@ -135,6 +137,8 @@ export class PlayerController {
   private wallKickRefunded = false;
   private airTime = 0;
   private airDashesLeft = 1;
+  /** dashTimer above this is invulnerable (a dash's first 0.13 s; a burst's whole length). */
+  private dashIFrameEnd = PLAYER_TUNING.dashTime - PLAYER_TUNING.dashIFrames;
   private strideDistance = 0;
   private readonly runNormal = new THREE.Vector3();
 
@@ -177,7 +181,8 @@ export class PlayerController {
     this.facing = facing;
     this.grounded = false;
     this.sliding = false; this.swimming = false; this.slamming = false; this.wallRunning = false;
-    this.height = this.tuning.standHeight; this.dashTimer = 0; this.invulnerable = false;
+    this.height = this.tuning.standHeight; this.dashTimer = 0; this.invulnerable = false; this.invulnerableOverride = false;
+    this.channelling = false;
     this.wallTimer = 0; this.wallLock = 0; this.onWall = false; this.buffer = 0; this.coyote = 0;
     this.reboundRemaining = 0; this.landingGrace = 0; this.airTime = 0;
     this.wallRunRemaining = this.tuning.wallRunDuration; this.wallKickRefunded = false;
@@ -274,7 +279,7 @@ export class PlayerController {
     this.airTime = this.grounded ? 0 : this.airTime + dt;
     if (this.grounded) this.airDashesLeft = t.airDashes;
     this.moveInput.set(this.frozen ? 0 : inp.axis('KeyA', 'KeyD'), this.frozen ? 0 : inp.axis('KeyS', 'KeyW'));
-    this.invulnerable = this.dashTimer > t.dashTime - t.dashIFrames;
+    this.invulnerable = this.invulnerableOverride || this.dashTimer > this.dashIFrameEnd;
 
     if (this.dashCharges < t.dashCharges) {
       this.rechargeTimer += dt;
@@ -442,10 +447,22 @@ export class PlayerController {
     this.dashVelocity = Math.min(t.maxSpeed, Math.max(t.dashSpeed, this.speed));
     this.slamming = false; this.wallRunning = false;
     this.dashTimer = t.dashTime;
+    this.dashIFrameEnd = t.dashTime - t.dashIFrames;
     this.dashCooldown = t.dashCooldown;
     this.dashCharges--;
     this.endSlide(true);
     this.facing = Math.atan2(-this.dashDir.x, -this.dashDir.z);
+    this.events.dashed = true;
+  }
+
+  /** A spell-driven dash (Phoenix Flight): no charge spent, invulnerable throughout. */
+  burst(dir: THREE.Vector3, speed: number, time: number): void {
+    this.dashDir.set(dir.x, 0, dir.z).normalize();
+    this.dashVelocity = speed;
+    this.dashTimer = time;
+    this.dashIFrameEnd = 0;
+    this.slamming = false; this.wallRunning = false;
+    this.endSlide(true);
     this.events.dashed = true;
   }
 

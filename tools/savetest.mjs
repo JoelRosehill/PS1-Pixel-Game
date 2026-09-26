@@ -241,8 +241,8 @@ try {
   await run('resting writes the save', () => {
     const g = window.__game, s = window.__shrine('c2-1');
     window.__at(s.rest.x, s.rest.z);
-    g.player.spells.collect('ember-lance');
-    g.player.spells.book.select('ember-lance');
+    g.player.spells.collect('comet-lance');
+    g.player.spells.book.select('comet-lance');
     g.progress.clear('camp:c1-0:0');
     g.progress.readLore('hub-1');
     g.progress.fellBoss('gloomhorn');
@@ -252,7 +252,7 @@ try {
     window.__press('KeyF');
     window.__closeAll();
     const data = JSON.parse(localStorage.getItem('chromatic-odyssey.save.v1') ?? 'null');
-    const ok = data && data.version === 1 && data.shrine === 'c2-1' && data.pages.includes('ember-lance') && data.selected === 'ember-lance'
+    const ok = data && data.version === 1 && data.shrine === 'c2-1' && data.pages.includes('comet-lance') && data.selected === 'comet-lance'
       && data.progress.kindled.includes('c2-1') && data.progress.bosses.includes('gloomhorn') && data.deaths === 3;
     return { ok, detail: data ? `shrine=${data.shrine} pages=${data.pages.length}` : 'no save' };
   });
@@ -273,7 +273,7 @@ try {
     const camp = g.enemies.encounters.find(e => e.def.id === 'camp:c1-0:0');
     const arena = g.enemies.arenas.find(a => a.id === 'gloomhorn');
     const ok = g.resumed && d < 1.5 && s.prop.kindled && window.__shrine('c1-0').prop.kindled === false
-      && g.player.spells.book.has('ember-lance') && g.player.spells.book.selected === 'ember-lance'
+      && g.player.spells.book.has('comet-lance') && g.player.spells.book.selected === 'comet-lance'
       && g.progress.lore.has('hub-1') && g.progress.remembrances.has('rem-gloomhorn') && g.progress.discovered.has('c3-2')
       && (!camp || camp.state === 'cleared') && arena?.state === 'defeated' && g.deaths === 3 && g.playTime >= 754 && g.restShrine === 'c2-1';
     return { ok, detail: `resumed=${g.resumed} d=${d.toFixed(2)} camp=${camp?.state} arena=${arena?.state} deaths=${g.deaths}` };
@@ -288,7 +288,7 @@ try {
   await load(page, '&save=1&fresh=1');
   await run('fresh=1 ignores the save', () => {
     const g = window.__game;
-    return { ok: !g.resumed && !g.player.spells.book.has('ember-lance') && localStorage.getItem('chromatic-odyssey.save.v1') !== null, detail: `resumed=${g.resumed}` };
+    return { ok: !g.resumed && !g.player.spells.book.has('comet-lance') && localStorage.getItem('chromatic-odyssey.save.v1') !== null, detail: `resumed=${g.resumed}` };
   });
 
   // Leaving a page saves it (pagehide); stop this one first so the corrupt value survives.

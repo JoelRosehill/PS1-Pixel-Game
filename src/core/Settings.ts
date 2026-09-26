@@ -8,13 +8,17 @@ export const ACTIONS = [
   { id: 'dash', label: 'Dash · hold still to channel', key: 'ShiftLeft' },
   { id: 'slide', label: 'Slide · slam', key: 'ControlLeft' },
   { id: 'parry', label: 'Parry · guard', key: 'KeyQ' },
-  { id: 'cast', label: 'Cast spell', key: 'KeyE' },
+  { id: 'cast', label: 'Cast spell (hold for Comet Lance / Prism Ray)', key: 'KeyE' },
+  { id: 'art', label: 'Sword Art', key: 'KeyR' },
+  { id: 'artNext', label: 'Next Sword Art', key: 'KeyX' },
+  { id: 'flask', label: 'Drink an Ember Flask', key: 'KeyG' },
   { id: 'use', label: 'Use · bind · rest · read', key: 'KeyF' },
   { id: 'book', label: 'Spellbook', key: 'KeyB' },
   { id: 'wheel', label: 'Spell wheel (hold)', key: 'Tab' },
   { id: 'map', label: 'World map', key: 'KeyM' },
   { id: 'journal', label: 'Journal', key: 'KeyJ' },
-  { id: 'respawn', label: 'Return to shrine', key: 'KeyR' },
+  // Was 'respawn' on R; renamed so an old saved R binding cannot clash with Sword Art.
+  { id: 'return', label: 'Return to shrine', key: 'KeyK' },
 ] as const;
 
 export type ActionId = (typeof ACTIONS)[number]['id'];

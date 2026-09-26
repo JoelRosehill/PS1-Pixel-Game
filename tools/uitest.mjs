@@ -146,7 +146,7 @@ try {
     g.step(0.5);
     p.combat.momentum.value = 100;
     window.__press('KeyE'); g.step(0.3);
-    p.spells.collect('mend'); g.step(1 / 60);
+    p.spells.collect('blood-bloom'); g.step(1 / 60);
     const got = n => (c[n] ?? 0) - (before[n] ?? 0);
     const r = { jump: got('jump'), dash: got('dash'), swing: got('swing'), cast: got('cast'), pickup: got('pickup'), land: got('land') };
     return { ok: Object.values(r).every(v => v > 0), detail: r };

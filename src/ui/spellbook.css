@@ -47,8 +47,8 @@
 .wheel-mode { width: min(720px, calc(100vw - 24px)); background: #140d21f5; color: #eee5ff; border-color: #74558a; overflow: hidden; }
 .wheel-heading { padding: 20px 24px 0; font-size: 17px; }
 .wheel-heading span { float: right; font-size: 10px; color: #b8a6ce; padding-top: 5px; letter-spacing: 0.12em; }
-.spell-wheel { --radius: 190px; height: 490px; position: relative; }
-.spell-wheel button { position: absolute; width: 126px; min-height: 85px; left: calc(50% - 63px); top: calc(50% - 42px); padding: 7px 5px; background: #21172e; border-color: #594367; transform: rotate(calc(var(--slot) * 45deg)) translateY(calc(-1 * var(--radius))) rotate(calc(var(--slot) * -45deg)); font-size: 11px; }
+.spell-wheel { --radius: 215px; height: 540px; position: relative; }
+.spell-wheel button { position: absolute; width: 108px; min-height: 76px; left: calc(50% - 54px); top: calc(50% - 38px); padding: 6px 4px; background: #21172e; border-color: #594367; transform: rotate(calc(var(--slot) * 360deg / var(--slots, 8))) translateY(calc(-1 * var(--radius))) rotate(calc(var(--slot) * -360deg / var(--slots, 8))); font-size: 10.5px; }
 .spell-wheel button span, .spell-wheel button small { display: block; }
 .spell-wheel button small { font-size: 9px; margin-top: 2px; color: #c8b9d6; }
 .spell-wheel button .slot-number { position: absolute; top: 5px; left: 7px; font-size: 10px; color: #b8a6ce; }
@@ -73,8 +73,8 @@
   .book-illustration { display: none; }
   .book-page { padding: 24px; min-height: 290px; }
   .book-footer small { display: none; }
-  .spell-wheel { --radius: 128px; height: 350px; }
-  .spell-wheel button { width: 84px; left: calc(50% - 42px); min-height: 72px; top: calc(50% - 36px); font-size: 9px; }
+  .spell-wheel { --radius: 142px; height: 380px; }
+  .spell-wheel button { width: 72px; left: calc(50% - 36px); min-height: 62px; top: calc(50% - 31px); font-size: 8.5px; }
   .spell-wheel button small { font-size: 8px; }
   .wheel-centre { width: 135px; }
   .wheel-centre strong { font-size: 14px; }
@@ -85,10 +85,16 @@
   .book-illustration, .book-page { min-height: 260px; padding: 18px 30px; }
   .sigil-frame { width: 95px; height: 95px; margin: 24px 0 12px; }
   .sigil-frame span { font-size: 60px; }
-  .spell-wheel { --radius: 132px; height: 360px; }
-  .spell-wheel button { width: 90px; left: calc(50% - 45px); font-size: 9px; }
+  .spell-wheel { --radius: 150px; height: 390px; }
+  .spell-wheel button { width: 76px; left: calc(50% - 38px); font-size: 8.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #splash .hint, #gamehud.resonance .momentum { animation: none; }
   #gamehud .bar .fill, #gamehud .bar .ghost, #gamehud .banner, #splash { transition: none; }
 }
+
+/* Job 13: Sword Art and Ember Flask lines in the spell status block. */
+.art-line { font-size: 11px; }
+.flask-line { font-size: 10px; color: #ffcf8a; display: flex; align-items: center; gap: 3px; }
+.flask-line i { display: inline-block; width: 7px; height: 11px; border: 1px solid #ffb45a; background: #2a1810; }
+.flask-line i.full { background: linear-gradient(#ffd070, #ff7a2a); }

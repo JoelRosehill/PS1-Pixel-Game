@@ -77,20 +77,21 @@ for (let i = 0; i < 3; i++) {
 await wait(800);
 const afterCombo = await read();
 const comboDamage = before.dummyHealth - afterCombo.dummyHealth;
-check('light combo damage', comboDamage >= 40 && comboDamage <= 60, `${comboDamage.toFixed(0)} dmg over 3 hits`);
+check('light combo damage', comboDamage >= 45 && comboDamage <= 80, `${comboDamage.toFixed(0)} dmg over 3 hits`);
 check('momentum from hits', afterCombo.momentum >= 12, `momentum=${afterCombo.momentum.toFixed(0)}`);
 
 // 2. Charged heavy hits harder than a light
 await faceDummy();
 await wait(400);
 const beforeHeavy = await read();
-await page.mouse.down({ button: 'right' });
-await wait(650);
-await page.mouse.up({ button: 'right' });
-await wait(500);
+// Holding the attack: a quick slash, then the charge; release looses the heavy.
+await page.mouse.down({ button: 'left' });
+await wait(1300);
+await page.mouse.up({ button: 'left' });
+await wait(700);
 const afterHeavy = await read();
 const heavyDamage = beforeHeavy.dummyHealth - afterHeavy.dummyHealth;
-check('charged heavy damage', heavyDamage > 30, `${heavyDamage.toFixed(0)} dmg`);
+check('charged heavy damage', heavyDamage > 50, `${heavyDamage.toFixed(0)} dmg`);
 
 // 3. Hit-stop fires on impact
 await faceDummy();
@@ -167,13 +168,18 @@ const dodge = await page.evaluate(async () => {
 });
 check('dash i-frame dodge', dodge.dodged && dodge.gained >= 8, `dodged=${dodge.dodged} +${dodge.gained.toFixed(0)}`);
 
-// 6. Rune Burst spends Momentum and damages everything nearby
-await faceDummy(2.6);
+// 6. Starfall (the first page) spends Momentum and rains on the aimed point
+await faceDummy(6);
 await wait(300);
 const burst = await page.evaluate(async () => {
   const g = window.__game;
   const c = g.player.combat;
   const d = g.level.enemies[0];
+  const p = g.player;
+  // Aim at the construct's feet.
+  const eye = p.controller.position.clone(); eye.y += p.controller.capsuleHeight - 0.25;
+  const to = d.position.clone().sub(eye);
+  p.camera.setYaw(p.camera.yaw, Math.atan2(to.y, Math.hypot(to.x, to.z)));
   c.momentum.value = 80;
   c.momentum.resonance = false;
   const hpBefore = d.health;
@@ -181,13 +187,15 @@ const burst = await page.evaluate(async () => {
   window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
   await new Promise((r) => setTimeout(r, 120));
   window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE' }));
-  return { spent: mBefore - c.momentum.value, damage: hpBefore - d.health };
+  const spent = mBefore - c.momentum.value;
+  await new Promise((r) => setTimeout(r, 2200));
+  return { spent, damage: hpBefore - d.health };
 });
-check('rune burst', burst.spent === 40 && burst.damage > 0, `spent=${burst.spent} dmg=${burst.damage.toFixed(0)}`);
+check('starfall', burst.spent === 30 && burst.damage > 0, `spent=${burst.spent} dmg=${burst.damage.toFixed(0)}`);
 
 // 7. Resonance halves the cost
 // Job 4 adds a shared casting lockout and per-spell recovery.
-await wait(850);
+await wait(400);
 const resonance = await page.evaluate(async () => {
   const g = window.__game;
   const c = g.player.combat;
@@ -199,7 +207,7 @@ const resonance = await page.evaluate(async () => {
   window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE' }));
   return { spent: before - c.momentum.value };
 });
-check('resonance discount', resonance.spent === 20, `spent=${resonance.spent} (half of 40)`);
+check('resonance discount', resonance.spent === 15, `spent=${resonance.spent} (half of 30)`);
 
 // 8. Death and automatic respawn at the shrine
 const death = await page.evaluate(async () => {

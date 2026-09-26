@@ -5,12 +5,12 @@ import type { SpellCasting } from './SpellCasting';
 import { SPELL_PAGES, type SpellId } from './SpellBook';
 
 export const PAGE_SITES: { id: SpellId; x: number; z: number }[] = [
-  { id: 'ember-lance', x: -3, z: 3 },
-  { id: 'frost-needle', x: -12, z: -12 },
-  { id: 'violet-well', x: -43, z: 30 },
-  { id: 'updraft', x: 34, z: 18 },
-  { id: 'ember-ward', x: 20, z: 43 },
-  { id: 'mend', x: 19, z: -4 },
+  { id: 'comet-lance', x: -3, z: 3 },
+  { id: 'chain-storm', x: -12, z: -12 },
+  { id: 'glacial-rupture', x: -43, z: 30 },
+  { id: 'void-maw', x: 34, z: 18 },
+  { id: 'phoenix-flight', x: 20, z: 43 },
+  { id: 'blood-bloom', x: 19, z: -4 },
 ];
 interface Pickup { id: SpellId; object: THREE.Object3D; baseY: number; trial: boolean; }
 export class PagePickups {

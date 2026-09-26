@@ -45,6 +45,9 @@ export class SoundDirector {
   }
 
   private channelTimer = 0;
+  private bolts = 0;
+  private arts = 0;
+  private flasks = 0;
   private channelFull = true;
 
   /** After each fixed step. */
@@ -66,6 +69,10 @@ export class SoundDirector {
     } else this.channelTimer = 0;
     this.channelFull = combat.momentum.value >= combat.momentum.max;
 
+    if (p.spells.boltsFired !== this.bolts) { this.bolts = p.spells.boltsFired; this.play('bolt', 0.6); }
+    if (combat.artsUsed !== this.arts) { this.arts = combat.artsUsed; this.play('art'); }
+    if (combat.flasksDrunk !== this.flasks) { this.flasks = combat.flasksDrunk; this.play('flask'); }
+    if (combat.phase === 'active' && this.phase !== 'active' && combat.attack?.emit && combat.attack.emit !== 'shockwave') this.play('wave', 0.8);
     if (combat.phase === 'active' && this.phase !== 'active' && combat.attack) {
       const heavy = combat.attack.kind === 'heavy' || combat.attack.arc === 'overhead' || combat.attack.kind === 'plunge';
       this.play(heavy ? 'heavy' : 'swing');
@@ -74,8 +81,7 @@ export class SoundDirector {
 
     if (p.spells.castCount !== this.casts) {
       this.casts = p.spells.castCount;
-      const page = p.spells.book.current;
-      this.play('cast', 1, page.id === 'frost-needle' ? 'frost' : page.effect.kind);
+      this.play('cast', 1, p.spells.lastKind);
     }
     if (this.alive && !combat.alive) this.play('death');
     this.alive = combat.alive;

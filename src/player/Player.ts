@@ -11,6 +11,9 @@ import { PlayerModel } from './PlayerModel';
 import { FirstPersonCamera } from './FirstPersonCamera';
 import { FirstPersonRig } from './FirstPersonRig';
 import { SpellCasting } from '../spells/SpellCasting';
+import { PlayerProjectiles } from '../combat/PlayerProjectiles';
+import { SpellFx } from '../render/effects/SpellFx';
+import { swordEmitters } from './SwordEmitters';
 
 /**
  * Owns the character: controller (fixed 60 Hz), procedural model and first-person camera
@@ -25,6 +28,10 @@ export class Player implements GameSystem {
   readonly view = new FirstPersonRig();
   readonly combat: PlayerCombat;
   readonly spells: SpellCasting;
+  /** Everything the player throws: crescents, Starbolts, lances, meteors (Job 13). */
+  readonly shots: PlayerProjectiles;
+  /** Beams, lightning, spikes and flashes for the arsenal. */
+  readonly fx = new SpellFx();
 
   private readonly spawnPoint = new THREE.Vector3();
   private spawnFacing = 0;
@@ -52,8 +59,14 @@ export class Player implements GameSystem {
       () => this.respawn(),
     );
     deps.combat.register(this.combat);
-    this.spells = new SpellCasting(this.combat, this.controller, this.model, this.camera, deps.combat, world, deps.effects, deps.time);
-    this.combat.castSpell = () => this.spells.cast();
+    this.shots = new PlayerProjectiles(deps.combat, world, deps.effects, this.fx);
+    this.spells = new SpellCasting(this.combat, this.controller, this.model, this.camera, deps.combat, world, deps.effects, deps.time,
+      this.shots, this.fx);
+    this.combat.spellInput = (pressed, held, released) => this.spells.spell(pressed, held, released);
+    this.combat.primaryInput = held => this.spells.primary(held);
+    this.combat.onWheel = step => this.spells.book.cycle(step);
+    this.combat.emitters = swordEmitters({ combat: this.combat, controller: this.controller, camera: this.camera, shots: this.shots,
+      fx: this.fx, effects: deps.effects, world: deps.combat, colliders: world, spells: this.spells });
     this.combat.onReset = () => this.spells.reset();
     const dir = spawn.lookAt.clone().sub(spawn.position).setY(0).normalize();
     this.spawnFacing = Math.atan2(-dir.x, -dir.z);
@@ -121,5 +134,6 @@ export class Player implements GameSystem {
       position: this.renderPos,
     });
     this.view.update(dt, this.model, this.combat, this.controller, this.camera.motionScale, this.camera);
+    this.fx.update(dt);
   }
 }

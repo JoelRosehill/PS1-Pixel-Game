@@ -10,12 +10,18 @@ import type { PlayerModel } from './PlayerModel';
 import type { FirstPersonCamera } from './FirstPersonCamera';
 
 /**
- * Spellblade combat (Pillar 2): a heavy melee loop that feeds the Momentum Pool.
+ * Spellblade combat (Pillar 2), remade in Job 13.
  *
- * Attacks are contextual — dashing thrusts, sliding sweeps, airborne plunges — and every
- * swing can be cancelled into a dash or jump, so combat never interrupts the movement
- * flow from Job 2. Hit detection uses an analytic blade arc rather than the animated
- * mesh, so hitboxes stay identical regardless of framerate.
+ * The sword owns short range — a fast three-hit combo, a charged heavy, parries and
+ * ripostes — but almost every swing can also reach: the combo finisher throws a
+ * crescent, holding the attack charges a heavy that looses one (or, fully charged,
+ * three) great crescents, a dash thrust fires a lance of light, a slide sweep sends a
+ * wave along the ground and a plunge lands as a shockwave. Sword Arts (R) spend
+ * Momentum on bigger ranged techniques. The book fires free Starbolts on right mouse
+ * and casts pages on E (see SpellCasting); Ember Flasks (G) heal.
+ *
+ * Every swing can be cancelled into a dash or jump, so combat never interrupts the
+ * movement flow. Hit detection uses an analytic blade arc, not the animated mesh.
  */
 
 export type AttackArc = 'slashR' | 'slashL' | 'spin' | 'overhead' | 'thrust' | 'sweep' | 'plunge';
@@ -39,36 +45,88 @@ export interface AttackDef {
   hitStop: number;
   next?: string;
   trail: number;
+  /** Ranged follow-through fired when the swing turns active (see `emitters`). */
+  emit?: string;
+  /** Upward launch at the start of the windup (Skyfall). */
+  leap?: number;
+  /** Invulnerable while active (Bloodmoon Rend). */
+  iframes?: boolean;
 }
 
 const A = (d: AttackDef) => d;
 
 export const ATTACKS: Record<string, AttackDef> = {
-  light1: A({ id: 'light1', arc: 'slashR', kind: 'light', windup: 0.07, active: 0.1, recovery: 0.17, damage: 11,
-    knockback: 4, stagger: 0.18, lunge: 5, reach: 2.3, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
+  light1: A({ id: 'light1', arc: 'slashR', kind: 'light', windup: 0.07, active: 0.1, recovery: 0.17, damage: 14,
+    knockback: 4, stagger: 0.2, lunge: 5, reach: 2.4, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
     shake: 0.22, hitStop: 0.05, next: 'light2', trail: 0x8ae8ff }),
-  light2: A({ id: 'light2', arc: 'slashL', kind: 'light', windup: 0.06, active: 0.1, recovery: 0.18, damage: 13,
-    knockback: 4.5, stagger: 0.2, lunge: 5, reach: 2.3, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
+  light2: A({ id: 'light2', arc: 'slashL', kind: 'light', windup: 0.06, active: 0.1, recovery: 0.18, damage: 16,
+    knockback: 4.5, stagger: 0.22, lunge: 5, reach: 2.4, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
     shake: 0.24, hitStop: 0.055, next: 'light3', trail: 0x8ae8ff }),
-  light3: A({ id: 'light3', arc: 'spin', kind: 'spin', windup: 0.12, active: 0.18, recovery: 0.3, damage: 20,
-    knockback: 8, stagger: 0.45, lunge: 2.5, reach: 2.2, radius: 0.55, momentum: MOMENTUM_GAINS.swordHit + 4,
-    shake: 0.45, hitStop: 0.08, trail: 0xb07cff }),
-  heavy: A({ id: 'heavy', arc: 'overhead', kind: 'heavy', windup: 0.3, active: 0.14, recovery: 0.4, damage: 26,
-    knockback: 11, stagger: 0.85, lunge: 3.5, reach: 2.5, radius: 0.6, momentum: MOMENTUM_GAINS.heavyHit,
-    shake: 0.6, hitStop: 0.11, trail: 0xff8ad8 }),
-  thrust: A({ id: 'thrust', arc: 'thrust', kind: 'thrust', windup: 0.04, active: 0.11, recovery: 0.16, damage: 16,
-    knockback: 5, stagger: 0.25, lunge: 0, reach: 2.7, radius: 0.45, momentum: MOMENTUM_GAINS.swordHit,
-    shake: 0.3, hitStop: 0.06, trail: 0x7fffd4 }),
-  sweep: A({ id: 'sweep', arc: 'sweep', kind: 'sweep', windup: 0.05, active: 0.13, recovery: 0.22, damage: 15,
-    knockback: 6, stagger: 0.6, lunge: 0, reach: 2.2, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
-    shake: 0.3, hitStop: 0.06, trail: 0x9aff7a }),
-  plunge: A({ id: 'plunge', arc: 'plunge', kind: 'plunge', windup: 0.1, active: 1.1, recovery: 0.3, damage: 24,
-    knockback: 9, stagger: 0.7, lunge: 0, reach: 1.9, radius: 0.55, momentum: MOMENTUM_GAINS.heavyHit,
-    shake: 0.5, hitStop: 0.09, trail: 0xffb45a }),
-  riposte: A({ id: 'riposte', arc: 'thrust', kind: 'riposte', windup: 0.05, active: 0.12, recovery: 0.2, damage: 34,
-    knockback: 10, stagger: 0.9, lunge: 7, reach: 2.8, radius: 0.55, momentum: MOMENTUM_GAINS.riposte,
+  light3: A({ id: 'light3', arc: 'spin', kind: 'spin', windup: 0.12, active: 0.18, recovery: 0.3, damage: 24,
+    knockback: 8, stagger: 0.5, lunge: 2.5, reach: 2.3, radius: 0.55, momentum: MOMENTUM_GAINS.swordHit + 3,
+    shake: 0.45, hitStop: 0.08, trail: 0xb07cff, emit: 'finisher' }),
+  heavy: A({ id: 'heavy', arc: 'overhead', kind: 'heavy', windup: 0.24, active: 0.14, recovery: 0.4, damage: 30,
+    knockback: 11, stagger: 0.9, lunge: 3.5, reach: 2.6, radius: 0.6, momentum: MOMENTUM_GAINS.heavyHit,
+    shake: 0.6, hitStop: 0.11, trail: 0xff8ad8, emit: 'charged' }),
+  thrust: A({ id: 'thrust', arc: 'thrust', kind: 'thrust', windup: 0.04, active: 0.11, recovery: 0.16, damage: 18,
+    knockback: 5, stagger: 0.3, lunge: 0, reach: 2.8, radius: 0.45, momentum: MOMENTUM_GAINS.swordHit,
+    shake: 0.3, hitStop: 0.06, trail: 0x7fffd4, emit: 'lance' }),
+  sweep: A({ id: 'sweep', arc: 'sweep', kind: 'sweep', windup: 0.05, active: 0.13, recovery: 0.22, damage: 17,
+    knockback: 6, stagger: 0.6, lunge: 0, reach: 2.3, radius: 0.5, momentum: MOMENTUM_GAINS.swordHit,
+    shake: 0.3, hitStop: 0.06, trail: 0x9aff7a, emit: 'groundWave' }),
+  plunge: A({ id: 'plunge', arc: 'plunge', kind: 'plunge', windup: 0.1, active: 1.1, recovery: 0.3, damage: 28,
+    knockback: 9, stagger: 0.8, lunge: 0, reach: 1.9, radius: 0.55, momentum: MOMENTUM_GAINS.heavyHit,
+    shake: 0.5, hitStop: 0.09, trail: 0xffb45a, emit: 'shockwave' }),
+  riposte: A({ id: 'riposte', arc: 'thrust', kind: 'riposte', windup: 0.05, active: 0.12, recovery: 0.2, damage: 48,
+    knockback: 10, stagger: 1, lunge: 7, reach: 2.9, radius: 0.55, momentum: MOMENTUM_GAINS.riposte,
     shake: 0.7, hitStop: 0.13, trail: 0xffd070 }),
+
+  // --- Sword Arts (R): Momentum-costed techniques ------------------------------------------------
+  'art-crescents': A({ id: 'art-crescents', arc: 'slashR', kind: 'heavy', windup: 0.14, active: 0.12, recovery: 0.3, damage: 22,
+    knockback: 6, stagger: 0.5, lunge: 2, reach: 2.5, radius: 0.6, momentum: 0, shake: 0.4, hitStop: 0.06,
+    trail: 0xc9b0ff, emit: 'art-crescents' }),
+  'art-skyfall': A({ id: 'art-skyfall', arc: 'plunge', kind: 'plunge', windup: 0.32, active: 1.6, recovery: 0.35, damage: 36,
+    knockback: 12, stagger: 1.1, lunge: 9, reach: 2, radius: 0.6, momentum: 0, shake: 0.8, hitStop: 0.1,
+    trail: 0xffd070, emit: 'art-skyfall', leap: 13 }),
+  'art-tempest': A({ id: 'art-tempest', arc: 'spin', kind: 'spin', windup: 0.12, active: 0.3, recovery: 0.32, damage: 26,
+    knockback: 9, stagger: 0.7, lunge: 0, reach: 3, radius: 0.7, momentum: 0, shake: 0.55, hitStop: 0.07,
+    trail: 0x9ad8ff, emit: 'art-tempest' }),
+  'art-phantom': A({ id: 'art-phantom', arc: 'thrust', kind: 'thrust', windup: 0.1, active: 0.12, recovery: 0.25, damage: 16,
+    knockback: 4, stagger: 0.3, lunge: 0, reach: 2.6, radius: 0.5, momentum: 0, shake: 0.3, hitStop: 0.04,
+    trail: 0xa0c8ff, emit: 'art-phantom' }),
+  'art-rend': A({ id: 'art-rend', arc: 'thrust', kind: 'thrust', windup: 0.08, active: 0.28, recovery: 0.3, damage: 30,
+    knockback: 6, stagger: 0.6, lunge: 0, reach: 2.8, radius: 0.8, momentum: 0, shake: 0.5, hitStop: 0.05,
+    trail: 0xff3a5a, emit: 'art-rend', iframes: true }),
+  'art-sunder': A({ id: 'art-sunder', arc: 'overhead', kind: 'heavy', windup: 0.3, active: 0.14, recovery: 0.45, damage: 40,
+    knockback: 12, stagger: 1.2, lunge: 3, reach: 2.7, radius: 0.65, momentum: 0, shake: 0.8, hitStop: 0.12,
+    trail: 0xffa45e, emit: 'art-sunder' }),
 };
+
+export interface SwordArt {
+  id: string;
+  name: string;
+  glyph: string;
+  color: number;
+  cost: number;
+  cooldown: number;
+  description: string;
+}
+
+/** The Sword Arts, in unlock order (R uses the equipped one, X cycles). */
+export const SWORD_ARTS: readonly SwordArt[] = [
+  { id: 'art-crescents', name: 'Moonlit Crescents', glyph: '☽', color: 0xc9b0ff, cost: 20, cooldown: 1.4,
+    description: 'A wide slash that looses three great crescents in a fan (30 m, 30 damage each, piercing).' },
+  { id: 'art-skyfall', name: 'Skyfall', glyph: '⇓', color: 0xffd070, cost: 25, cooldown: 2.2,
+    description: 'Leap forward and drive the blade into the earth: a 6 m shockwave and a line of stone spears 16 m ahead.' },
+  { id: 'art-tempest', name: 'Tempest Cross', glyph: '✢', color: 0x9ad8ff, cost: 30, cooldown: 2.5,
+    description: 'Spin and throw eight crescents out in every direction.' },
+  { id: 'art-phantom', name: 'Phantom Blades', glyph: '⚔', color: 0xa0c8ff, cost: 30, cooldown: 3,
+    description: 'Six spectral swords gather behind you and hunt your targets one after another.' },
+  { id: 'art-rend', name: 'Bloodmoon Rend', glyph: '⟿', color: 0xff3a5a, cost: 35, cooldown: 3,
+    description: 'Dash 10 m straight through your foes, untouchable; a heartbeat later every one you passed bursts.' },
+  { id: 'art-sunder', name: 'Sunder', glyph: '⟰', color: 0xffa45e, cost: 25, cooldown: 2.4,
+    description: 'An overhead cleave that tears a 20 m line of fire and stone through the ground.' },
+];
 
 export const COMBAT_TUNING = {
   maxHealth: 100,
@@ -77,6 +135,14 @@ export const COMBAT_TUNING = {
   riposteWindow: 1.5,
   respawnDelay: 1.8,
   sheatheAfter: 5,
+  /** Holding the attack past this after a swing starts a charge (seconds). */
+  holdToCharge: 0.28,
+  /** Seconds to a full charge. */
+  chargeTime: 0.8,
+  flasks: 3,
+  flaskHeal: 45,
+  /** Drinking roots you this long before the heal lands. */
+  flaskTime: 0.75,
 };
 
 type Phase = 'idle' | 'windup' | 'active' | 'recovery' | 'charge' | 'staggered' | 'dead';
@@ -90,6 +156,7 @@ export class PlayerCombat implements Damageable {
   readonly momentum = new Momentum();
 
   health = COMBAT_TUNING.maxHealth;
+  maxHealth = COMBAT_TUNING.maxHealth;
   alive = true;
   phase: Phase = 'idle';
   attack: AttackDef | null = null;
@@ -97,14 +164,31 @@ export class PlayerCombat implements Damageable {
   phaseT = 0;
   charge = 0;
   guarding = false;
-  castSpell: (() => boolean) | null = null;
   onReset: (() => void) | null = null;
+  /** Spell input each fixed step: E pressed / held / released (see SpellCasting). */
+  spellInput: ((pressed: boolean, held: boolean, released: boolean) => void) | null = null;
+  /** Right mouse: the book's free Starbolts. */
+  primaryInput: ((held: boolean) => void) | null = null;
+  /** Ranged follow-throughs by name ('finisher', 'charged', 'art-sunder', ...). */
+  emitters: Record<string, (charge: number) => void> = {};
   wardTime = 0;
   wardReduction = 0.5;
   /** Momentum gained by channelling this step (for effects and sound). */
   channelGain = 0;
   /** A hit while channelling locks the channel until Shift is released. */
   channelBroken = false;
+
+  // Sword Arts and flasks.
+  readonly artsUnlocked = new Set<string>(['art-crescents', 'art-skyfall']);
+  art = 'art-crescents';
+  readonly artCooldowns = new Map<string, number>();
+  artMessage = '';
+  artMessageTime = 0;
+  artsUsed = 0;
+  flasks = COMBAT_TUNING.flasks;
+  maxFlasks = COMBAT_TUNING.flasks;
+  drinking = 0;
+  flasksDrunk = 0;
 
   private timer = 0;
   private queued: string | null = null;
@@ -113,6 +197,8 @@ export class PlayerCombat implements Damageable {
   private respawnTimer = 0;
   private sheatheTimer = 0;
   private plungeLanded = false;
+  private holdTime = 0;
+  private releasedCharge = 0;
   private readonly hitList = new Set<Damageable>();
   private readonly hilt = new THREE.Vector3();
   private readonly tip = new THREE.Vector3();
@@ -150,10 +236,18 @@ export class PlayerCombat implements Damageable {
     return this.riposteTimer > 0;
   }
 
+  get currentArt(): SwordArt {
+    return SWORD_ARTS.find(a => a.id === this.art)!;
+  }
+
+  artRemaining(id = this.art): number {
+    return this.artCooldowns.get(id) ?? 0;
+  }
+
   reset(): void {
     this.wardTime = 0;
     this.onReset?.();
-    this.health = COMBAT_TUNING.maxHealth;
+    this.health = this.maxHealth;
     this.alive = true;
     this.phase = 'idle';
     this.attack = null;
@@ -161,15 +255,28 @@ export class PlayerCombat implements Damageable {
     this.timer = 0;
     this.queued = null;
     this.hitList.clear();
+    this.artCooldowns.clear();
+    this.flasks = this.maxFlasks;
+    this.drinking = 0;
+    this.holdTime = 0;
+  }
+
+  /** Rest at a shrine: full health, flasks and Momentum without the death reset. */
+  restore(): void {
+    this.health = this.maxHealth;
+    this.flasks = this.maxFlasks;
+    this.momentum.reset();
   }
 
   fixedUpdate(dt: number): void {
     this.wardTime = Math.max(0, this.wardTime - dt);
+    this.artMessageTime = Math.max(0, this.artMessageTime - dt);
+    for (const [id, t] of this.artCooldowns) this.artCooldowns.set(id, Math.max(0, t - dt));
     const shiftHeld = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight');
     if (!shiftHeld) this.channelBroken = false;
-    const channelling = this.alive && this.controller.channelling && !this.channelBroken && (this.phase === 'idle' || this.phase === 'recovery');
+    const channelling = this.alive && this.controller.channelling && !this.channelBroken && this.drinking <= 0 &&
+      (this.phase === 'idle' || this.phase === 'recovery');
     this.channelGain = this.momentum.update(dt, channelling);
-    if (channelling) this.controller.moveScale = 0;
     this.parryTimer = Math.max(0, this.parryTimer - dt);
     this.riposteTimer = Math.max(0, this.riposteTimer - dt);
     this.sheatheTimer = Math.max(0, this.sheatheTimer - dt);
@@ -192,6 +299,19 @@ export class PlayerCombat implements Damageable {
       return;
     }
 
+    if (this.drinking > 0) {
+      this.drinking -= dt;
+      this.controller.moveScale = 0.35;
+      if (this.drinking <= 0) {
+        const before = this.health;
+        this.health = Math.min(this.maxHealth, this.health + COMBAT_TUNING.flaskHeal);
+        this.effects.number(this.tmpA.copy(this.position).addScaledVector(UP, 2), `+${Math.round(this.health - before)}`, 0x9affb1, 1.3);
+        this.effects.sparkBurst(this.tmpA.copy(this.position).addScaledVector(UP, 1), UP, 0xffb45a, 18, 4);
+        this.flasksDrunk++;
+      }
+      return;
+    }
+
     this.readInput(dt);
     this.advance(dt);
   }
@@ -208,19 +328,30 @@ export class PlayerCombat implements Damageable {
       this.effects.ring(this.tmpA.copy(this.position).addScaledVector(UP, 1.1), 0x9ad8ff, 1.1, 0.25, true);
     }
 
-    if (inp.takePressed('KeyE')) this.castSpell?.();
+    const free = this.phase === 'idle' || this.phase === 'recovery';
+    this.spellInput?.(inp.takePressed('KeyE'), inp.isDown('KeyE'), inp.released('KeyE'));
+    this.primaryInput?.(inp.mouseDown(2) && free);
+    if (inp.wheel !== 0 && !inp.blocked) { this.onWheel?.(Math.sign(inp.wheel)); inp.wheel = 0; }
 
-    // Heavy: hold right mouse to charge, release to swing.
+    if (inp.takePressed('KeyX')) this.cycleArt(1);
+    if (inp.takePressed('KeyG') && free) this.drinkFlask();
+    if (inp.takePressed('KeyR') && free) this.useArt();
+
+    // Holding the attack charges a heavy that looses crescents.
+    if (inp.mouseDown(0)) this.holdTime += dt; else this.holdTime = 0;
     if (this.phase === 'charge') {
-      this.charge = Math.min(1, this.charge + dt / 0.55);
+      this.charge = Math.min(1, this.charge + dt / COMBAT_TUNING.chargeTime);
       this.controller.moveScale = 0.35;
       this.controller.attackLock = false;
-      if (!inp.mouseDown(2)) this.begin('heavy');
+      if (!inp.mouseDown(0)) { this.releasedCharge = this.charge; this.begin('heavy'); }
       return;
     }
-    if (inp.mousePressed(2) && (this.phase === 'idle' || this.phase === 'recovery') && this.controller.grounded) {
+    if (this.phase === 'recovery' && inp.mouseDown(0) && this.holdTime > COMBAT_TUNING.holdToCharge && !this.queued &&
+      this.controller.grounded) {
       this.phase = 'charge';
       this.charge = 0;
+      this.attack = null;
+      this.effects.endTrail();
       this.sheatheTimer = COMBAT_TUNING.sheatheAfter;
       return;
     }
@@ -235,12 +366,47 @@ export class PlayerCombat implements Damageable {
     if (this.phase === 'recovery' && (this.controller.events.dashed || this.controller.events.jumped)) this.endAttack();
   }
 
+  /** Mouse wheel: set by Player (cycles spell pages). */
+  onWheel: ((step: number) => void) | null = null;
+
   private contextualAttack(): string {
     if (this.riposteTimer > 0) return 'riposte';
     if (this.controller.state === 'dash') return 'thrust';
     if (this.controller.sliding) return 'sweep';
     if (!this.controller.grounded) return 'plunge';
     return 'light1';
+  }
+
+  cycleArt(step: number): void {
+    const owned = SWORD_ARTS.filter(a => this.artsUnlocked.has(a.id));
+    const i = owned.findIndex(a => a.id === this.art);
+    this.art = owned[(i + step + owned.length * 4) % owned.length].id;
+    this.artMessage = this.currentArt.name;
+    this.artMessageTime = 1.6;
+  }
+
+  /** R: the equipped Sword Art, if Momentum and its cooldown allow. */
+  useArt(): boolean {
+    const art = this.currentArt;
+    const fail = (m: string) => { this.artMessage = m; this.artMessageTime = 2.5; return false; };
+    if (this.artRemaining() > 0) return fail(`${art.name} is recovering`);
+    if (!this.momentum.spend(art.cost)) return fail(`${art.name} needs ${this.momentum.costOf(art.cost)} Momentum · hold Shift standing still`);
+    this.artCooldowns.set(art.id, art.cooldown);
+    this.artsUsed++;
+    this.begin(art.id);
+    return true;
+  }
+
+  drinkFlask(): boolean {
+    if (this.flasks <= 0 || this.health >= this.maxHealth) {
+      this.artMessage = this.flasks <= 0 ? 'No Ember Flasks left · rest at a shrine' : 'Vigour is already full';
+      this.artMessageTime = 2;
+      return false;
+    }
+    this.flasks--;
+    this.drinking = COMBAT_TUNING.flaskTime;
+    this.endAttack();
+    return true;
   }
 
   // --- attack lifecycle ----------------------------------------------------
@@ -257,10 +423,15 @@ export class PlayerCombat implements Damageable {
     this.plungeLanded = false;
     this.sheatheTimer = COMBAT_TUNING.sheatheAfter;
     if (id === 'riposte') this.riposteTimer = 0;
+    if (id !== 'heavy') this.releasedCharge = 0;
 
     // First-person strikes follow aim; never turn the body away from the crosshair.
     this.controller.facing = this.camera.movementYaw;
     this.controller.attackLock = true;
+    if (def.leap) {
+      const f = this.controller.facing;
+      this.controller.addImpulse(-Math.sin(f) * def.lunge, def.leap, -Math.cos(f) * def.lunge);
+    }
   }
 
   private advance(dt: number): void {
@@ -275,26 +446,29 @@ export class PlayerCombat implements Damageable {
 
     if (this.phase === 'windup') {
       this.phaseT = 1 - Math.max(0, this.timer) / def.windup;
-      this.controller.moveScale = 0.3;
+      this.controller.moveScale = def.leap ? 1 : 0.3;
       if (def.arc === 'overhead') this.controller.moveScale = 0.15;
       if (this.timer <= 0) {
         this.phase = 'active';
         this.timer = def.active;
         this.phaseT = 0;
-        this.lunge(def);
+        if (!def.leap) this.lunge(def);
         this.effects.beginTrail(def.trail);
         this.bladeAt(def, 0, this.prevHilt, this.prevTip);
-        if (def.arc === 'plunge') this.controller.velocity.y = -26;
+        if (def.arc === 'plunge') this.controller.velocity.y = Math.min(this.controller.velocity.y, def.leap ? 4 : -26);
+        if (def.emit && def.arc !== 'plunge') this.emitters[def.emit]?.(this.releasedCharge);
       }
     } else if (this.phase === 'active') {
       this.phaseT = 1 - Math.max(0, this.timer) / def.active;
       this.controller.moveScale = 0.1;
+      this.controller.invulnerableOverride = !!def.iframes;
       this.sweepBlade(def);
       if (def.arc === 'plunge') {
-        this.controller.velocity.y = Math.min(this.controller.velocity.y, -26);
-        if (this.controller.grounded && !this.plungeLanded) {
+        if (this.phaseT > (def.leap ? 0.18 : 0)) this.controller.velocity.y = Math.min(this.controller.velocity.y, -26);
+        if (this.controller.grounded && !this.plungeLanded && (this.phaseT > 0.05 || !def.leap)) {
           this.plungeLanded = true;
           this.plungeImpact(def);
+          if (def.emit) this.emitters[def.emit]?.(0);
           this.timer = 0;
         }
       }
@@ -302,6 +476,7 @@ export class PlayerCombat implements Damageable {
         this.phase = 'recovery';
         this.timer = def.recovery;
         this.phaseT = 0;
+        this.controller.invulnerableOverride = false;
         this.effects.endTrail();
       }
     } else if (this.phase === 'recovery') {
@@ -323,6 +498,7 @@ export class PlayerCombat implements Damageable {
     this.queued = null;
     this.controller.moveScale = 1;
     this.controller.attackLock = false;
+    this.controller.invulnerableOverride = false;
     this.effects.endTrail();
     this.model.setAttackPose(null, 'idle', 0, 0);
   }
@@ -344,7 +520,7 @@ export class PlayerCombat implements Damageable {
     let height = 1.2;
     let pitch = 0;
     let reach = def.reach;
-    const charged = def.arc === 'overhead' ? 1 + this.charge * 0.15 : 1;
+    const charged = def.arc === 'overhead' ? 1 + this.releasedCharge * 0.15 : 1;
 
     switch (def.arc) {
       case 'slashR':
@@ -408,7 +584,7 @@ export class PlayerCombat implements Damageable {
   private land(def: AttackDef, target: Damageable): void {
     const point = this.tmpA.copy(target.position).addScaledVector(UP, target.bodyHeight * 0.6);
     const dir = this.tmpB.subVectors(point, this.position).setY(0).normalize();
-    const damage = def.damage * (def.arc === 'overhead' ? 1 + this.charge * 0.7 : 1);
+    const damage = def.damage * (def.id === 'heavy' ? 1 + this.releasedCharge * 1.0 : 1);
     const result = this.world.strike(target, {
       damage,
       direction: dir.clone(),
@@ -435,11 +611,14 @@ export class PlayerCombat implements Damageable {
 
   private plungeImpact(def: AttackDef): void {
     const centre = this.tmpA.copy(this.position);
-    this.effects.ring(centre, def.trail, 3.6, 0.45);
+    const radius = def.leap ? 6 : 4.2;
+    this.effects.ring(centre, def.trail, radius * 1.1, 0.45);
+    this.effects.ring(centre, 0xffffff, radius * 0.6, 0.3);
     this.camera.addShake(def.shake);
+    this.camera.addKick(0.03);
     this.time.hitStop(def.hitStop);
-    this.effects.sparkBurst(centre, UP, def.trail, 22, 9);
-    this.world.sphere(centre, 3.2, 'player', this.found);
+    this.effects.sparkBurst(centre, UP, def.trail, 26, 10);
+    this.world.sphere(centre, radius, 'player', this.found);
     for (const target of this.found) {
       if (this.hitList.has(target)) continue;
       this.hitList.add(target);
@@ -452,7 +631,7 @@ export class PlayerCombat implements Damageable {
   applyHit(hit: HitInfo): HitResult {
     if (!this.alive) return { hit: false };
 
-    // Dash i-frames: a perfect dodge pays Momentum and a slow-motion beat.
+    // Dash i-frames: a perfect dodge pays a little Momentum and a slow-motion beat.
     if (this.controller.invulnerable) {
       this.momentum.add(MOMENTUM_GAINS.perfectDodge);
       this.time.slowMotion(0.45, 0.18);
@@ -502,6 +681,7 @@ export class PlayerCombat implements Damageable {
     this.health -= damage;
     this.controller.addImpulse(hit.direction.x * hit.knockback, 2.5, hit.direction.z * hit.knockback);
     this.camera.addShake(blocked ? 0.3 : 0.7);
+    this.camera.addKick(blocked ? 0.01 : 0.025);
     this.time.hitStop(blocked ? 0.04 : 0.07);
     this.effects.sparkBurst(hit.point, hit.direction, 0xff4a6a, 12, 6);
     this.effects.number(hit.point.clone().addScaledVector(UP, 0.4), String(Math.round(damage)), 0xff5a7a, 1.2);
@@ -510,6 +690,7 @@ export class PlayerCombat implements Damageable {
       this.phase = 'staggered';
       this.timer = Math.min(hit.stagger, 0.55);
       this.attack = null;
+      this.drinking = 0;
       this.effects.endTrail();
       this.model.setAttackPose(null, 'idle', 0, 0);
     }

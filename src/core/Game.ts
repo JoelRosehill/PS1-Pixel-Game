@@ -1,3 +1,4 @@
+import { SPELL_PAGES } from '../spells/SpellBook';
 import * as THREE from 'three';
 import { ModelLibrary } from '../assets/ModelLibrary';
 import { CombatWorld } from '../combat/CombatWorld';
@@ -171,7 +172,7 @@ export class Game {
 
     this.gameHud = new GameHud(gameHudEl);
     this.pages = new PagePickups(this.level, this.player.spells);
-    this.scene.add(this.pages.group, this.player.spells.group);
+    this.scene.add(this.pages.group, this.player.spells.group, this.player.shots.group, this.player.fx.group);
     this.spellbookUI = new SpellbookUI(this.player, this.input, gameHudEl);
     this.enemies = new EnemyDirector({
       player: this.player,
@@ -204,7 +205,7 @@ export class Game {
       const rem = REMEMBRANCES.find(r => r.boss === boss.id);
       if (rem) this.progress.remember(rem.id);
       this.audio?.play('bossDefeat');
-      this.player.combat.health = 100;
+      this.player.combat.restore();
       this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED', boss.id === 'sovereign' ? 'The moon is free. Thank you for playing.' : `${boss.name}, ${boss.epithet}`);
       if (boss.id === 'sovereign') this.finale = true;
     };
@@ -453,7 +454,7 @@ export class Game {
       ['DEATHS', String(this.deaths)],
       ['SHRINES KINDLED', `${this.level.story.shrines.filter(s => s.prop.kindled).length} / ${this.level.story.shrines.length}`],
       ['FRAGMENTS READ', `${p.lore.size} / ${Object.keys(LORE).length + Object.keys(MEMORIALS).length}`],
-      ['PAGES', `${this.player.spells.book.count} / 8`],
+      ['PAGES', `${this.player.spells.book.count} / ${SPELL_PAGES.length}`],
       ['GREAT FOES', `${p.bosses.size} / 3`],
     ];
   }
@@ -523,7 +524,7 @@ export class Game {
       this.effects.sparkBurst(shrine.position.clone().setY(shrine.position.y + 1), new THREE.Vector3(0, 1, 0), 0xff8a3a, 24, 6);
     }
     this.progress.kindle(shrine.id);
-    this.player.combat.health = 100;
+    this.player.combat.restore();
     this.player.spells.reset();
     this.player.setRespawn(shrine.rest, shrine.facing);
     this.restShrine = shrine.id;
@@ -575,7 +576,7 @@ export class Game {
     const hours = Math.floor(this.playTime / 3600), minutes = Math.floor(this.playTime / 60) % 60;
     return [
       `Journey ${hours ? `${hours} h ` : ''}${minutes} min · ${this.deaths} death${this.deaths === 1 ? '' : 's'}`,
-      `${this.player.spells.book.count} / 8 pages · ${p.gates.size} / 7 gates open`,
+      `${this.player.spells.book.count} / ${SPELL_PAGES.length} pages · ${p.gates.size} / 7 gates open`,
       `${p.bosses.size} / 3 great foes felled · ${p.lore.size} fragments read`,
     ].join('\n');
   }
@@ -666,7 +667,7 @@ export class Game {
     if (inp.pressed('BracketRight')) px.cycleBaseLines(1);
     if (inp.pressed('KeyH')) { this.hud.toggle(); this.settings.data.debugHud = this.hud.visible; this.settings.save(); }
     if (inp.pressed('KeyV')) this.setFlyMode(!this.flyMode);
-    if (inp.pressed('KeyR') && !this.flyMode) this.player.respawn();
+    if (inp.pressed('KeyK') && !this.flyMode) this.player.respawn();
     DEBUG_PRESETS.forEach((p, i) => {
       if (inp.pressed(`Digit${i + 1}`)) this.atmosphere.setPreset(p.id, 2);
     });
