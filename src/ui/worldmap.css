@@ -1,0 +1,32 @@
+.map-dialog { box-sizing: border-box; width: min(1000px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; color: #eee5ff; background: #140d21f5; border: 3px solid #74558a; box-shadow: 0 0 0 4px #0a0612, 0 24px 70px #0009; overflow: auto; font: 13px/1.5 'Consolas', 'Courier New', monospace; }
+.map-dialog::backdrop { background: #080510b8; }
+.map-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; }
+.map-header span { letter-spacing: 0.18em; color: #ffd894; }
+.map-header p { margin: 2px 0 0; font-size: 11px; color: #b8a6ce; }
+.map-dialog button { font: inherit; color: inherit; background: transparent; border: 1px solid #74558a; padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.map-dialog button:hover { background: #2a1d3a; }
+.map-dialog button:focus-visible { outline: 3px solid #8ae8ff; outline-offset: 3px; }
+.map-dialog kbd { margin-left: 8px; font: inherit; border: 1px solid #74558a; padding: 1px 5px; }
+.map-body { display: grid; grid-template-columns: minmax(0, 512px) 1fr; gap: 18px; padding: 0 20px 20px; }
+.map-body canvas { width: 100%; aspect-ratio: 1; image-rendering: pixelated; border: 2px solid #3c2358; box-shadow: 0 0 0 2px #0a0414; background: #0a0612; }
+.map-here { margin: 0 0 12px; color: #c8b9d6; }
+.map-here strong { color: #f4e8ff; }
+.map-chapters { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.map-chapters li { padding: 7px 10px; border-left: 3px solid #3c2d4a; color: #8f80a2; }
+.map-chapters li.seen { border-left-color: #b07cff; color: #d8cce8; }
+.map-chapters strong, .map-chapters span, .map-chapters small { display: block; }
+.map-chapters strong { color: inherit; }
+.map-chapters span { font-size: 11px; }
+.map-chapters small { font-size: 10px; color: #ffd894; }
+.map-legend { margin: 14px 0 0; font-size: 11px; color: #c8b9d6; line-height: 2; }
+.map-legend i { display: inline-block; width: 9px; height: 9px; margin: 0 5px 0 10px; vertical-align: middle; }
+.map-legend i:first-child { margin-left: 0; }
+.lg-player { background: #7fffd4; }
+.lg-landmark { background: #ffd36a; transform: rotate(45deg); }
+.lg-camp { background: #ff4a6a; }
+.lg-cleared { background: #8a8098; }
+.lg-gate { background: #b07cff; }
+.lg-open { background: #ffd070; }
+@media (max-width: 760px) {
+  .map-body { grid-template-columns: 1fr; }
+}

@@ -26,6 +26,7 @@ export class GameHud {
   private announceTime = 0;
   private readonly blindEl: HTMLElement;
   private readonly announceEl: HTMLElement;
+  private readonly hintEl: HTMLElement;
 
   constructor(container: HTMLElement) {
     container.innerHTML = `
@@ -37,6 +38,7 @@ export class GameHud {
       <div class="hit-flash"></div>
       <div class="blind-flash"></div>
       <div class="announce"><strong></strong><span></span></div>
+      <div class="world-hint" role="status" aria-live="polite" hidden></div>
       <div class="banner"></div>
       <div class="aim-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="kinetic-hud"><div><strong class="velocity">0</strong><span>m/s</span></div><div class="speed-track"><i></i></div><p class="movement-hint"></p></div>`;
@@ -48,6 +50,7 @@ export class GameHud {
     this.flash = container.querySelector('.hit-flash')!;
     this.blindEl = container.querySelector('.blind-flash')!;
     this.announceEl = container.querySelector('.announce')!;
+    this.hintEl = container.querySelector('.world-hint')!;
     this.banner = container.querySelector('.banner')!;
     this.velocity = container.querySelector('.velocity')!;
     this.movementHint = container.querySelector('.movement-hint')!;
@@ -82,6 +85,12 @@ export class GameHud {
     this.announceEl.querySelector('strong')!.textContent = title;
     this.announceEl.querySelector('span')!.textContent = subtitle;
     this.announceTime = 3.2;
+  }
+
+  /** A persistent prompt near the bottom (e.g. why a gate is closed). */
+  setHint(text: string): void {
+    if (this.hintEl.textContent !== text) this.hintEl.textContent = text;
+    this.hintEl.hidden = !text;
   }
 
   setVisible(v: boolean): void {

@@ -21,8 +21,8 @@ that mention a chase camera or third person describe the state at the time.
 | 4 | The Living Spellbook | 3 | ✅ Done |
 | 5 | Enemy Ecology I: Shadow Knights & Sunkeeper Wizards | 5 | ✅ Done |
 | 6 | World Engine & Biome Framework (5 archetypes) | 1, 4 | ✅ Done |
-| 7 | The 40-Biome Atlas & Chapter Structure | 4 | ⏳ Next |
-| 8 | Colossal Bosses & Dragon-kin | 5 | — |
+| 7 | The 40-Biome Atlas & Chapter Structure | 4 | ✅ Done |
+| 8 | Colossal Bosses & Dragon-kin | 5 | ⏳ Next |
 | 9 | Narrative, Rest Shrines & Save System | 4 | — |
 | 10 | Audio, UI, Bloom & Polish Pass | all | — |
 
@@ -269,10 +269,38 @@ hitboxes. The procedural player and its future book are unchanged.
   anchors, never scene lights.
 - Enemy camps are generated at load; encounters are keyed by `camp:<site>:<n>` for saves.
 
-## Job 7 — The 40-Biome Atlas
-- 8 chapters × 5 biomes, each a data-driven variant with its own landmarks
-- Landmark generator (citadels, portals, ruins, colossal bones)
-- World map + chapter gating
+## Job 7 — The 40-Biome Atlas ✅
+- [x] **40 biomes** (`src/world/biomes/Atlas.ts`): every one a data variant of an archetype
+      (`variant(base, id, name, overrides)`), each different in ground, colours, props,
+      fauna, motes, sky and/or landmark. Chapters I–V are anchored by the five required
+      archetypes; VI *The Ashen March*, VII *The Frozen Choir* and VIII *The Last Garden*
+      remix them under three new skies (Ashen Dusk, Aurora Night, Celestial Garden)
+- [x] **Landmark generator** (`BiomeLandmarks.ts`): ten kinds — watchtower, obelisk circle,
+      sun temple, crystal hall, citadel, portal, ruined keep, colossal bones, stone arch /
+      aqueduct, great tree — each seeded per site and tinted by the biome's accent colour
+- [x] **Chapter gating** (`ChapterGates.ts`): a veil of mist and two rune pillars at every
+      pass; it opens once three camps of the chapter behind it are cleared (Job 8 adds the
+      boss). Invisible walls back every ridge crest, enclose the hub except its northern
+      valley (now framed by a mountain rampart) and ring the world's edge. Closed gates
+      explain what they need; opening one announces the next chapter
+- [x] **World map** (M): painted from the analytic ground with hill shading; regions stay
+      dark until discovered; landmarks, camps (cleared/uncleared), gates, the citadel and a
+      facing arrow; a text panel with where you are and every chapter's progress. Pauses
+      the world; keyboard-closable native dialog; spellbook and map never stack
+- [x] `Progress` (`src/core/Progress.ts`): discovered regions, cleared encounters, opened
+      gates, felled bosses — the single source of truth Job 9 will persist
+- [x] `npm run atlastest`: 17 checks (atlas data, variants, skies, landmark kinds, crest
+      walls, hub exit, sealed gate, gate hint, gate opening and crossing, progress,
+      discovery, map open/paint/panel/reveal/close, menu exclusivity)
+
+**Notes for Job 8:**
+- `ChapterGates.bossRequirement(chapter)` is the hook for "defeat this chapter's boss";
+  `Progress.fellBoss(id)` records it. The last chapter (VIII) has no gate: its finale is
+  *The Heart of the Moon* site (`c8-4`, landmark `citadel`, "The Pale Citadel").
+- The hub's red dragon display (`HeroAssets`) and the shadow demon are the natural models
+  for the dragon-kin and colossal beast bosses.
+- `EnemyDirector` owns enemies; bosses can be `Enemy` subclasses with a bigger body and
+  their own arena encounter (`EncounterDef` with a single wave).
 
 ## Job 8 — Colossal Bosses
 - Boss framework: phases, arenas, cinematic intros, boss HP bar

@@ -22,6 +22,8 @@ export interface Level {
   setViewer?(position: THREE.Vector3, instant?: boolean): void;
   /** When true, the level drives the sky from the biomes around the viewer. */
   readonly biomeDriven?: boolean;
+  /** A hint about a nearby obstacle (closed chapter gates). */
+  readonly gateHint?: string;
   /** Region title hook for streamed levels. */
   onRegion?: (title: string, subtitle: string) => void;
   heightAt(x: number, z: number): number;

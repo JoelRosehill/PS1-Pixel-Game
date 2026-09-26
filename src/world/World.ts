@@ -3,6 +3,8 @@ import type { ModelLibrary } from '../assets/ModelLibrary';
 import type { EncounterDef } from '../enemies/Encounters';
 import type { ColliderWorld } from '../physics/Colliders';
 import type { Atmosphere } from '../render/Atmosphere';
+import { Progress } from '../core/Progress';
+import { ChapterGates } from './engine/ChapterGates';
 import { rangeUniforms } from '../render/Materials';
 import { buildBiomeLandmark, type Landmark, type LightAnchor } from './biomes/BiomeLandmarks';
 import { CHAPTERS, roman } from './biomes/Chapters';
@@ -35,7 +37,10 @@ export class World implements Level {
   readonly reserved = new ReservedMap();
   readonly ambience: Ambience;
   readonly encounters: EncounterDef[];
+  readonly gates: ChapterGates;
   readonly biomeDriven = true;
+  /** Hint from a closed chapter gate near the viewer ('' when none). */
+  gateHint = '';
   /** Title-card hook: fired when the viewer settles into a new region. */
   onRegion: (title: string, subtitle: string) => void = () => {};
   /** Region the viewer is in ('hub' or a site id). */
@@ -50,7 +55,7 @@ export class World implements Level {
   private readonly lights: THREE.PointLight[] = [];
   private lightTimer = 0;
 
-  constructor(private readonly atmosphere: Atmosphere, chapters: ChapterDef[] = CHAPTERS) {
+  constructor(private readonly atmosphere: Atmosphere, readonly progress: Progress = new Progress(), chapters: ChapterDef[] = CHAPTERS) {
     this.atlas = new WorldAtlas(chapters);
     const ground = new ThresholdTerrain();
     this.terrain = new WorldTerrain(this.atlas, ground);
@@ -70,6 +75,10 @@ export class World implements Level {
 
     const camps = generateCamps(this.atlas, this.terrain.heightAt, this.reserved);
     this.encounters = [...(this.hub.encounters ?? []), ...camps.encounters];
+
+    this.gates = new ChapterGates(this.atlas, this.terrain.heightAt, col, progress, camps.encounters.map(e => e.id), this.hub.materials);
+    this.gates.onOpen = gate => this.onRegion('THE MIST PARTS', `The way to Chapter ${roman(gate.to)} · ${this.atlas.chapters[gate.to - 1].name} lies open`);
+    this.root.add(this.gates.group);
 
     this.props = new PropStreamer(new PropLibrary(this.hub.materials), this.atlas, this.terrain.heightAt, col, this.reserved);
     for (const d of camps.dressing) this.props.addFixed(d);
@@ -120,6 +129,7 @@ export class World implements Level {
     this.water.position.set(Math.round(this.viewer.x / 64) * 64, 0, Math.round(this.viewer.z / 64) * 64);
     this.ambience.update(dt, this.viewer);
     this.updateMood(dt, false);
+    this.gateHint = this.gates.update(dt, this.viewer);
     this.lightTimer -= dt;
     if (this.lightTimer <= 0) { this.lightTimer = 0.5; this.assignLights(); }
   }
@@ -135,11 +145,12 @@ export class World implements Level {
     const site = this.terrain.moodAt(this.viewer.x, this.viewer.z, this.hub.skyPreset, this.mood);
     this.atmosphere.setWeights(this.mood, instant);
     const key = site && (this.mood.get(this.hub.skyPreset) ?? 0) < 0.5 ? site.id : 'hub';
-    if (instant) { this.region = this.candidate = key; return; }
+    if (instant) { this.region = this.candidate = key; this.progress.discover(key); return; }
     if (key !== this.candidate) { this.candidate = key; this.candidateTime = 0; }
     this.candidateTime += dt;
     if (this.candidate !== this.region && this.candidateTime > 1.2) {
       this.region = this.candidate;
+      this.progress.discover(this.region);
       if (this.region === 'hub') this.onRegion('THE THRESHOLD', 'Where every road begins');
       else {
         const s = this.atlas.sites.find(x => x.id === this.region)!;

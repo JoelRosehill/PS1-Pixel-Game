@@ -127,6 +127,21 @@ World-edge mountains ring everything at 4.1–4.75 km.
 
 Biome borders blend over ~80 m (ground, colour and vegetation interleave); the sky blends
 over ~300 m and eases over about a second. Entering a new region shows its title card.
+
+### The atlas (Job 7)
+| Chapter | Name | Biomes |
+|---|---|---|
+| I | The Tranquil Reach | Tranquil Wilderness · Mirrorlake Shallows · Emberleaf Grove · Highpine Ridge · Glimmer Meadows |
+| II | The Violet Fen | Violet Marshes · Lantern Bog · Drowned Chapel Fen · Wisp Hollows · Mirefall Thicket |
+| III | The Sunkeepers' Coast | Sunkeeper's Terrace · Gilded Cascades · Coral Colonnade · Heliotrope Gardens · The Drowned Agora |
+| IV | The Crystal Deep | Crystal Caverns · Rimefrost Galleries · Rosequartz Vault · Geode Chasm · The Frozen Echo |
+| V | The Bloodstone Wastes | Bloodstone & Shadow · Carmine Canyons · Spirefield of Night · Ossuary Flats · The Weeping Portals |
+| VI | The Ashen March | Ashfall Barrens · Cinder Marsh · Obsidian Steps · Smoulder Wood · Emberdeep |
+| VII | The Frozen Choir | The Choir of Ice · Snowbound Pines · Frostmere · Glacier Terraces · Aurora Steppe |
+| VIII | The Last Garden | Garden of the Last Sun · Starfall Grove · Moonpetal Marsh · Celestine Caverns · The Heart of the Moon |
+
+**Gating:** each chapter's pass is sealed by a veil of mist until three of the chapter's
+camps are cleared (Job 8 adds its boss). The map (M) reveals regions as they are found.
 - Elden Ring-style pacing: long walks, landmarks visible from far away (made readable by
   Smart-Pixel), and a story found organically.
 - **40+ biomes in 8 chapters of 5.** Required archetypes are anchored as:

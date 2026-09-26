@@ -77,6 +77,18 @@ export interface FaunaSpec {
   waves: [number, number];
 }
 
+export type LandmarkKind =
+  | 'watchtower' | 'obelisks' | 'temple' | 'crystalHall' | 'citadel'
+  | 'portal' | 'ruins' | 'bones' | 'arch' | 'greatTree';
+
+/** Which set piece stands at the heart of a biome site, and its accent colour. */
+export interface LandmarkSpec {
+  kind: LandmarkKind;
+  color?: number;
+  /** Display name on the map. */
+  name?: string;
+}
+
 export interface BiomeDef {
   id: string;
   name: string;
@@ -91,4 +103,5 @@ export interface BiomeDef {
   motes: { color: number; density: number; rise: number };
   /** One line of mood, shown under the region title. */
   mood: string;
+  landmark: LandmarkSpec;
 }

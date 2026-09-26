@@ -1,9 +1,9 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 6](sessions/2026-09-26-job-6.md)
-records the streamed world, passing checks and draw budgets.
+**Latest verification:** [2026-09-26 Job 7](sessions/2026-09-26-job-7.md)
+records the 40-biome atlas, gating and the world map.
 
-**Last updated:** 2026-09-26, at the end of Job 6.
+**Last updated:** 2026-09-26, at the end of Job 7.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -79,12 +79,12 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–6 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–7 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
 LMB attack, RMB charged heavy, Q parry, E cast, F bind a page, B read the book,
-hold Tab for the spell wheel, V for the debug fly camera.
+hold Tab for the spell wheel, M for the world map, V for the debug fly camera.
 
 **What exists:**
 - **Smart-Pixel renderer** (`src/render/SmartPixelRenderer.ts`):
@@ -236,6 +236,19 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   - Budgets at the five anchor sites (software GL, so counts not timings): 94–160 terrain
     tiles (≈200–370k triangles before frustum culling), 80–210 prop meshes.
 
+- **Job 7 — Atlas, gates and map** (`src/world/biomes/Atlas.ts`, `ChapterGates.ts`,
+  `src/ui/WorldMap.ts`, `src/core/Progress.ts`):
+  - `ATLAS` holds 8×5 `BiomeDef`s built with `variant()`; `CHAPTERS` names the chapters.
+  - `BiomeDef.landmark` picks one of ten landmark builders and its accent colour.
+  - `World.gates` (`ChapterGates`): gate veils + removable gate colliders, permanent walls
+    on ridge crests / hub rampart / world edge. `level.gateHint` feeds `GameHud.setHint`.
+  - `Game.progress` (`Progress`) ← `World` (discoveries), `EnemyDirector.onCleared`
+    (encounters), gates. `Game.worldMap` (M); `Game.menuOpen` pauses for any menu.
+
+**Job 7 verification:** build passed; atlas 17/17, world 19/19, enemy 26/26, spells 38/38,
+kinetic 17/17, movement 11/11, combat 11/11 (see the
+session note). Screenshots: bones, great tree, portal, ruins, arch, gate, map.
+
 **Job 6 verification:** build passed; world suite 19/19; enemy 26/26, spells 38/38,
 kinetic 17/17, movement 11/11, combat 11/11. Screenshots inspected: spawn, hub-exit,
 wilderness, marsh, terrace, caverns, bloodstone, world-high.
@@ -250,6 +263,8 @@ session, so no frame-time numbers were taken.
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run atlastest` must pass (17 checks: atlas data and variants, landmark kinds,
+  walls, gates, progress, discovery, map).
 - `npm run worldtest` must pass (19 checks: layout, hub preservation, continuity,
   ridges/passes, archetype signatures, tile coverage and LOD, streaming budget, prop
   colliders, hub free of biome props, sky per biome, crossfade, titles, camps, walking out).
@@ -319,11 +334,10 @@ session, so no frame-time numbers were taken.
 
 ---
 
-## 6. Next: Job 7 — The 40-Biome Atlas
+## 6. Next: Job 8 — Colossal Bosses
 
-- 8 chapters × 5 biomes as data variants of the archetypes, each with its own landmarks.
-- Landmark generator (citadels, portals, ruins, colossal bones).
-- World map and chapter gating (gates at `atlas.passes`).
+- Boss framework: phases, arenas, cinematic intros, boss HP bar.
+- A dragon-kin boss, a colossal beast boss, and one more.
+- Use `ChapterGates.bossRequirement` to make bosses the final key of each gate.
 
-See ROADMAP.md's Notes for Job 7. The world streams around `level.setViewer`; tests call
-`level.setViewer(p, true)` after teleporting to build everything at once.
+See ROADMAP.md's Notes for Job 8.

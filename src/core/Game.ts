@@ -10,7 +10,6 @@ import { Effects } from '../render/effects/Effects';
 import { PIXEL_MODES, SmartPixelRenderer } from '../render/SmartPixelRenderer';
 import { GameHud } from '../ui/GameHud';
 import { Player } from '../player/Player';
-import type { Level } from '../world/Level';
 import { World } from '../world/World';
 import { Input } from './Input';
 import { TimeControl } from './TimeControl';
@@ -18,6 +17,8 @@ import { PagePickups } from '../spells/PagePickups';
 import { SpellbookUI } from '../ui/SpellbookUI';
 import { EnemyDirector } from '../enemies/EnemyDirector';
 import { EnemyHud } from '../ui/EnemyHud';
+import { WorldMap } from '../ui/WorldMap';
+import { Progress } from './Progress';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
 export interface GameSystem {
@@ -50,7 +51,7 @@ export class Game {
   readonly input: Input;
   readonly atmosphere: Atmosphere;
   readonly pixel: SmartPixelRenderer;
-  readonly level: Level;
+  readonly level: World;
   readonly player: Player;
   readonly combatWorld = new CombatWorld();
   readonly effects = new Effects();
@@ -61,7 +62,10 @@ export class Game {
   readonly assetErrors: string[] = [];
   readonly pages: PagePickups;
   readonly spellbookUI: SpellbookUI;
+  readonly worldMap: WorldMap;
   readonly enemies: EnemyDirector;
+  /** Discoveries, cleared encounters, opened gates (persisted by Job 9). */
+  readonly progress = new Progress();
   /** Tests set this to drive the simulation only through `step()`. */
   manual = false;
   /** Debug fly camera instead of the player's chase camera. */
@@ -94,7 +98,7 @@ export class Game {
     this.input = new Input(this.pixel.renderer.domElement);
     this.hud = new DebugHud(hudEl);
 
-    this.level = new World(this.atmosphere);
+    this.level = new World(this.atmosphere, this.progress);
     if (!opts.preset) {
       this.atmosphere.setPreset(this.level.skyPreset, 0);
       this.atmosphere.biomeDriven = !!this.level.biomeDriven;
@@ -124,10 +128,12 @@ export class Game {
       blind: (seconds, strength) => this.gameHud.blind(seconds, strength),
     });
     this.enemies.onAnnounce = (title, subtitle) => this.gameHud.announce(title, subtitle);
+    this.enemies.onCleared = (encounter) => this.progress.clear(encounter.def.id);
     this.level.onRegion = (title, subtitle) => this.gameHud.announce(title, subtitle);
     this.systems.push(this.enemies);
     this.scene.add(this.enemies.group);
     this.enemyHud = new EnemyHud(gameHudEl);
+    this.worldMap = new WorldMap(this.level, this.player, this.input, this.progress, this.enemies);
     this.combatWorld.onHit = (target, hit, result) => {
       if (target === this.player.combat && result.hit) this.gameHud.onPlayerDamaged(result.damage ?? hit.damage);
       this.enemies.onHit(target, hit, result);
@@ -175,11 +181,11 @@ export class Game {
     this.last = now;
     this.fps = THREE.MathUtils.lerp(this.fps, 1 / Math.max(realDt, 1e-4), 0.05);
     // Hit-stop and slow motion scale everything except the camera's own smoothing.
-    const dt = this.spellbookUI.paused ? 0 : this.time.update(realDt);
+    const dt = this.menuOpen ? 0 : this.time.update(realDt);
     this.elapsed = this.frozenTime ?? this.elapsed + dt;
 
-    if (!this.spellbookUI.paused) this.handleDebugKeys();
-    if (!this.flyMode && !this.spellbookUI.paused) this.player.camera.readLook();
+    if (!this.menuOpen) this.handleDebugKeys();
+    if (!this.flyMode && !this.menuOpen) this.player.camera.readLook();
 
     this.accumulator = this.manual ? 0 : this.accumulator + dt;
     let steps = 0;
@@ -206,6 +212,7 @@ export class Game {
     this.enemies.faceCamera(this.billboard);
     this.gameHud.update(realDt, this.player.combat, this.player.controller);
     this.enemyHud.update(realDt, this.flyMode ? null : this.enemies.focus);
+    this.gameHud.setHint(this.flyMode ? '' : this.level.gateHint ?? '');
     this.spellbookUI.update(realDt);
 
     if (this.renderEnabled) this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
@@ -228,6 +235,11 @@ export class Game {
     this.frames++;
     requestAnimationFrame(this.tick);
   };
+
+  /** A pausing menu (spellbook, quick-wheel or world map) is open. */
+  get menuOpen(): boolean {
+    return this.spellbookUI.paused || this.worldMap.paused;
+  }
 
   /** One 60 Hz simulation step: player, enemies, constructs and pickups. */
   private fixedStep(): void {
