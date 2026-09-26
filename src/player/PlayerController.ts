@@ -48,11 +48,20 @@ export const PLAYER_TUNING = {
   slideJumpBoost: 5,
   dashJumpBoost: 4,
 
-  dashSpeed: 27,
-  dashTime: 0.16,
-  dashCharges: 3,
-  dashRecharge: 1.05,
-  dashCooldown: 0.22,
+  dashSpeed: 25,
+  dashTime: 0.18,
+  /** Two charges that refill one at a time: dashes are an answer, not a way to travel. */
+  dashCharges: 2,
+  dashRecharge: 1.45,
+  dashCooldown: 0.32,
+  /** Invulnerable for the first part of a dash only (perfect-dodge window). */
+  dashIFrames: 0.13,
+  /** Dashes allowed per airtime (refreshed on landing and wall kicks). */
+  airDashes: 1,
+  /** Standing still closer than this counts as still for channelling Momentum. */
+  channelMaxSpeed: 2.5,
+  /** Distance between footsteps at run speed. */
+  strideLength: 2.1,
 
   wallSlideSpeed: 4,
   wallStick: 0.25,
@@ -97,7 +106,16 @@ export class PlayerController {
   lastTechnique = '';
   techniqueTime = 0;
   /** Set for one fixed step when a movement action fires (hooks for VFX/audio). */
-  events = { jumped: false, walljumped: false, dashed: false, slid: false, landed: false, slammed: false, rebounded: false };
+  events = { jumped: false, walljumped: false, dashed: false, slid: false, landed: false, slammed: false, rebounded: false, step: false };
+  /** Holding Shift while standing still: channelling Momentum (Job 12). */
+  channelling = false;
+  /** Downward speed at the last landing (m/s), for the camera dip and sounds. */
+  landingSpeed = 0;
+  /** Running counts of landings, dashes and footsteps: render-rate consumers compare
+   * these instead of reading per-step event flags they could miss or see twice. */
+  readonly counts = { land: 0, dash: 0, step: 0 };
+  /** Camera-relative input this step (x = strafe right, y = forward), for view tilt. */
+  readonly moveInput = new THREE.Vector2();
 
   private height: number = PLAYER_TUNING.standHeight;
   private coyote = 0;
@@ -116,6 +134,8 @@ export class PlayerController {
   private landingGrace = 0;
   private wallKickRefunded = false;
   private airTime = 0;
+  private airDashesLeft = 1;
+  private strideDistance = 0;
   private readonly runNormal = new THREE.Vector3();
 
   private readonly contacts: Contact[] = [];
@@ -208,7 +228,14 @@ export class PlayerController {
       this.velocity.z *= k;
     }
 
+    const fallSpeed = -this.velocity.y;
     this.integrate(dt);
+    if (this.events.landed) { this.landingSpeed = Math.max(0, fallSpeed); this.counts.land++; }
+    if (this.events.dashed) this.counts.dash++;
+    if (this.grounded && !this.sliding && this.dashTimer <= 0 && this.speed > 1.5) {
+      this.strideDistance += this.speed * dt;
+      if (this.strideDistance >= t.strideLength) { this.strideDistance -= t.strideLength; this.events.step = true; this.counts.step++; }
+    } else if (!this.grounded) this.strideDistance = t.strideLength * 0.7;
     this.updateFacing(dt);
     this.updateState();
   }
@@ -245,7 +272,9 @@ export class PlayerController {
     this.reboundRemaining = Math.max(0, this.reboundRemaining - dt);
     this.techniqueTime = Math.max(0, this.techniqueTime - dt);
     this.airTime = this.grounded ? 0 : this.airTime + dt;
-    this.invulnerable = this.dashTimer > 0;
+    if (this.grounded) this.airDashesLeft = t.airDashes;
+    this.moveInput.set(this.frozen ? 0 : inp.axis('KeyA', 'KeyD'), this.frozen ? 0 : inp.axis('KeyS', 'KeyW'));
+    this.invulnerable = this.dashTimer > t.dashTime - t.dashIFrames;
 
     if (this.dashCharges < t.dashCharges) {
       this.rechargeTimer += dt;
@@ -255,8 +284,17 @@ export class PlayerController {
       }
     } else this.rechargeTimer = 0;
 
-    if (!this.frozen && !this.swimming && this.dashTimer <= 0 && this.dashCooldown <= 0 && this.dashCharges > 0) {
-      if (inp.pressed('ShiftLeft') || inp.pressed('ShiftRight') || inp.mousePressed(1)) this.startDash();
+    // Shift standing still channels Momentum; Shift while moving (or in the air) dashes.
+    const shiftDown = inp.isDown('ShiftLeft') || inp.isDown('ShiftRight');
+    const still = this.wish.lengthSq() === 0;
+    this.channelling = !this.frozen && shiftDown && still && this.grounded && !this.swimming && !this.sliding &&
+      this.dashTimer <= 0 && this.speed < t.channelMaxSpeed;
+    const shiftPressed = inp.pressed('ShiftLeft') || inp.pressed('ShiftRight');
+    const wantsDash = (shiftPressed && (!still || !this.grounded)) || inp.mousePressed(1);
+    if (!this.frozen && !this.swimming && this.dashTimer <= 0 && this.dashCooldown <= 0 && this.dashCharges > 0 && wantsDash &&
+      (this.grounded || this.airDashesLeft > 0)) {
+      if (!this.grounded) this.airDashesLeft--;
+      this.startDash();
     }
   }
 
@@ -387,6 +425,7 @@ export class PlayerController {
       this.buffer = 0;
       this.facing = Math.atan2(-n.x, -n.z);
       this.events.walljumped = true;
+      this.airDashesLeft = t.airDashes;
       if (!this.wallKickRefunded && this.dashCharges < t.dashCharges) {
         this.dashCharges++; this.wallKickRefunded = true;
         this.technique('WALL KICK · DASH REFILLED');

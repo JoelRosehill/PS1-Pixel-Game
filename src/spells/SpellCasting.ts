@@ -87,7 +87,7 @@ export class SpellCasting {
       if (fraction * effect.distance < 0.4) return fail('The path is blocked');
       destination.addScaledVector(direction, Math.max(0, fraction * effect.distance - 0.08));
     }
-    if (!this.combat.momentum.spend(page.cost)) return fail(`Need ${this.combat.momentum.costOf(page.cost)} Momentum · strike, parry or dodge`);
+    if (!this.combat.momentum.spend(page.cost)) return fail(`Need ${this.combat.momentum.costOf(page.cost)} Momentum · hold Shift standing still to channel`);
     this.castCount++; this.globalCooldown = 0.22; this.cooldowns.set(page.id, page.cooldown);
     this.messageTime = 0;
     this.model.book.cast(page.color);

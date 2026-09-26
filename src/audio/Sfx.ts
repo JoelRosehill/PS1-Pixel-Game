@@ -36,6 +36,9 @@ export const SFX: Record<string, Effect> = {
   slide: (c, out, t) => sweep(c, out, t, 900, 400, 0.35, 0.1, 0.6),
   walljump: (c, out, t) => { sweep(c, out, t, 1400, 3200, 0.14, 0.14); thump(c, out, t, 180, 0.1); },
   slam: (c, out, t) => { thump(c, out, t, 90, 0.55, 0.4); sweep(c, out, t, 600, 120, 0.4, 0.2, 0.7); },
+  step: (c, out, t, o) => { thump(c, out, t, 70 + o.strength * 30, 0.07 * o.strength, 0.07); click(c, out, t, 500 + o.strength * 300, 0.02 * o.strength, 0.03); },
+  channel: (c, out, t, o) => { blip(c, out, t, 'sine', 180 + o.strength * 260, 200 + o.strength * 300, 0.3, 0.03); chime(c, out, t, [74 + Math.round(o.strength * 12)], 0, 0.12, 0.4); },
+  channelFull: (c, out, t) => { chime(c, out, t, [74, 81, 86, 93], 0.05, 0.35, 1.2); sweep(c, out, t, 400, 3200, 0.5, 0.16); },
   rebound: (c, out, t) => { chime(c, out, t, [79, 86, 91], 0.04, 0.3, 0.6); sweep(c, out, t, 800, 3000, 0.25, 0.14); },
 
   // --- spells ------------------------------------------------------------------------

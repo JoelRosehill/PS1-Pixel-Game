@@ -135,8 +135,9 @@ try {
     const g = window.__game, c = g.audio.counts, p = g.player;
     window.__at(6, 30);
     const before = { ...c };
-    window.__press('Space'); g.step(0.8);
-    window.__press('ShiftLeft'); g.step(0.5);
+    // Dash in the air: on the ground, Shift standing still channels Momentum instead.
+    window.__press('Space'); g.step(0.2);
+    window.__press('ShiftLeft'); g.step(1.1);
     const canvas = g.pixel.renderer.domElement;
     canvas.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
     g.step(1 / 60);

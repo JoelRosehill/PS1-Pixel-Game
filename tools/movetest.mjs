@@ -119,7 +119,7 @@ await page.keyboard.up('Shift');
 await page.keyboard.up('w');
 const dashPeak = Math.max(...dashSamples.map((r) => r.speed));
 const afterDash = await read();
-check('dash burst', dashPeak > 20 && afterDash.dash === 2, `peak=${dashPeak.toFixed(1)} m/s charges=${afterDash.dash}`);
+check('dash burst', dashPeak > 20 && afterDash.dash === 1, `peak=${dashPeak.toFixed(1)} m/s charges=${afterDash.dash}`);
 
 // 5. Slide boost from a run
 await setup(6, 3, 11, 180);

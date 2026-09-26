@@ -445,7 +445,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | Job | Title | Status |
 |---|---|---|
 | 11 | Creature Forge — rig and animate the user's models | ✅ |
-| 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ⏳ |
+| 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ✅ |
 | 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ⏳ |
 | 14 | Bestiary — model-based enemies and hard, animated bosses | ⏳ |
 | 15 | The Long Road — one handcrafted 40-biome journey | ⏳ |
@@ -480,3 +480,27 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 
 **Rebuild:** `pip install bpy==4.2.0` (Python 3.11), then
 `python tools/creatures/build.py -- all` and `node tools/creatures/strip.mjs`.
+
+## Job 12 — Feel & Momentum ✅
+
+- [x] **View bob** (`FirstPersonCamera`): speed-scaled stride bob with a figure-eight
+      sway and slight roll, a spring-damped **landing dip** scaled by fall speed (plus a
+      view kick), **lean into strafes**, dash roll and FOV punch, idle breathing, a
+      narrower FOV while channelling. All scaled by the camera-motion setting (F6 / menu).
+- [x] **Hands** (`FirstPersonRig`) follow the stride with a lagging figure-eight and sway
+      against mouse motion; while channelling the book rises to the chest, open and
+      trembling.
+- [x] **Footsteps** (`step` sound per stride), louder landings by fall speed
+- [x] **Dash rebalanced:** 2 charges (was 3), 1.45 s refill each (was 1.05), 0.32 s
+      cooldown, 25 m/s × 0.18 s, **i-frames only the first 0.13 s**, **one air dash per
+      jump** (refreshed on landing and wall kicks), perfect-dodge slow motion shortened
+- [x] **Momentum remade** (`Momentum.ts`): starts full, **never drains**, refills on
+      respawn/rest. **Hold Shift standing still to channel** (+42/s after a 0.35 s
+      ramp, rooted). A hit while channelling breaks it and lands **30 % harder**; the
+      channel stays broken until Shift is released. Hits/parries/dodges still add a little.
+      Shift while moving (or in the air) still dashes.
+- [x] HUD: `CHANNELLING` bar state and hints (`hold Shift standing still to channel`);
+      dash pips match the charge count; key hints follow rebinding
+- [x] Channel effects (rings and motes into the book) and sounds (`channel`, `channelFull`)
+- [x] Tests updated: kinetictest 19 (new: channel vs dash, one air dash), movetest,
+      combattest, enemytest, spelltest, uitest all passing

@@ -135,14 +135,14 @@ try {
     const p = reset();
     const k = spawn('knight', 2.8);
     k.perception.alert(p.controller.position);
-    const m0 = p.combat.momentum.value;
+    p.combat.momentum.value = 0; const m0 = 0;
     let parried = false;
     for (let i = 0; i < 600 && !parried; i++) {
       if (k.state === 'windup' && k.attack && k.attack.windup - k.stateTime < 0.08) p.combat.parryTimer = 0.18;
       g.step(1 / 60);
       parried = k.state === 'staggered' && k.exposed > 0;
     }
-    return { ok: parried && p.combat.health === 100 && p.combat.momentum.value >= m0 + 25 && p.combat.riposteReady,
+    return { ok: parried && p.combat.health === 100 && p.combat.momentum.value >= m0 + 15 && p.combat.riposteReady,
       detail: `state=${k.state} exposed=${k.exposed.toFixed(2)} hp=${p.combat.health} momentum=${p.combat.momentum.value}` };
   });
   await run('exposed knight takes bonus riposte damage', () => {
@@ -189,11 +189,11 @@ try {
     const k = spawn('knight', 3);
     k.perception.alert(p.controller.position);
     let dodged = false;
-    const m0 = p.combat.momentum.value;
+    p.combat.momentum.value = 0; const m0 = 0;
     for (let i = 0; i < 600 && !dodged; i++) {
       if (k.state === 'strike') p.controller.dashTimer = 0.2;
       g.step(1 / 60);
-      dodged = k.state === 'recover' && p.combat.momentum.value >= m0 + 15;
+      dodged = k.state === 'recover' && p.combat.momentum.value >= m0 + 8;
     }
     return { ok: dodged && p.combat.health === 100, detail: `hp=${p.combat.health} momentum=${p.combat.momentum.value}` };
   });

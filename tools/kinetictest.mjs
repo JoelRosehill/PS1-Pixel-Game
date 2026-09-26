@@ -61,7 +61,7 @@ try {
     };
     {
       const { c, press, tick } = setup(); tick(2); press('KeyW'); tick(30); press('ShiftLeft'); tick(); press('Space'); tick();
-      check('dash-jump keeps speed and launches', c.speed > 29 && c.velocity.y > 10 && !c.invulnerable, [c.speed, c.velocity.y]);
+      check('dash-jump keeps speed and launches', c.speed > 27 && c.velocity.y > 10 && !c.invulnerable, [c.speed, c.velocity.y]);
     }
     {
       const { c, press, tick } = setup(); tick(2); c.velocity.z = -36; press('KeyW'); press('ShiftLeft'); tick();
@@ -115,6 +115,28 @@ try {
     {
       const { c, press, tick } = setup(true); c.velocity.z = -16; press('KeyW'); tick(20); c.teleport(10, 2, 10);
       check('teleport resets transient traversal state', !c.wallRunning && !c.slamming && c.reboundRemaining === 0 && c.capsuleHeight === 1.8);
+    }
+    {
+      // Job 12: Shift standing still channels Momentum; Shift while moving dashes.
+      const { Momentum } = await import('/src/combat/Momentum.ts');
+      const { c, down, press, tick } = setup(); tick(10);
+      press('ShiftLeft'); tick(2);
+      const channelling = c.channelling && c.dashCharges === 2 && c.state !== 'dash';
+      const m = new Momentum(); m.value = 0;
+      for (let i = 0; i < 60; i++) m.update(1 / 60, c.channelling);
+      down.delete('ShiftLeft'); tick(1);
+      const stopped = !c.channelling;
+      press('KeyW'); tick(20); press('ShiftLeft'); tick(2);
+      check('Shift standing still channels, Shift moving dashes', channelling && m.value > 25 && m.value < 45 && stopped &&
+        c.dashCharges === 1 && !c.channelling, [channelling, m.value, stopped, c.dashCharges]);
+    }
+    {
+      // Two dash charges; the air allows one dash until landing.
+      const { c, down, press, tick } = setup(); tick(4); press('KeyW'); tick(10);
+      press('Space'); tick(8); press('ShiftLeft'); tick(1); down.delete('ShiftLeft'); tick(20);
+      const afterFirst = c.dashCharges;
+      press('ShiftLeft'); tick(1);
+      check('air dash limited to one per jump', afterFirst === 1 && c.dashCharges === 1 && !c.grounded, [afterFirst, c.dashCharges, c.grounded]);
     }
     return results;
   });

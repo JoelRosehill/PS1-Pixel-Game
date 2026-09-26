@@ -5,7 +5,7 @@ export const ACTIONS = [
   { id: 'left', label: 'Strafe left', key: 'KeyA' },
   { id: 'right', label: 'Strafe right', key: 'KeyD' },
   { id: 'jump', label: 'Jump · wall kick', key: 'Space' },
-  { id: 'dash', label: 'Dash', key: 'ShiftLeft' },
+  { id: 'dash', label: 'Dash · hold still to channel', key: 'ShiftLeft' },
   { id: 'slide', label: 'Slide · slam', key: 'ControlLeft' },
   { id: 'parry', label: 'Parry · guard', key: 'KeyQ' },
   { id: 'cast', label: 'Cast spell', key: 'KeyE' },
