@@ -473,6 +473,7 @@ export class PlayerCombat implements Damageable {
         stagger: 1.3,
         source: 'player',
         kind: 'riposte',
+        parry: true,
       });
       return { hit: false, parried: true };
     }

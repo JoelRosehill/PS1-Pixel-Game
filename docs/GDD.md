@@ -1,6 +1,7 @@
 # Project Chromatic Odyssey — Game Design Document
 
-**Genre:** "Chill-Fi Dark Fantasy" Action-RPG, third-person
+**Genre:** "Chill-Fi Dark Fantasy" Action-RPG, first-person (the composite's third-person
+framing was used through Job 4; a kinetic pass moved the camera into the eyes)
 **Tone:** the world feels mesmerizing and peaceful, and the combat is violent,
 fast and heavy. That contrast is the whole identity of the game.
 **Visual references:** [`reference_img/`](../reference_img/). The key frame is the composite:
@@ -122,6 +123,32 @@ strafing instead of being clamped to the run speed.
 - **Sunkeeper Wizards:** evasive, blinding light, long-range AoE; test movement.
 - **Dark Fauna:** colossal beasts and dragon-kin as regional bosses.
 
+### Implemented in Job 5 (`src/enemies/`)
+**Shared rules.** Enemies perceive through a view cone plus a hearing radius, with
+line-of-sight sweeps; awareness fills faster up close. Allies in an encounter share
+alerts. At most 2 melee and 2 ranged enemies commit to attacks at once, with 0.35 s
+between attack starts, so every telegraph is readable. Dragged beyond their leash,
+enemies walk home and heal. Deaths dissolve through a dithered pixel shader. Killing a
+knight pays 15 Momentum (wizard 10); clearing an encounter restores Vigour and Momentum.
+
+| Shadow Knight (190 HP) | |
+|---|---|
+| Guard | While duelling, frontal blows deal 20% and drain poise (100). Light 17, spin 26, heavy 55, plunge 60, riposte 100, spells 32. Poise 0 = guard break: 1.8 s stagger + exposed |
+| Weak point | The rune on its back: ×1.5 and ignores the shield |
+| Parry | Parrying any swing staggers it 2.1 s and exposes it (×1.6 damage) |
+| Armour | Light hits never interrupt its swings; heavy, plunge, riposte and ≥1 s-stagger spells do. Spells pierce the shield |
+| Cleave → backhand | 0.55 s tell, 16 dmg; 45% chains a 0.38 s backhand (14) |
+| Doom Descent | 1.05 s overhead with blazing seams, 30 dmg — the parry bait |
+| Lunge | From 5–9 m: 0.5 s tell, then a 13 m/s thrust (18). Perfect-dodge it |
+
+| Sunkeeper Wizard (95 HP) | |
+|---|---|
+| Range | Keeps 10–24 m; blinks (3.8 s cooldown) to perches or open ground 12–17 m away when the player closes to 6.5 m |
+| Sun Orb | 0.6 s cast, 15 m/s gently homing orb, 14 dmg. Dash through it, or parry to reflect it for 34 |
+| Solar Lance | Marks a 3.2 m circle where the player is heading; light falls 1.15 s later (24 dmg) |
+| Blinding Flash | 0.95 s halo swell; bursting within 22 m blinds a player looking within 40° of it for 1.8 s (partial further out). Look away or break line of sight |
+| Fragile | Any hit of 8+ damage during a cast interrupts it |
+
 ---
 
 ## Code map
@@ -134,14 +161,19 @@ src/
   physics/Colliders.ts    static collision world (terrain + primitives, grid broadphase)
   combat/                 CombatWorld registry, Momentum pool, shared hit types
   spells/                 SpellBook data/progression, SpellCasting, PagePickups
+  enemies/                EnemyDirector, Enemy base, Perception, AttackTokens, Telegraphs,
+                          EnemyProjectiles, Encounters, ShadowKnight, SunkeeperWizard
   player/                 PlayerController (tuning), PlayerCombat (attacks), PlayerModel,
-                          ThirdPersonCamera, Player
+                          FirstPersonCamera, FirstPersonRig (hands/sword/book), Player
   ui/GameHud.ts           health / Momentum / dash HUD
   ui/SpellbookUI.ts       reading screen, quick-wheel and spell HUD
+  ui/EnemyHud.ts          target frame (enemy name, Vigour, poise, state cues)
   world/                  levels + prop builders (terrain, castle, trial course, constructs…)
   debug/                  fly camera, debug HUD
 tools/screenshot.mjs      headless Chrome screenshots for visual verification
 tools/movetest.mjs        headless movement assertions
 tools/combattest.mjs      headless combat assertions
 tools/spelltest.mjs       spell behavior, pickups, progression and menu assertions
+tools/kinetictest.mjs     first-person camera and kinetic movement assertions
+tools/enemytest.mjs       deterministic enemy/encounter assertions (Game.step)
 ```

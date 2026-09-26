@@ -20,6 +20,12 @@ export class GameHud {
 
   private ghost = 1;
   private flashAmount = 0;
+  private blindTime = 0;
+  private blindDuration = 1;
+  private blindStrength = 0;
+  private announceTime = 0;
+  private readonly blindEl: HTMLElement;
+  private readonly announceEl: HTMLElement;
 
   constructor(container: HTMLElement) {
     container.innerHTML = `
@@ -29,6 +35,8 @@ export class GameHud {
         <div class="pips"></div>
       </div>
       <div class="hit-flash"></div>
+      <div class="blind-flash"></div>
+      <div class="announce"><strong></strong><span></span></div>
       <div class="banner"></div>
       <div class="aim-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="kinetic-hud"><div><strong class="velocity">0</strong><span>m/s</span></div><div class="speed-track"><i></i></div><p class="movement-hint"></p></div>`;
@@ -38,6 +46,8 @@ export class GameHud {
     this.momentumFill = container.querySelector('.momentum .fill')!;
     this.momentumLabel = container.querySelector('.momentum .label')!;
     this.flash = container.querySelector('.hit-flash')!;
+    this.blindEl = container.querySelector('.blind-flash')!;
+    this.announceEl = container.querySelector('.announce')!;
     this.banner = container.querySelector('.banner')!;
     this.velocity = container.querySelector('.velocity')!;
     this.movementHint = container.querySelector('.movement-hint')!;
@@ -54,6 +64,24 @@ export class GameHud {
   /** Call when the player takes damage, for the screen-edge flash. */
   onPlayerDamaged(amount: number): void {
     this.flashAmount = Math.min(1, this.flashAmount + amount / 45);
+  }
+
+  /** Sunkeeper flash: white-out that fades over `seconds`. */
+  blind(seconds: number, strength: number): void {
+    if (strength * seconds < this.blindStrength * this.blindTime) return;
+    this.blindTime = this.blindDuration = seconds;
+    this.blindStrength = strength;
+  }
+
+  get blinded(): number {
+    return this.blindTime > 0 ? this.blindStrength * (this.blindTime / this.blindDuration) : 0;
+  }
+
+  /** Title card in the upper third (encounters, discoveries). */
+  announce(title: string, subtitle = ''): void {
+    this.announceEl.querySelector('strong')!.textContent = title;
+    this.announceEl.querySelector('span')!.textContent = subtitle;
+    this.announceTime = 3.2;
   }
 
   setVisible(v: boolean): void {
@@ -75,6 +103,12 @@ export class GameHud {
     for (let i = 0; i < this.pips.length; i++) {
       this.pips[i].classList.toggle('spent', i >= controller.dashCharges);
     }
+
+    this.blindTime = Math.max(0, this.blindTime - dt);
+    const b = this.blinded;
+    this.blindEl.style.opacity = String(Math.min(1, b * 1.15));
+    this.announceTime = Math.max(0, this.announceTime - dt);
+    this.announceEl.classList.toggle('shown', this.announceTime > 0.4);
 
     this.flashAmount = Math.max(0, this.flashAmount - dt * 2.2);
     this.flash.style.opacity = String(this.flashAmount * 0.7);

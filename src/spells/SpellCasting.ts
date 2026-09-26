@@ -196,7 +196,7 @@ export class SpellCasting {
         field.pulse += 1;
         field.pulsesLeft--;
         const origin = field.mesh.position.clone().addScaledVector(UP, 0.8);
-        this.area(origin, effect.radius, field.page, effect.damage, 0.22, -4);
+        this.area(origin, effect.radius, field.page, effect.damage, 0.22, -10);
         this.effects.ring(field.mesh.position, field.page.color, effect.radius, 0.7);
       }
       field.life -= dt;

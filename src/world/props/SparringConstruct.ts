@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { CombatWorld } from '../../combat/CombatWorld';
 import type { Damageable, HitInfo, HitResult } from '../../combat/types';
 import type { Effects } from '../../render/effects/Effects';
+import type { DynamicBody } from '../../physics/Colliders';
 import { glow, toon } from '../../render/Materials';
 import { box, cylinder, place } from '../geometry';
 
@@ -27,6 +28,8 @@ export class SparringConstruct implements Damageable {
   readonly bodyHeight = 2.3;
   readonly position = new THREE.Vector3();
   readonly group = new THREE.Group();
+  /** Moving collision body; the level registers it with its ColliderWorld. */
+  readonly collider: DynamicBody = { position: this.position, radius: 0.7, height: 2.3, active: true };
 
   alive = true;
   health: number;
@@ -116,6 +119,7 @@ export class SparringConstruct implements Damageable {
       this.alive = false;
       this.state = 'dead';
       this.deathTimer = 8;
+      this.collider.active = false;
       this.timer = 0;
       return { hit: true, damage: hit.damage, killed: true };
     }
@@ -136,6 +140,7 @@ export class SparringConstruct implements Damageable {
       this.bar.visible = false;
       if (this.deathTimer <= 0) {
         this.alive = true;
+        this.collider.active = true;
         this.health = this.maxHealth;
         this.state = 'idle';
         this.body.rotation.z = 0;
