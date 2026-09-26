@@ -67,6 +67,19 @@ export const PIXEL_MODES: PixelMode[] = [
   },
 ];
 
+/** Smart-Pixel with a chosen number of depth bands (settings: 4 fast · 6 default · 8 finest). */
+export function smartMode(bands: 4 | 6 | 8): PixelMode {
+  if (bands === 6) return PIXEL_MODES[0];
+  const specs: PixelBandSpec[] = bands === 4
+    ? [{ far: 20, scale: 1, outline: true }, { far: 80, scale: 2, outline: true }, { far: 320, scale: 5 }, { far: Infinity, scale: 12 }]
+    : [{ far: 12, scale: 1, outline: true }, { far: 28, scale: 2, outline: true }, { far: 60, scale: 3 }, { far: 120, scale: 4 },
+      { far: 240, scale: 5 }, { far: 450, scale: 7 }, { far: 900, scale: 9 }, { far: Infinity, scale: 12 }];
+  return { ...PIXEL_MODES[0], id: `smart-${bands}`, name: `Smart-Pixel (${bands} bands)`, bands: specs };
+}
+
+/** Bloom works on a grid this many base pixels wide (chunky, pixel-art glow). */
+const BLOOM_SCALE = 4;
+
 /*
  * Coordinate spaces: everything is laid out on a "base canvas" of baseW × baseH base
  * pixels (1 base px = basePx device px). Band and sky grids are integer multiples of
@@ -103,6 +116,8 @@ export interface SmartPixelSettings {
   /** Fraction of each band's depth used for the dithered hand-off. */
   fadeFraction: number;
   debugBands: boolean;
+  /** Pixel bloom strength (0 = off): bright pixels glow onto their neighbours in steps. */
+  bloom: number;
 }
 
 export class SmartPixelRenderer {
@@ -115,6 +130,7 @@ export class SmartPixelRenderer {
     saturation: 1.12,
     fadeFraction: 0.22,
     debugBands: false,
+    bloom: 0.6,
   };
 
   mode: PixelMode = PIXEL_MODES[0];
@@ -130,6 +146,10 @@ export class SmartPixelRenderer {
   private bands: Band[] = [];
   private skyTarget: THREE.WebGLRenderTarget | null = null;
   private compositeTarget: THREE.WebGLRenderTarget | null = null;
+  private bloomA: THREE.WebGLRenderTarget | null = null;
+  private bloomB: THREE.WebGLRenderTarget | null = null;
+  private readonly bloomExtract: THREE.ShaderMaterial;
+  private readonly bloomBlur: THREE.ShaderMaterial;
   private skyScale = 1;
   private skyExtra = new THREE.Vector2();
   private readonly bandCam = new THREE.PerspectiveCamera();
@@ -158,14 +178,69 @@ export class SmartPixelRenderer {
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
     this.skyMaterial = this.createSkyMaterial();
     this.blitMaterial = new THREE.ShaderMaterial({
-      uniforms: { tSrc: { value: null }, uBlit: { value: new THREE.Vector3(1, 0, 0) } },
+      uniforms: { tSrc: { value: null }, tBloom: { value: null }, uBloom: { value: 0 }, uBlit: { value: new THREE.Vector3(1, 0, 0) } },
+      vertexShader: FULLSCREEN_VERT,
+      fragmentShader: /* glsl */ `
+        uniform sampler2D tSrc, tBloom;
+        uniform float uBloom;
+        uniform vec3 uBlit; // device px per base px, crop offset x, y
+        const float BAYER[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
+        void main() {
+          ivec2 size = textureSize(tSrc, 0);
+          ivec2 p = clamp(ivec2(floor((gl_FragCoord.xy + uBlit.yz) / uBlit.x)), ivec2(0), size - 1);
+          vec4 c = texelFetch(tSrc, p, 0);
+          if (uBloom > 0.0) {
+            // Sampled once per base pixel and quantised with ordered dither: the glow
+            // steps outward in pixel rings instead of a smooth smear.
+            vec3 b = texture2D(tBloom, (vec2(p) + 0.5) / vec2(size)).rgb * uBloom;
+            float d = (BAYER[(p.x & 3) + (p.y & 3) * 4] + 0.5) / 16.0;
+            b = floor(b * 6.0 + d) / 6.0;
+            c.rgb = 1.0 - (1.0 - c.rgb) * (1.0 - b);
+          }
+          gl_FragColor = c;
+        }
+      `,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.bloomExtract = new THREE.ShaderMaterial({
+      uniforms: { tSrc: { value: null }, uScale: { value: BLOOM_SCALE } },
       vertexShader: FULLSCREEN_VERT,
       fragmentShader: /* glsl */ `
         uniform sampler2D tSrc;
-        uniform vec3 uBlit; // device px per base px, crop offset x, y
+        uniform float uScale;
         void main() {
-          ivec2 p = ivec2(floor((gl_FragCoord.xy + uBlit.yz) / uBlit.x));
-          gl_FragColor = texelFetch(tSrc, clamp(p, ivec2(0), textureSize(tSrc, 0) - 1), 0);
+          ivec2 size = textureSize(tSrc, 0);
+          ivec2 base = ivec2(floor(gl_FragCoord.xy)) * int(uScale);
+          vec3 acc = vec3(0.0);
+          for (int y = 0; y < 4; y++) for (int x = 0; x < 4; x++) {
+            vec3 c = texelFetch(tSrc, clamp(base + ivec2(x, y), ivec2(0), size - 1), 0).rgb;
+            float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+            acc += c * smoothstep(0.56, 0.9, l);
+          }
+          gl_FragColor = vec4(acc / 16.0, 1.0);
+        }
+      `,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.bloomBlur = new THREE.ShaderMaterial({
+      uniforms: { tSrc: { value: null }, uDir: { value: new THREE.Vector2(1, 0) } },
+      vertexShader: FULLSCREEN_VERT,
+      fragmentShader: /* glsl */ `
+        uniform sampler2D tSrc;
+        uniform vec2 uDir;
+        void main() {
+          ivec2 size = textureSize(tSrc, 0);
+          ivec2 p = ivec2(floor(gl_FragCoord.xy));
+          ivec2 d = ivec2(uDir);
+          float w[5] = float[5](0.227, 0.195, 0.122, 0.054, 0.016);
+          vec3 acc = texelFetch(tSrc, p, 0).rgb * w[0];
+          for (int i = 1; i < 5; i++) {
+            acc += texelFetch(tSrc, clamp(p + d * i, ivec2(0), size - 1), 0).rgb * w[i];
+            acc += texelFetch(tSrc, clamp(p - d * i, ivec2(0), size - 1), 0).rgb * w[i];
+          }
+          gl_FragColor = vec4(acc * 2.1, 1.0);
         }
       `,
       depthTest: false,
@@ -215,6 +290,8 @@ export class SmartPixelRenderer {
     for (const b of this.bands) b.target.dispose();
     this.skyTarget?.dispose();
     this.compositeTarget?.dispose();
+    this.bloomA?.dispose();
+    this.bloomB?.dispose();
 
     this.bands = this.mode.bands.map((spec) => {
       const scale = this.mode.native ? 1 : Math.max(1, Math.round(spec.scale));
@@ -258,6 +335,13 @@ export class SmartPixelRenderer {
       depthBuffer: false,
     });
 
+    const bw = Math.ceil(this.baseW / BLOOM_SCALE), bh = Math.ceil(this.baseH / BLOOM_SCALE);
+    const bloomTarget = () => new THREE.WebGLRenderTarget(bw, bh, {
+      type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false,
+    });
+    this.bloomA = bloomTarget();
+    this.bloomB = bloomTarget();
+
     const cu = this.compositeMaterial.uniforms;
     this.bands.forEach((b, i) => {
       cu[`tColor${i}`].value = b.target.texture;
@@ -269,6 +353,8 @@ export class SmartPixelRenderer {
 
     const bu = this.blitMaterial.uniforms;
     bu.tSrc.value = this.compositeTarget.texture;
+    bu.tBloom.value = this.bloomA.texture;
+    this.bloomExtract.uniforms.tSrc.value = this.compositeTarget.texture;
     bu.uBlit.value.set(
       this.basePx,
       Math.floor((this.baseW * this.basePx - this.width) / 2),
@@ -368,6 +454,23 @@ export class SmartPixelRenderer {
       r.render(view.scene, view.camera);
     }
 
+    // --- pixel bloom: bright base pixels → a quarter-size grid → separable blur
+    const bloom = this.mode.native ? 0 : this.settings.bloom;
+    if (bloom > 0) {
+      this.fsQuad.material = this.bloomExtract;
+      r.setRenderTarget(this.bloomA);
+      r.render(this.fsScene, this.fsCam);
+      const blur = this.bloomBlur.uniforms;
+      this.fsQuad.material = this.bloomBlur;
+      blur.tSrc.value = this.bloomA!.texture; blur.uDir.value.set(1, 0);
+      r.setRenderTarget(this.bloomB);
+      r.render(this.fsScene, this.fsCam);
+      blur.tSrc.value = this.bloomB!.texture; blur.uDir.value.set(0, 1);
+      r.setRenderTarget(this.bloomA);
+      r.render(this.fsScene, this.fsCam);
+    }
+    this.blitMaterial.uniforms.uBloom.value = bloom;
+
     // --- nearest-neighbour upscale to the screen
     this.fsQuad.material = this.blitMaterial;
     r.setRenderTarget(null);
@@ -378,6 +481,10 @@ export class SmartPixelRenderer {
     for (const b of this.bands) b.target.dispose();
     this.skyTarget?.dispose();
     this.compositeTarget?.dispose();
+    this.bloomA?.dispose();
+    this.bloomB?.dispose();
+    this.bloomExtract.dispose();
+    this.bloomBlur.dispose();
     this.nebula.target.dispose();
     this.skyMaterial.dispose();
     this.blitMaterial.dispose();

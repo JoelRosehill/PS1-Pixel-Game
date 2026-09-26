@@ -1,4 +1,4 @@
-import type { Input } from '../core/Input';
+import { type Input, logicalCode } from '../core/Input';
 import type { Player } from '../player/Player';
 import { SPELL_PAGES } from '../spells/SpellBook';
 import './spellbook.css';
@@ -25,7 +25,7 @@ export class SpellbookUI {
     this.hud.append(this.status, this.pickup, this.toast); container.append(this.hud);
     window.addEventListener('keydown', this.keyDown);
     window.addEventListener('keyup', e => {
-      if (e.code === 'Tab' && this.mode === 'wheel') { e.preventDefault(); this.commitWheel(); }
+      if (logicalCode(e.code) === 'Tab' && this.mode === 'wheel') { e.preventDefault(); this.commitWheel(); }
     });
     window.addEventListener('blur', () => { if (this.mode === 'wheel') this.close(false); });
     this.dialog.addEventListener('cancel', e => { e.preventDefault(); this.close(); });
@@ -86,13 +86,14 @@ export class SpellbookUI {
     this.player.spells.book.select(SPELL_PAGES[this.wheelIndex].id); this.close();
   }
   private keyDown = (e: KeyboardEvent): void => {
+    const code = logicalCode(e.code);
     if (!this.mode) {
-      if (!e.repeat && (e.code === 'KeyB' || e.code === 'Tab')) { e.preventDefault(); this.open(e.code === 'KeyB' ? 'book' : 'wheel'); }
+      if (!e.repeat && (code === 'KeyB' || code === 'Tab')) { e.preventDefault(); this.open(code === 'KeyB' ? 'book' : 'wheel'); }
       return;
     }
-    if (e.code === 'Escape' || e.code === 'KeyB') { e.preventDefault(); if (!e.repeat) this.close(); return; }
+    if (e.code === 'Escape' || code === 'KeyB') { e.preventDefault(); if (!e.repeat) this.close(); return; }
     if (this.mode === 'wheel') {
-      if (e.code === 'Tab') { e.preventDefault(); return; }
+      if (code === 'Tab') { e.preventDefault(); return; }
       const digit = /^Digit([1-8])$/.exec(e.code);
       if (digit) { e.preventDefault(); this.highlight(Number(digit[1]) - 1); return; }
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {

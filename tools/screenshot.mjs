@@ -93,6 +93,17 @@ const VIEWS = {
   journal: { at: '6,2.1,11', yaw: 186, holdMs: 500,
     eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0']) g.progress.discover(id); for (const id of ['hub-1', 'hub-2', 'c1-0', 'c1-2', 'c1-4', 'mem-1', 'c2-0']) g.progress.readLore(id); g.progress.remember('rem-gloomhorn'); g.storyUI.openJournal();" },
   wanderer: { at: '5.6,2.1,8.2', yaw: 55, holdMs: 400 },
+  // Job 10: title, menus, final HUD, ending, pixel bloom.
+  title: { at: '6,2.1,11', yaw: 186, title: true, holdMs: 1500, eval: "window.__game.menu.dialog.querySelector('[data-autofocus]')?.blur()" },
+  pause: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "window.__game.menu.open('pause')" },
+  settings: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"display\"]').click();" },
+  controls: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"controls\"]').click();" },
+  'hud-final': { at: '0,20,0', yaw: 0, holdMs: 900,
+    eval: "const g = window.__game, s = g.level.story.shrine('c1-3'), V = window.__three.Vector3; const out = s.rest.clone().sub(s.position).setY(0).normalize(); const p = s.position.clone().addScaledVector(out, 45); p.y = g.level.heightAt(p.x, p.z); g.player.controller.teleport(p.x, p.y + 0.2, p.z, 0); g.player.camera.setYaw(Math.atan2(out.x, out.z) + 0.25, -0.05); g.level.setViewer(p, true); g.player.combat.momentum.value = 70; g.markerTimer = 0;" },
+  ending: { at: '6,2.1,11', yaw: 186, holdMs: 400,
+    eval: "const g = window.__game; g.playTime = 9 * 3600 + 42 * 60; g.deaths = 57; for (const s of g.level.story.shrines.slice(0, 33)) s.prop.setKindled(true); for (const id of ['gloomhorn', 'vermilion', 'sovereign']) g.progress.fellBoss(id); g.menu.open('ending');" },
+  'bloom-off': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0' },
+  'bloom-on': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0.6' },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 
@@ -157,6 +168,7 @@ try {
       q.set('look', v.look);
     }
     if (v.preset) q.set('preset', v.preset);
+    if (v.title) q.set('title', '1');
     if (v.mode) q.set('mode', v.mode);
     if (v.bands) q.set('bands', '1');
     if (args.hud) q.set('hud', '1');

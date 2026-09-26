@@ -22,6 +22,10 @@ Bloodstone Wastes, and the Pale Sovereign waiting at the Heart of the Moon.
 Job 9 adds the story and saving: speak with the Wanderer beside the Threshold's shrine,
 kindle an Ember Shrine beside every landmark (rest, respawn, fast travel), read the lore
 tablets and memorials, and press J for the journal. Your journey saves automatically.
+Job 10 finishes the game: a procedural chill-fi score that follows each chapter and every
+fight, synthesised sound effects, a title screen, pause menu, settings (audio, pixel size,
+depth bands, bloom, FOV, rebindable keys), a compass HUD, pixel bloom and a production
+build. **All ten roadmap jobs are complete.**
 
 ## Run it
 
@@ -33,6 +37,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server with hot reload |
+| `npm run build` then serve `dist/` | Static production build (relative paths; any web host) |
 | `npm run build` | Typecheck + production bundle in `dist/` |
 | `npm run typecheck` | TypeScript only |
 | `npm run shot` | Headless screenshots of the standard views into `screenshots/` |
@@ -46,6 +51,9 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run atlastest` | The 40-biome atlas, landmarks, chapter gates and the world map |
 | `npm run bosstest` | Boss arenas, intros, phases, movesets, parries, posture and victory |
 | `npm run savetest` | Ember Shrines, fast travel, lore, journal, the Wanderer and save/load |
+| `npm run uitest` | Score and effects (rendered offline), menus, settings, rebinding, HUD, bloom |
+| `npm run buildtest` | Builds, serves and boots the production bundle |
+| `npm run perf` | CPU frame cost at five places (simulation, streaming, AI, HUD) |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -78,7 +86,8 @@ npm run dev        # open http://localhost:5173 and click to explore
 | F2 | Colour-code the depth bands |
 | F3 · F4 | Toggle pixel outlines · palette quantisation |
 | [ · ] | Change base pixel size |
-| H | Hide HUD |
+| H | Debug overlay (frame rate, bands) |
+| Esc | Pause menu: resume, journal, map, settings, save and return to title |
 
 The book, quick-wheel, map, journal and shrine menus pause gameplay. Melee hits,
 parries and perfect dodges earn Momentum; Resonance halves spell costs. Pages survive
@@ -99,6 +108,15 @@ anything changes, and when the page closes; *Begin anew* at any shrine wipes it.
 Missing pages have location clues in the book. Windstep is the reward at the end
 of the Wayfarer's Trial. Spells have individual recovery times and cannot be cast
 while staggered, dead, charging or in an active sword strike.
+
+## Sound and settings
+
+The music is generated live: each chapter has its own key, chords and tempo, fights make
+the drums busier, bosses speed everything up, and the dawn after the final boss is in a
+major key. Headphones recommended. Settings (title screen or Esc → Settings) cover volume
+per bus, pixel size, **depth bands** (4 is fastest), pixel bloom, outlines, FOV, camera
+motion, compass, hints, mouse sensitivity, invert Y and **key rebinding** (keys that
+clash swap). Settings save to the browser separately from your journey.
 
 ## Enemies
 
@@ -127,4 +145,5 @@ set `RENDER=1` to keep rendering, or `CHROME_PATH` to choose a browser.
 
 These open a fixed viewpoint, which is handy for sharing a shot. `tools/screenshot.mjs` uses the same parameters.
 With `shot=1` the save is neither read nor written unless `save=1` is added; `fresh=1`
-ignores an existing save.
+ignores an existing save. `shot=1` also skips the title screen, audio and mouse capture
+(`title=1`, `audio=1` turn the first two back on).

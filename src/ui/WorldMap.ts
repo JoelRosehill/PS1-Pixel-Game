@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Input } from '../core/Input';
+import { type Input, logicalCode } from '../core/Input';
 import type { Progress } from '../core/Progress';
 import type { EnemyDirector } from '../enemies/EnemyDirector';
 import type { Player } from '../player/Player';
@@ -53,7 +53,7 @@ export class WorldMap {
       if ((e.target as HTMLElement).closest('[data-action="close"]')) this.close();
     });
     window.addEventListener('keydown', e => {
-      if (e.code !== 'KeyM' || e.repeat) return;
+      if (logicalCode(e.code) !== 'KeyM' || e.repeat) return;
       if (this.isOpen) { e.preventDefault(); this.close(); return; }
       if (document.querySelector('dialog[open]')) return;
       e.preventDefault();

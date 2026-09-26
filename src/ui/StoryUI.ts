@@ -1,4 +1,4 @@
-import type { Input } from '../core/Input';
+import { type Input, logicalCode } from '../core/Input';
 import type { Progress } from '../core/Progress';
 import { ARCS, LORE, type LoreFragment, MEMORIALS, REMEMBRANCES } from '../story/Lore';
 import { roman } from '../world/biomes/Chapters';
@@ -56,7 +56,7 @@ export class StoryUI {
       if (action === 'reset-confirm') { this.close(false); this.onReset(); }
     });
     window.addEventListener('keydown', e => {
-      if (e.code !== 'KeyJ' || e.repeat) return;
+      if (logicalCode(e.code) !== 'KeyJ' || e.repeat) return;
       if (this.mode === 'journal') { e.preventDefault(); this.close(); return; }
       if (this.mode || document.querySelector('dialog[open]')) return;
       e.preventDefault();

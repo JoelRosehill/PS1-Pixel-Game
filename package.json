@@ -21,7 +21,10 @@
     "worldtest": "node tools/worldtest.mjs",
     "atlastest": "node tools/atlastest.mjs",
     "bosstest": "node tools/bosstest.mjs",
-    "savetest": "node tools/savetest.mjs"
+    "savetest": "node tools/savetest.mjs",
+    "uitest": "node tools/uitest.mjs",
+    "buildtest": "node tools/buildtest.mjs",
+    "perf": "node tools/perf.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

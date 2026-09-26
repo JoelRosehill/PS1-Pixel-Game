@@ -1,9 +1,10 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 9](sessions/2026-09-26-job-9.md)
-records the story, Ember Shrines, fast travel, journal and the save system.
+**Latest verification:** [2026-09-26 Job 10](sessions/2026-09-26-job-10.md)
+records the audio, menus, settings, final HUD, bloom, performance pass and build.
+**All ten jobs of the roadmap are complete.**
 
-**Last updated:** 2026-09-26, at the end of Job 9.
+**Last updated:** 2026-09-26, at the end of Job 10.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -79,7 +80,7 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–9 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–10 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
@@ -271,6 +272,27 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   - `GameOptions.save/fresh` (URL: `shot=1` disables saving unless `save=1`; `fresh=1`).
   - Boss kills add `REMEMBRANCES` to `progress.remembrances`.
 
+- **Job 10 — Audio, UI, polish** (`src/audio/`, `src/ui/MenuUI.ts`, `src/core/Settings.ts`):
+  - `Game.audio` (`AudioEngine`: context on first gesture, buses, `play(name)`, `update`),
+    `Music` (moods × intensities, bar-quantised changes), `SFX` (35 synth effects),
+    `Game.sound` (`SoundDirector`: polls state each fixed step, `onHit`, `state()`).
+    Counters added for it: `Telegraphs.shown`, `EnemyProjectiles.fired`, `Hazards.spawned`.
+  - `Game.menu` (`MenuUI`): screens `title`, `pause`, `settings`, `ending`, `confirm-new`.
+    Esc/pointer-lock loss during play opens pause. `Game.settings` (`Settings`,
+    localStorage `chromatic-odyssey.settings.v1`) → `Game.applySettings()`.
+  - Rebinding: `setKeyBindings` + `logicalCode` in `Input.ts` map physical keys onto the
+    default codes, so gameplay code still asks for 'KeyF', 'Space'… UI key listeners must
+    use `logicalCode(e.code)`.
+  - `SmartPixelRenderer`: `smartMode(4|6|8)`, `settings.bloom` (extract → blur → blit).
+  - `GameHud`: compass (`setHeading`), `flashSaved`, `setOptions`, `onAnnounce`.
+  - `GameOptions`: `audio`, `title`, `debugHud`, `pointerLock` (all off for `shot=1`;
+    URL `title=1`, `audio=1`, `hud=1` turn them on).
+
+**Job 10 verification:** build passed; ui 19/19, build 8/8, save 25/25, boss 15/15,
+atlas 17/17, world 19/19, enemy 26/26, spells 38/38, kinetic 17/17, movement 11/11,
+combat 11/11. Screenshots: title, pause, settings, controls, hud-final, ending,
+bloom-off/on. CPU profile via `npm run perf`.
+
 **Job 9 verification:** build passed; save 25/25, boss 15/15, atlas 17/17, world 19/19,
 enemy 26/26, spells 38/38, kinetic 17/17, movement 11/11, combat 11/11. Screenshots:
 shrine, rest-menu, lore-reader, journal, wanderer.
@@ -297,6 +319,12 @@ session, so no frame-time numbers were taken.
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run uitest` must pass (19 checks: every mood and effect rendered offline, title,
+  live score, sound hooks, music state, pause, settings live-apply, rebinding, compass,
+  ending, persistence, corrupt settings, bloom on a drawn frame).
+- `npm run buildtest` must pass (8 checks: chunks, relative URLs, manifest, the built game
+  boots with all models and opens on the title, no console errors).
+- `npm run perf` prints CPU frame cost at five places (no pass/fail).
 - `npm run savetest` must pass (25 checks: shrine/lore placement and spacing, kindle and
   rest, fast travel, death respawn at the shrine, rest refused mid-fight, lore reading,
   memorials, journal, the Wanderer's lines, remembrances, save/autosave/resume, fresh,
@@ -380,17 +408,22 @@ session, so no frame-time numbers were taken.
 - Leaving a page runs `pagehide` → `saveNow()`. A test that plants a save and then
   navigates must stop the old page from saving first (`game.resetting = true`), or the
   old page overwrites it.
+- Headless Chrome grants pointer lock and then drops it, which (correctly) pauses the
+  game. `shot=1` runs set `pointerLock: false`; keep it that way for harnesses.
+- Edge-triggered input is only consumed by rendered frames. A test that presses a key and
+  then calls `game.step()` for a while must call `input.endFrame()` after the press, or
+  the key stays "pressed" and repeats (bunny hops, queued attacks).
+- Music changes wait for the next bar line (up to ~4 s); tests must poll, not sleep once.
 - Anything placed near landmarks must reserve its ground (`ReservedMap.add`) and search
   for free, dry, gentle ground; the first shrine/tablet placer fell back to one fixed
   spot and stacked a shrine on a tablet.
 
 ---
 
-## 6. Next: Job 10 — Audio, UI & Polish
+## 6. Next
 
-- Procedural chill-fi ambient score + SFX (WebAudio).
-- Main menu (Continue / New Journey using `Game.resumed` and `SaveGame`), settings
-  (pixel scale, band count, keybinds), final HUD.
-- Pixel bloom/glow pass, performance pass, production build.
-
-See ROADMAP.md's Notes for Job 10.
+The roadmap is complete. Candidates for further jobs (ask the user first):
+- GPU profiling on real hardware (per band count, bloom on/off) and tuning from it.
+- Gamepad support (the rebinding layer maps codes; a gamepad layer would feed Input).
+- Positional enemy audio, more boss music, more lore and side encounters.
+- More biome-specific enemies and mini-bosses per chapter.

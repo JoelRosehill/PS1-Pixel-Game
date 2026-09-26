@@ -41,6 +41,9 @@ export class EnemyProjectiles {
   private readonly to = new THREE.Vector3();
   private readonly want = new THREE.Vector3();
 
+  /** Orbs fired so far (audio cues). */
+  fired = 0;
+
   constructor() {
     this.group.name = 'enemy-projectiles';
     const geo = new THREE.IcosahedronGeometry(0.28, 0);
@@ -74,6 +77,7 @@ export class EnemyProjectiles {
     orb.owner = owner;
     orb.ignore = null;
     orb.mesh.scale.setScalar(size);
+    this.fired++;
     return true;
   }
 
