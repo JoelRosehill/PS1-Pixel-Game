@@ -249,7 +249,7 @@ export class SunkeeperWizard extends Enemy {
         if (out.lengthSq() < 1e-4) out.set(0, 0, 1);
         ctx.combat.strike(ctx.player.combat, {
           damage: WIZARD_TUNING.lanceDamage, direction: out.normalize(), point: p.clone().addScaledVector(UP, 1),
-          knockback: 8, stagger: 0.4, source: 'enemy', kind: 'enemy',
+          knockback: 8, stagger: 0.4, source: 'enemy', kind: 'hazard',
         });
       });
     } else {
@@ -277,7 +277,7 @@ export class SunkeeperWizard extends Enemy {
       ctx.blind(WIZARD_TUNING.flashSeconds, 1);
       ctx.combat.strike(ctx.player.combat, {
         damage: 6, direction: this.toWizard.clone().negate().setY(0).normalize(), point: ctx.playerEye.clone(),
-        knockback: 0, stagger: 0.25, source: 'enemy', kind: 'enemy',
+        knockback: 0, stagger: 0.25, source: 'enemy', kind: 'hazard',
       });
     } else if (angle < WIZARD_TUNING.flashCone * 1.8) {
       this.lastFlash = 'partial';

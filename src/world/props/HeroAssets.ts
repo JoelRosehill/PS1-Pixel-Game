@@ -8,6 +8,8 @@ import type { ColliderWorld } from '../../physics/Colliders';
 export class HeroAssets {
   readonly group = new THREE.Group();
   readonly errors: string[] = [];
+  /** The dragon display circling the Threshold (hidden once Vermilion falls). */
+  dragon: THREE.Object3D | null = null;
   private readonly mixers: THREE.AnimationMixer[] = [];
 
   async load(library: ModelLibrary, colliders: ColliderWorld, heightAt: (x: number, z: number) => number): Promise<void> {
@@ -29,6 +31,7 @@ export class HeroAssets {
           const center = bounds.getCenter(new THREE.Vector3());
           colliders.addBox(center.x, center.y, center.z, size.x, size.y, size.z);
         }
+        if (job.id === 'red-dragon') this.dragon = asset.root;
         if (job.id === 'red-dragon' && asset.animations.length) {
           const mixer = new THREE.AnimationMixer(asset.content);
           const flight = asset.animations.find(a => /angryFlightPose/i.test(a.name)) ?? asset.animations[0];

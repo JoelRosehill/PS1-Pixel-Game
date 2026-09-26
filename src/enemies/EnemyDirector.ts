@@ -8,12 +8,19 @@ import type { Player } from '../player/Player';
 import type { Effects } from '../render/effects/Effects';
 import type { AIContext } from './AIContext';
 import { AttackTokens } from './AttackTokens';
-import { Enemy, type EnemyKind } from './Enemy';
+import { Enemy } from './Enemy';
 import { EnemyProjectiles } from './EnemyProjectiles';
 import { Encounter, type EncounterDef } from './Encounters';
 import { ShadowKnight } from './ShadowKnight';
 import { SunkeeperWizard } from './SunkeeperWizard';
 import { Telegraphs } from './Telegraphs';
+import { Hazards } from './Hazards';
+import type { ModelLibrary } from '../assets/ModelLibrary';
+import type { Boss } from './bosses/Boss';
+import { BossArena, type BossArenaDef, INTRO_SECONDS } from './bosses/BossArena';
+import { Gloomhorn } from './bosses/Gloomhorn';
+import { Sovereign } from './bosses/Sovereign';
+import { Vermilion } from './bosses/Vermilion';
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -38,6 +45,14 @@ export class EnemyDirector implements GameSystem {
   readonly tokens = new AttackTokens();
   readonly telegraphs = new Telegraphs();
   readonly projectiles = new EnemyProjectiles();
+  readonly hazards = new Hazards();
+  readonly arenas: BossArena[] = [];
+  /** The arena whose cinematic intro is playing (the game drives the camera). */
+  intro: BossArena | null = null;
+  onBossIntro: (arena: BossArena) => void = () => {};
+  /** The intro finished and the fight begins (the game hands control back). */
+  onBossBegin: (arena: BossArena) => void = () => {};
+  onBossDefeated: (arena: BossArena) => void = () => {};
   readonly ctx: AIContext;
   /** The enemy the player is fighting (target frame). */
   focus: Enemy | null = null;
@@ -58,20 +73,25 @@ export class EnemyDirector implements GameSystem {
     time: TimeControl;
     encounters?: EncounterDef[];
     blind: (seconds: number, strength: number) => void;
+    models?: ModelLibrary;
+    /** True while the world should hold still (debug fly camera). */
+    isPaused?: () => boolean;
   }) {
     this.group.name = 'enemies';
-    this.group.add(this.telegraphs.group, this.projectiles.group);
+    this.group.add(this.telegraphs.group, this.projectiles.group, this.hazards.group);
+    this.projectiles.onReflectHit = target => { if (target instanceof Vermilion) target.knockDown(this.ctx); };
     this.encounters = (deps.encounters ?? []).map(d => new Encounter(d));
     this.ctx = {
       player: deps.player, colliders: deps.colliders, combat: deps.combat, effects: deps.effects, time: deps.time,
-      tokens: this.tokens, telegraphs: this.telegraphs, projectiles: this.projectiles,
+      tokens: this.tokens, telegraphs: this.telegraphs, projectiles: this.projectiles, hazards: this.hazards,
+      spawn: (kind, x, z) => { this.spawn(kind, x, z, { alert: true, encounterId: 'boss-minion' }); },
       blind: deps.blind, clock: 0, playerEye: new THREE.Vector3(),
     };
   }
 
   // --- spawning ------------------------------------------------------------
 
-  spawn(kind: EnemyKind, x: number, z: number, opts: SpawnOptions = {}): Enemy {
+  spawn(kind: 'knight' | 'wizard', x: number, z: number, opts: SpawnOptions = {}): Enemy {
     const enemy = kind === 'knight' ? new ShadowKnight() : new SunkeeperWizard();
     const y = opts.y ?? this.deps.colliders.heightAt(x, z);
     enemy.spawn(x, y, z, opts.facing ?? 0, opts.rise ?? true);
@@ -100,8 +120,106 @@ export class EnemyDirector implements GameSystem {
     if (this.focus === enemy) this.focus = null;
   }
 
+  /** Adds a boss arena (the world supplies these). */
+  addArena(def: BossArenaDef): BossArena {
+    const arena = new BossArena(def, this.deps.colliders);
+    this.arenas.push(arena);
+    this.group.add(arena.group);
+    return arena;
+  }
+
+  arena(id: string): BossArena | undefined {
+    return this.arenas.find(a => a.id === id);
+  }
+
+  /** The boss currently being fought (or introduced), if any. */
+  get activeBoss(): Boss | null {
+    return this.arenas.find(a => a.state === 'intro' || a.state === 'fight')?.boss ?? null;
+  }
+
+  private spawnBoss(arena: BossArena): Boss {
+    const kind = arena.def.boss.kind;
+    const boss = kind === 'dragon' ? new Vermilion() : kind === 'beast' ? new Gloomhorn() : new Sovereign();
+    const c = arena.def.center;
+    const toPlayer = this.deps.player.controller.position;
+    const facing = Math.atan2(-(toPlayer.x - c.x), -(toPlayer.z - c.z));
+    const y = this.deps.colliders.heightAt(c.x, c.z) + (kind === 'dragon' ? 18 : 0);
+    boss.spawn(c.x, y, c.z, facing, false);
+    boss.arena.copy(c);
+    boss.arenaRadius = arena.def.radius;
+    boss.tokens = this.tokens;
+    boss.encounterId = `boss:${arena.id}`;
+    if (this.deps.models && 'loadModel' in boss) (boss as unknown as { loadModel(l: ModelLibrary): void }).loadModel(this.deps.models);
+    this.enemies.push(boss);
+    this.group.add(boss.group);
+    this.deps.combat.register(boss);
+    this.deps.colliders.addBody(boss.collider);
+    arena.boss = boss;
+    return boss;
+  }
+
+  private updateArenas(dt: number): void {
+    const player = this.deps.player;
+    const p = player.controller.position;
+    for (const arena of this.arenas) {
+      if (arena.state === 'defeated') continue;
+      const d = Math.hypot(p.x - arena.def.center.x, p.z - arena.def.center.z);
+      if (arena.state === 'idle') {
+        if (player.combat.alive && d < arena.def.radius - 5) {
+          if (!arena.boss || arena.boss.removed) this.spawnBoss(arena);
+          arena.boss!.presenting = true;
+          arena.state = 'intro';
+          arena.introTime = 0;
+          arena.attempts++;
+          arena.raiseWalls(this.deps.colliders.heightAt);
+          this.intro = arena;
+          this.onBossIntro(arena);
+        }
+        continue;
+      }
+      if (arena.state === 'intro') {
+        arena.introTime += dt;
+        if (arena.introTime >= INTRO_SECONDS) {
+          arena.state = 'fight';
+          this.intro = null;
+          arena.boss!.begin(this.ctx);
+          this.onBossBegin(arena);
+        }
+        continue;
+      }
+      // Fight.
+      if (!player.combat.alive) {
+        // Defeat: the arena resets for another attempt.
+        const boss = arena.boss!;
+        this.remove(boss);
+        arena.boss = null;
+        for (const e of [...this.enemies]) if (e.encounterId === 'boss-minion') this.remove(e);
+        arena.lowerWalls();
+        arena.state = 'idle';
+        this.hazards.clear();
+        this.telegraphs.clear();
+        this.projectiles.clear();
+        continue;
+      }
+      if (arena.boss && !arena.boss.alive) {
+        arena.state = 'defeated';
+        arena.lowerWalls();
+        for (const e of [...this.enemies]) if (e.encounterId === 'boss-minion' && e.alive) e.applyHit({ damage: 9999, direction: new THREE.Vector3(0, 0, 1), point: e.position.clone(), knockback: 0, stagger: 0, source: 'player', kind: 'burst' });
+        this.hazards.clear();
+        this.telegraphs.clear();
+        this.onBossDefeated(arena);
+      }
+    }
+  }
+
   /** Despawns everything and returns every encounter to dormant (tests, level change). */
   clear(): void {
+    for (const arena of this.arenas) {
+      if (arena.state !== 'defeated') { arena.state = 'idle'; arena.lowerWalls(); }
+      arena.boss = null;
+    }
+    this.intro = null;
+    this.hazards.clear();
     for (const e of [...this.enemies]) this.remove(e);
     for (const enc of this.encounters) { enc.state = 'dormant'; enc.wave = 0; enc.enemies.length = 0; enc.pendingReset = false; }
     this.tokens.clear();
@@ -117,9 +235,10 @@ export class EnemyDirector implements GameSystem {
     ctx.clock += dt;
     const c = player.controller;
     ctx.playerEye.copy(c.position).addScaledVector(UP, c.capsuleHeight - 0.25);
-    if (!player.active) return; // debug fly camera: the world holds still
+    if (this.deps.isPaused ? this.deps.isPaused() : !player.active) return; // debug fly camera: the world holds still
     this.tokens.update(dt);
     this.updateEncounters(dt);
+    this.updateArenas(dt);
 
     for (const enemy of [...this.enemies]) {
       enemy.update(dt, ctx);
@@ -128,6 +247,7 @@ export class EnemyDirector implements GameSystem {
     }
     this.shareAlerts();
     this.projectiles.fixedUpdate(dt, ctx);
+    this.hazards.fixedUpdate(dt, ctx);
     this.telegraphs.fixedUpdate(dt);
     this.telegraphs.update(dt, ctx.clock);
   }
@@ -153,7 +273,7 @@ export class EnemyDirector implements GameSystem {
     this.deps.effects.ring(enemy.position.clone().setY(enemy.position.y + 0.1), color, 3, 0.6);
     this.deps.time.slowMotion(0.4, 0.25);
     // Felling a foe feeds the Momentum loop.
-    this.deps.player.combat.momentum.add(enemy.kind === 'knight' ? 15 : 10);
+    this.deps.player.combat.momentum.add(enemy.kind === 'knight' ? 15 : enemy.kind === 'boss' ? 100 : 10);
   }
 
   private updateEncounters(dt: number): void {
@@ -230,7 +350,7 @@ export class EnemyDirector implements GameSystem {
   /** Combat callback: tracks the fought enemy and adds block / weak-point feedback. */
   onHit(target: Damageable, hit: HitInfo, result: HitResult): void {
     if (!(target instanceof Enemy) || hit.source !== 'player') return;
-    this.focus = target;
+    if (target.kind !== 'boss') this.focus = target;
     const fx = this.deps.effects;
     if (result.blocked) {
       fx.sparkBurst(hit.point, hit.direction.clone().negate().setY(0.4), 0xc8d8ff, 14, 7);
@@ -249,7 +369,7 @@ export class EnemyDirector implements GameSystem {
     let best: Enemy | null = null;
     let bestAngle = 0.3;
     for (const e of this.enemies) {
-      if (!e.alive || e.spawning || !e.perception.alerted) continue;
+      if (!e.alive || e.spawning || !e.perception.alerted || e.kind === 'boss') continue;
       this.to.copy(e.position).addScaledVector(UP, e.bodyHeight * 0.6).sub(eye);
       const dist = this.to.length();
       if (dist > 45) continue;

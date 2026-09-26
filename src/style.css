@@ -242,3 +242,24 @@ body {
 .enemy-frame.exposed .enemy-cue { color: #ffe070; }
 .enemy-frame.exposed .enemy-bar { border-color: #d0a040; }
 #gamehud .world-hint { position: absolute; left: 50%; bottom: 28%; transform: translateX(-50%); max-width: min(560px, 80vw); padding: 10px 18px; text-align: center; font-size: 13px; line-height: 1.5; color: #e8dcff; background: #140c23ed; border: 1px solid #8a6ab0; }
+
+/* ---- Job 8: bosses ---- */
+.boss-hud { position: absolute; left: 50%; bottom: 96px; width: min(720px, 82vw); transform: translateX(-50%); opacity: 0; transition: opacity 0.4s; text-shadow: 1px 1px 0 #100a1d; }
+.boss-hud.shown { opacity: 1; }
+.boss-title { display: flex; align-items: baseline; gap: 12px; margin-bottom: 5px; }
+.boss-title strong { font-size: 16px; font-weight: normal; letter-spacing: 0.18em; color: #fff0f4; }
+.boss-title span { font-size: 11px; letter-spacing: 0.12em; color: #c8b9d6; }
+.boss-bar { position: relative; height: 12px; background: #140c1e; border: 2px solid #5a3a58; box-shadow: 0 0 0 2px #0a0414; }
+.boss-bar i, .boss-bar b, .boss-posture i { position: absolute; inset: 0; transform-origin: left; }
+.boss-bar b { background: #7a1a30; }
+.boss-bar i { background: linear-gradient(#ff7a8a, #b01838); }
+.boss-notches em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #f0e6ff; opacity: 0.7; }
+.boss-posture { position: relative; height: 4px; margin: 4px 20% 0; background: #1a1428; }
+.boss-posture i { background: #ffd070; }
+.boss-cue { min-height: 14px; margin-top: 3px; text-align: center; font-size: 10px; letter-spacing: 0.16em; color: #ffe070; }
+.boss-hud.exposed .boss-bar { border-color: #d0a040; }
+.letterbox i { position: absolute; left: 0; right: 0; height: 0; background: #05030a; transition: height 0.5s; }
+.letterbox i:first-child { top: 0; }
+.letterbox i:last-child { bottom: 0; }
+.letterbox.shown i { height: 11vh; }
+@media (max-width: 1000px) { .boss-hud { bottom: 190px; } }

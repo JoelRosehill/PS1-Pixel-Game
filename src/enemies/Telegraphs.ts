@@ -30,7 +30,24 @@ interface Strike {
   land: (point: THREE.Vector3, radius: number) => void;
 }
 
+interface LineMarker {
+  mesh: THREE.Mesh;
+  mat: THREE.MeshBasicMaterial;
+  life: number;
+  duration: number;
+  active: boolean;
+}
+
+interface LineStrike {
+  from: THREE.Vector3;
+  to: THREE.Vector3;
+  width: number;
+  delay: number;
+  land: (from: THREE.Vector3, to: THREE.Vector3, width: number) => void;
+}
+
 const MARKERS = 12;
+const LINES = 10;
 const PILLARS = 8;
 
 export class Telegraphs {
@@ -38,6 +55,8 @@ export class Telegraphs {
   private readonly markers: Marker[] = [];
   private readonly pillars: Pillar[] = [];
   private readonly strikes: Strike[] = [];
+  private readonly lines: LineMarker[] = [];
+  private readonly lineStrikes: LineStrike[] = [];
 
   constructor() {
     this.group.name = 'telegraphs';
@@ -56,6 +75,16 @@ export class Telegraphs {
       ring.frustumCulled = fill.frustumCulled = false;
       this.group.add(ring, fill);
       this.markers.push({ ring, fill, ringMat, fillMat, life: 0, duration: 1, active: false });
+    }
+    // Lane markers: a unit quad along +Z, scaled to (width, 1, length).
+    const laneGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, 0.5);
+    for (let i = 0; i < LINES; i++) {
+      const lmat = mat();
+      const mesh = new THREE.Mesh(laneGeo, lmat);
+      mesh.visible = false;
+      mesh.frustumCulled = false;
+      this.group.add(mesh);
+      this.lines.push({ mesh, mat: lmat, life: 0, duration: 1, active: false });
     }
     const pillarGeo = new THREE.CylinderGeometry(1, 1, 1, 16, 1, true).translate(0, 0.5, 0);
     for (let i = 0; i < PILLARS; i++) {
@@ -107,10 +136,39 @@ export class Telegraphs {
   }
 
   get pendingStrikes(): number {
-    return this.strikes.length;
+    return this.strikes.length + this.lineStrikes.length;
+  }
+
+  /** A glowing lane on the ground from `from` to `to` (charges, breath runs, spike lines). */
+  lane(from: THREE.Vector3, to: THREE.Vector3, width: number, duration: number, color: THREE.ColorRepresentation): void {
+    const l = this.lines.find(x => !x.active);
+    if (!l) return;
+    l.active = true;
+    l.life = 0;
+    l.duration = duration;
+    const len = Math.hypot(to.x - from.x, to.z - from.z);
+    l.mesh.position.set(from.x, Math.max(from.y, to.y) + 0.08, from.z);
+    l.mesh.rotation.set(0, Math.atan2(to.x - from.x, to.z - from.z), 0);
+    l.mesh.scale.set(width, 1, len);
+    l.mat.color.set(color);
+    l.mesh.visible = true;
+  }
+
+  /** Marks a lane now and calls `land` after `delay` seconds. */
+  scheduleLane(from: THREE.Vector3, to: THREE.Vector3, width: number, delay: number, color: THREE.ColorRepresentation,
+    land: (from: THREE.Vector3, to: THREE.Vector3, width: number) => void): void {
+    this.lane(from, to, width, delay, color);
+    this.lineStrikes.push({ from: from.clone(), to: to.clone(), width, delay, land });
   }
 
   fixedUpdate(dt: number): void {
+    for (let i = this.lineStrikes.length - 1; i >= 0; i--) {
+      const s = this.lineStrikes[i];
+      s.delay -= dt;
+      if (s.delay > 0) continue;
+      this.lineStrikes.splice(i, 1);
+      s.land(s.from, s.to, s.width);
+    }
     for (let i = this.strikes.length - 1; i >= 0; i--) {
       const s = this.strikes[i];
       s.delay -= dt;
@@ -127,6 +185,8 @@ export class Telegraphs {
 
   clear(): void {
     this.strikes.length = 0;
+    this.lineStrikes.length = 0;
+    for (const l of this.lines) { l.active = false; l.mesh.visible = false; }
     for (const m of this.markers) { m.active = false; m.ring.visible = m.fill.visible = false; }
     for (const p of this.pillars) { p.life = 0; p.mesh.visible = false; }
   }
@@ -141,6 +201,13 @@ export class Telegraphs {
       m.fillMat.opacity = 0.18 + 0.3 * k;
       m.ringMat.opacity = 0.55 + 0.45 * Math.abs(Math.sin(elapsed * (8 + k * 14)));
       if (m.life >= m.duration) { m.active = false; m.ring.visible = m.fill.visible = false; }
+    }
+    for (const l of this.lines) {
+      if (!l.active) continue;
+      l.life += dt;
+      const k = Math.min(1, l.life / l.duration);
+      l.mat.opacity = 0.25 + 0.55 * k * (0.6 + 0.4 * Math.abs(Math.sin(elapsed * (10 + k * 16))));
+      if (l.life >= l.duration) { l.active = false; l.mesh.visible = false; }
     }
     for (const p of this.pillars) {
       if (p.life <= 0) continue;

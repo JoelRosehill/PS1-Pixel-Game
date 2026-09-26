@@ -26,6 +26,8 @@ export class WorldTerrain {
   private readonly colorSites: BiomeSite[] = [];
   private readonly colorW: number[] = [];
   private readonly tmp = new THREE.Color();
+  /** Flattened circles (boss arenas): x, z, radius, height. */
+  private readonly plateaus: [number, number, number, number][] = [];
   /** Ground height on each side of every pass, for its smooth ramp (lazily cached). */
   private readonly passEnds = new Map<Pass, [number, number]>();
   private readonly acc = new THREE.Color();
@@ -50,9 +52,18 @@ export class WorldTerrain {
     if (r <= WORLD.hubInner) return this.hub.baseHeight(x, z);
     const world = this.worldHeight(x, z, r);
     const hubW = 1 - smoothstep(WORLD.hubInner, WORLD.hubOuter, r);
-    const h = hubW > 0 ? lerp(world, this.hub.baseHeight(x, z), hubW) : world;
-    return h + this.rampart(x, z, r);
+    let h = (hubW > 0 ? lerp(world, this.hub.baseHeight(x, z), hubW) : world) + this.rampart(x, z, r);
+    for (const [px, pz, pr, ph] of this.plateaus) {
+      const d = Math.hypot(x - px, z - pz);
+      if (d < pr + 30) h = lerp(h, ph, 1 - smoothstep(pr, pr + 30, d));
+    }
+    return h;
   };
+
+  /** Levels a circle to `height` with a 30 m blend (boss arenas). */
+  addPlateau(x: number, z: number, radius: number, height: number): void {
+    this.plateaus.push([x, z, radius, height]);
+  }
 
   /**
    * Mountains ringing the hub (450–760 m), broken only by the northern valley toward

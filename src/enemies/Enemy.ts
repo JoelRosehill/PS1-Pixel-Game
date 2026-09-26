@@ -7,7 +7,7 @@ import type { AIContext } from './AIContext';
 import type { AttackTokens } from './AttackTokens';
 import { Perception, type PerceptionSpec } from './Perception';
 
-export type EnemyKind = 'knight' | 'wizard';
+export type EnemyKind = 'knight' | 'wizard' | 'boss';
 
 /** What a subclass decides about an incoming blow before health changes. */
 export interface Received {
@@ -75,7 +75,9 @@ export abstract class Enemy implements Damageable {
   private hitFlash = 0;
   private barTimer = 0;
   private readonly flashMaterials: THREE.MeshToonMaterial[] = [];
-  private readonly bar = new THREE.Group();
+  protected readonly bar = new THREE.Group();
+  /** Bosses show their health on the big HUD bar instead. */
+  protected showBar = true;
   private readonly barFill: THREE.Mesh;
   private readonly contacts: Contact[] = [];
   private readonly sphere = new THREE.Vector3();
@@ -293,7 +295,7 @@ export abstract class Enemy implements Damageable {
     this.visual.rotation.y = this.facing + Math.PI;
     this.group.position.copy(this.position);
     const damaged = this.health < this.maxHealth;
-    this.bar.visible = damaged && (this.barTimer > 0 || this.perception.alerted);
+    this.bar.visible = this.showBar && damaged && (this.barTimer > 0 || this.perception.alerted);
     if (this.bar.visible) {
       const f = this.health / this.maxHealth;
       this.barFill.scale.x = Math.max(0.001, f);
@@ -319,7 +321,7 @@ export abstract class Enemy implements Damageable {
 
   // --- physics -------------------------------------------------------------
 
-  private physics(dt: number, ctx: AIContext): void {
+  protected physics(dt: number, ctx: AIContext): void {
     const col = ctx.colliders;
     // Steer horizontal velocity toward the wish; knockback decays through the same blend.
     const k = 1 - Math.exp(-this.accel * dt);

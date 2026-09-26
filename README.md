@@ -17,6 +17,8 @@ Wilderness, Violet Marshes, Sunkeeper's Terrace, Crystal Caverns and Bloodstone 
 Shadow among them — each with landmarks and enemy camps.
 Job 7 fills the atlas: 40 biomes in 8 chapters. Each chapter's pass is sealed by a
 veil of mist until you clear three of its camps; press M for the world map.
+Job 8 adds three bosses: Gloomhorn in the Violet Fen, the dragon Vermilion in the
+Bloodstone Wastes, and the Pale Sovereign waiting at the Heart of the Moon.
 
 ## Run it
 
@@ -39,6 +41,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run enemytest` | Deterministic enemy AI, combat rules and encounter checks |
 | `npm run worldtest` | World layout, terrain/prop streaming, biome moods and camps |
 | `npm run atlastest` | The 40-biome atlas, landmarks, chapter gates and the world map |
+| `npm run bosstest` | Boss arenas, intros, phases, movesets, parries, posture and victory |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -102,6 +105,9 @@ while staggered, dead, charging or in an active sword strike.
   glows gold, and look away when the halo swells to avoid being blinded.
 - Encounters rise when you enter their ground and reset if you die or flee. Clearing one
   restores Vigour and Momentum.
+- **Bosses** seal their arenas. Watch the telegraphs, jump the shockwaves, and parry the
+  blows that glow longest. Heavy strikes and spells break their posture; a parried
+  fireball brings the dragon down.
 
 ## Testing on Linux / in containers
 

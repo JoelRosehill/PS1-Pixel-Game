@@ -453,7 +453,7 @@ export class PlayerCombat implements Damageable {
     }
 
     const facingDot = -hit.direction.x * -Math.sin(this.controller.facing) + -hit.direction.z * -Math.cos(this.controller.facing);
-    const fromFront = facingDot > -0.2;
+    const fromFront = facingDot > -0.2 && hit.kind !== 'hazard';
 
     if (this.parryTimer > 0 && fromFront) {
       this.parryTimer = 0;

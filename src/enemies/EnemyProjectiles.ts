@@ -9,8 +9,12 @@ import type { AIContext } from './AIContext';
  * back at whoever threw them — an answer to ranged casters that rewards the same
  * timing the knights teach.
  */
+/** Visual/damage flavour of a hostile orb. */
+export type OrbKind = 'sun' | 'fire' | 'moon';
+
 interface Orb {
   mesh: THREE.Mesh;
+  kind: OrbKind;
   velocity: THREE.Vector3;
   life: number;
   team: Team;
@@ -29,6 +33,9 @@ export class EnemyProjectiles {
   readonly group = new THREE.Group();
   readonly orbs: Orb[] = [];
   reflections = 0;
+  private readonly materials: Record<OrbKind, THREE.MeshBasicMaterial>;
+  /** Fired when a reflected orb strikes its caster (bosses react to this). */
+  onReflectHit: ((target: Damageable) => void) | null = null;
   private readonly found: Damageable[] = [];
   private readonly from = new THREE.Vector3();
   private readonly to = new THREE.Vector3();
@@ -37,13 +44,13 @@ export class EnemyProjectiles {
   constructor() {
     this.group.name = 'enemy-projectiles';
     const geo = new THREE.IcosahedronGeometry(0.28, 0);
-    const hostile = glow(0xffd36a, 2.4);
+    this.materials = { sun: glow(0xffd36a, 2.4), fire: glow(0xff5a2a, 2.8), moon: glow(0xc8e8ff, 2.6) };
     for (let i = 0; i < ORBS; i++) {
-      const mesh = new THREE.Mesh(geo, hostile);
+      const mesh = new THREE.Mesh(geo, this.materials.sun);
       mesh.visible = false;
       mesh.frustumCulled = false;
       this.group.add(mesh);
-      this.orbs.push({ mesh, velocity: new THREE.Vector3(), life: 0, team: 'enemy', damage: 0, homing: 0, owner: null, ignore: null, active: false });
+      this.orbs.push({ mesh, kind: 'sun', velocity: new THREE.Vector3(), life: 0, team: 'enemy', damage: 0, homing: 0, owner: null, ignore: null, active: false });
     }
   }
 
@@ -51,9 +58,11 @@ export class EnemyProjectiles {
     return this.orbs.filter(o => o.active).length;
   }
 
-  fire(origin: THREE.Vector3, direction: THREE.Vector3, speed: number, damage: number, owner: Damageable, homing = 1.1): boolean {
+  fire(origin: THREE.Vector3, direction: THREE.Vector3, speed: number, damage: number, owner: Damageable, homing = 1.1, kind: OrbKind = 'sun', size = 1): boolean {
     const orb = this.orbs.find(o => !o.active);
     if (!orb) return false;
+    orb.kind = kind;
+    orb.mesh.material = this.materials[kind];
     orb.active = true;
     orb.mesh.visible = true;
     orb.mesh.position.copy(origin);
@@ -64,7 +73,7 @@ export class EnemyProjectiles {
     orb.homing = homing;
     orb.owner = owner;
     orb.ignore = null;
-    orb.mesh.scale.setScalar(1);
+    orb.mesh.scale.setScalar(size);
     return true;
   }
 
@@ -87,7 +96,7 @@ export class EnemyProjectiles {
       this.to.copy(this.from).addScaledVector(orb.velocity, dt);
       const fraction = ctx.colliders.sweepSphere(this.from, this.to, 0.2, 4, true);
       this.to.lerpVectors(this.from, this.to, fraction);
-      ctx.combat.sweep(this.from, this.to, 0.32, orb.team, this.found);
+      ctx.combat.sweep(this.from, this.to, 0.32 * orb.mesh.scale.x, orb.team, this.found);
       orb.mesh.position.copy(this.to);
       orb.mesh.rotation.x += dt * 9;
       orb.mesh.rotation.y += dt * 7;
@@ -101,7 +110,7 @@ export class EnemyProjectiles {
         if (result.parried) {
           // Sent back: faster, stronger, aimed at the caster.
           orb.team = 'player';
-          orb.damage = 34;
+          orb.damage = orb.kind === 'fire' ? 60 : orb.kind === 'moon' ? 45 : 34;
           orb.homing = 4;
           orb.life = 3;
           orb.ignore = null;
@@ -112,6 +121,7 @@ export class EnemyProjectiles {
           continue;
         }
         if (result.dodged) { orb.ignore = victim; continue; }
+        if (orb.team === 'player' && result.hit) this.onReflectHit?.(victim);
         this.burst(orb, ctx);
         continue;
       }

@@ -5,6 +5,11 @@ import type { ColliderWorld } from '../physics/Colliders';
 import type { Atmosphere } from '../render/Atmosphere';
 import { Progress } from '../core/Progress';
 import { ChapterGates } from './engine/ChapterGates';
+import type { BossArenaDef } from '../enemies/bosses/BossArena';
+import type { BossDef } from '../enemies/bosses/Boss';
+import { GLOOMHORN } from '../enemies/bosses/Gloomhorn';
+import { SOVEREIGN } from '../enemies/bosses/Sovereign';
+import { VERMILION } from '../enemies/bosses/Vermilion';
 import { rangeUniforms } from '../render/Materials';
 import { buildBiomeLandmark, type Landmark, type LightAnchor } from './biomes/BiomeLandmarks';
 import { CHAPTERS, roman } from './biomes/Chapters';
@@ -38,6 +43,8 @@ export class World implements Level {
   readonly ambience: Ambience;
   readonly encounters: EncounterDef[];
   readonly gates: ChapterGates;
+  /** Where the bosses wait (Job 8). */
+  readonly bossArenas: BossArenaDef[] = [];
   readonly biomeDriven = true;
   /** Hint from a closed chapter gate near the viewer ('' when none). */
   gateHint = '';
@@ -71,12 +78,27 @@ export class World implements Level {
       this.anchors.push(...lm.lights);
     }
     for (const pass of this.atlas.passes) this.reserved.add(pass.x, pass.z, 45);
+    // Boss arenas: the flattest dry ground near a landmark in each boss's chapter.
+    for (const [boss, preferred, radius] of [
+      [GLOOMHORN, ['c2-4', 'c2-3', 'c2-1', 'c2-2', 'c2-0'], 34],
+      [VERMILION, ['c5-0', 'c5-3', 'c5-1', 'c5-2', 'c5-4'], 36],
+      [SOVEREIGN, ['c8-4', 'c8-3', 'c8-1', 'c8-2', 'c8-0'], 34],
+    ] as [BossDef, string[], number][]) {
+      const center = this.findArena(preferred, radius);
+      this.bossArenas.push({ boss, center, radius });
+      this.reserved.add(center.x, center.z, radius + 8);
+    }
     this.reserved.add(this.hub.citadelAt.x, this.hub.citadelAt.z, 360);
 
     const camps = generateCamps(this.atlas, this.terrain.heightAt, this.reserved);
     this.encounters = [...(this.hub.encounters ?? []), ...camps.encounters];
 
     this.gates = new ChapterGates(this.atlas, this.terrain.heightAt, col, progress, camps.encounters.map(e => e.id), this.hub.materials);
+    this.gates.bossRequirement = chapter => {
+      const arena = this.bossArenas.find(a => a.boss.chapter === chapter);
+      if (!arena || progress.bosses.has(arena.boss.id)) return { met: true, text: '' };
+      return { met: false, text: `The mist answers to ${arena.boss.name}, ${arena.boss.epithet}. Defeat it in ${this.atlas.chapters[chapter - 1].name}.` };
+    };
     this.gates.onOpen = gate => this.onRegion('THE MIST PARTS', `The way to Chapter ${roman(gate.to)} · ${this.atlas.chapters[gate.to - 1].name} lies open`);
     this.root.add(this.gates.group);
 
@@ -108,6 +130,40 @@ export class World implements Level {
     return this.terrain.heightAt(x, z);
   }
 
+  /** The flattest dry circle of `radius` near the landmarks of the preferred sites. */
+  private findArena(siteIds: string[], radius: number): THREE.Vector3 {
+    const h = this.terrain.heightAt;
+    let best: { x: number; z: number; score: number } | null = null;
+    siteIds.forEach((id, rank) => {
+      const lm = this.landmarks[this.atlas.sites.findIndex(s => s.id === id)];
+      for (let ring = 70; ring <= 250; ring += 30)
+        for (let k = 0; k < 12; k++) {
+          const a = (k / 12) * Math.PI * 2 + ring * 0.01;
+          const x = lm.x + Math.sin(a) * ring, z = lm.z + Math.cos(a) * ring;
+          if (this.atlas.boundary(x, z).distance < radius + 60 || Math.hypot(x, z) < 900) continue;
+          if (this.reserved.blocked(x, z, radius)) continue;
+          const h0 = h(x, z);
+          let spread = 0, wet = 0;
+          for (let i = 0; i < 16; i++) {
+            const b = (i / 16) * Math.PI * 2;
+            for (const f of [0.45, 0.9]) {
+              const hi = h(x + Math.sin(b) * radius * f, z + Math.cos(b) * radius * f);
+              if (hi < 0.6) wet++;
+              spread = Math.max(spread, Math.abs(hi - h0));
+            }
+          }
+          // The arena will be levelled anyway; prefer spots that need the least of it.
+          const score = spread + wet * 0.5 + rank * 1.5;
+          if (!best || score < best.score) best = { x, z, score };
+        }
+    });
+    const b = best ?? { x: this.landmarks[0].x, z: this.landmarks[0].z };
+    // Level a dry floor (a raised mudflat in the fens).
+    const floor = Math.max(1.6, h(b.x, b.z));
+    this.terrain.addPlateau(b.x, b.z, radius + 4, floor);
+    return new THREE.Vector3(b.x, floor, b.z);
+  }
+
   loadAssets(library: ModelLibrary): Promise<string[]> {
     return this.hub.loadAssets(library);
   }
@@ -124,6 +180,8 @@ export class World implements Level {
 
   update(dt: number, elapsed: number): void {
     this.hub.update(dt, elapsed);
+    // Once Vermilion falls, the dragon no longer circles the Threshold.
+    if (this.hub.heroAssets.dragon) this.hub.heroAssets.dragon.visible = !this.progress.bosses.has('vermilion');
     this.tiles.update(this.viewer, 4);
     this.props.update(this.viewer, 3);
     this.water.position.set(Math.round(this.viewer.x / 64) * 64, 0, Math.round(this.viewer.z / 64) * 64);
