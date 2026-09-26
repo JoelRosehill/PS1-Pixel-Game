@@ -285,6 +285,9 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
     use `logicalCode(e.code)`.
   - `SmartPixelRenderer`: `smartMode(4|6|8)`, `settings.bloom` (extract → blur → blit).
   - `GameHud`: compass (`setHeading`), `flashSaved`, `setOptions`, `onAnnounce`.
+  - Version: `vite.config.ts` defines `__APP_VERSION__` (`v1.0.<git commit count>`,
+    `-dev` when the tree is dirty) and `__APP_COMMIT__`; `MenuUI` shows it bottom-right on
+    menu screens only. Shallow clones would under-count commits.
   - `GameOptions`: `audio`, `title`, `debugHud`, `pointerLock` (all off for `shot=1`;
     URL `title=1`, `audio=1`, `hud=1` turn them on).
 

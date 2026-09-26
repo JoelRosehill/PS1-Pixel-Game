@@ -111,6 +111,16 @@ try {
     return { ok: g.menu.screen === 'title' && g.menuOpen && d.open && !d.querySelector('[data-action="continue"]') && first?.dataset.action === 'new' && document.activeElement === first,
       detail: `screen=${g.menu.screen} focus=${document.activeElement?.textContent}` };
   });
+  await run('the version shows on the title screen and menus only', () => {
+    const g = window.__game;
+    const onTitle = document.querySelector('.menu-version')?.textContent ?? '';
+    const box = document.querySelector('.menu-version')?.getBoundingClientRect();
+    const corner = !!box && box.right > innerWidth - 40 && box.bottom > innerHeight - 40;
+    g.menu.open('settings');
+    const inSettings = !!g.menu.dialog.querySelector('.menu-version');
+    g.menu.show('title');
+    return { ok: /^v\d+\.\d+\.\d+(-dev)?$/.test(onTitle) && corner && inSettings, detail: `${onTitle} corner=${corner}` };
+  });
   await run('beginning starts the score', async () => {
     const g = window.__game;
     g.menu.dialog.querySelector('[data-action="new"]').click();
@@ -200,8 +210,11 @@ try {
     window.__key('Escape');
     const paused = g.menu.screen === 'pause' && g.menuOpen;
     const labels = [...g.menu.dialog.querySelectorAll('button')].map(b => b.textContent);
+    const versionPaused = !!document.querySelector('.menu-version')?.checkVisibility();
     g.menu.dialog.querySelector('[data-action="resume"]').click();
-    return { ok: paused && labels.includes('Journal') && labels.includes('Settings') && !g.menu.screen, detail: labels.join('|') };
+    const versionInPlay = [...document.querySelectorAll('.menu-version')].some(v => v.checkVisibility());
+    return { ok: paused && labels.includes('Journal') && labels.includes('Settings') && !g.menu.screen && versionPaused && !versionInPlay,
+      detail: `${labels.join('|')} version paused=${versionPaused} in play=${versionInPlay}` };
   });
   await run('display settings apply live', () => {
     const g = window.__game, d = g.menu.dialog;

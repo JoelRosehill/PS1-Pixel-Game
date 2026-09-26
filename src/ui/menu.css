@@ -50,6 +50,8 @@
 .menu-note { font-size: 11px; color: #8f80a2; }
 .menu-small { min-height: 34px !important; padding: 4px 12px !important; font-size: 12px !important; }
 
+.menu-version { position: fixed; right: 12px; bottom: 8px; font-size: 11px; letter-spacing: 0.08em; color: #b8a6ce; text-shadow: 1px 1px 0 #07040c; pointer-events: none; user-select: text; }
+
 @media (max-width: 560px) {
   .menu-keys-list { grid-template-columns: 1fr; }
   .menu-row { grid-template-columns: 1fr 1fr 44px; }

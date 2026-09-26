@@ -28,6 +28,8 @@ check('game bundle stays small', !!main && size(main) < 900 * 1024, main ? `${(s
 const html = fs.readFileSync('dist/index.html', 'utf8');
 check('asset URLs are relative', !/(src|href)="\/(?!\/)/.test(html), html.match(/(src|href)="[^"]+"/g)?.join(' ') ?? '');
 check('model manifest is shipped', fs.existsSync('dist/models/manifest.json'));
+const version = fs.readFileSync(path.join('dist/assets', main), 'utf8').match(/["'`](v\d+\.\d+\.\d+(?:-dev)?)["'`]/)?.[1];
+check('the build carries its version', !!version, version ?? 'not found');
 
 const server = await preview({ logLevel: 'error', preview: { port: 5193, strictPort: false } });
 let browser;
