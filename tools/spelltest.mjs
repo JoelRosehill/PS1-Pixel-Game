@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import puppeteer from 'puppeteer-core';
 import { createServer } from 'vite';
-import { browserPath } from './browser.mjs';
+import { browserPath, launchArgs, logicQuery } from './browser.mjs';
 
 const server = await createServer({ logLevel: 'error', server: { port: 5197, strictPort: false } });
 await server.listen();
@@ -12,11 +12,11 @@ let total = 0;
 const check = (name, ok, detail = '') => { total++; console.log(`${ok ? 'PASS' : 'FAIL'} ${name} ${detail}`); if (!ok) failures.push(name); };
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 try {
-  browser = await puppeteer.launch({ executablePath: browserPath(), headless: true, args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] });
+  browser = await puppeteer.launch({ executablePath: browserPath(), headless: true, args: launchArgs() });
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 800 });
   page.on('pageerror', e => failures.push(e.message));
-  await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8`);
+  await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8${logicQuery}`);
   await page.waitForFunction('window.__ready || window.__error');
   fs.mkdirSync('screenshots', { recursive: true });
   check('initial page and locked selection', await page.evaluate(() => {

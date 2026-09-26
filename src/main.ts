@@ -33,6 +33,7 @@ const opts: GameOptions = {
   playerAt: at,
   playerYaw: q.has('yaw') ? (Number(q.get('yaw')) * Math.PI) / 180 : undefined,
   baseLines: q.has('lines') ? Number(q.get('lines')) : undefined,
+  render: q.get('render') !== '0',
 };
 const shot = q.get('shot') === '1';
 

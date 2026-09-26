@@ -2,7 +2,7 @@
 // Momentum, parry, dodge, the Rune Burst spender and death/respawn.
 //
 //   npm run combattest
-import { browserPath } from './browser.mjs';
+import { browserPath, launchArgs, logicQuery } from './browser.mjs';
 import puppeteer from 'puppeteer-core';
 import { createServer } from 'vite';
 
@@ -13,13 +13,13 @@ await server.listen();
 const browser = await puppeteer.launch({
   executablePath: chrome,
   headless: true,
-  args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'],
+  args: launchArgs(),
 });
 const page = await browser.newPage();
 await page.setViewport({ width: 960, height: 540 });
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8`, { waitUntil: 'load' });
+await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8${logicQuery}`, { waitUntil: 'load' });
 await page.waitForFunction('window.__ready === true || !!window.__error');
 await page.mouse.move(480, 270);
 
