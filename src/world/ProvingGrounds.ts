@@ -61,20 +61,34 @@ export class ProvingGrounds implements Level {
   readonly enemies: SparringConstruct[] = [];
   readonly heroAssets = new HeroAssets();
   readonly encounters: EncounterDef[] = [];
+  /** Where the Spire Citadel stands (it moves outward inside the streamed world). */
+  readonly citadelAt = new THREE.Vector3();
 
-  private readonly noise = new Noise2D('threshold');
+  readonly ground: ThresholdTerrain;
+  readonly materials: ReturnType<typeof createWorldMaterials>;
+  private readonly heightFn: (x: number, z: number) => number;
+  private readonly embedded: boolean;
+  private get noise(): Noise2D { return this.ground.noise; }
   private readonly shrine: EmberShrine;
   private readonly fireflies: Fireflies;
   private readonly course: ParkourCourse;
   get lostPage(): THREE.Object3D { return this.course.page; }
 
-  constructor(atmosphere: Atmosphere) {
-    const m = createWorldMaterials();
+  /**
+   * Standalone, the Threshold builds its own terrain, water and mountain ring.
+   * `embedded` (inside the streamed world) skips those: the world streams the ground,
+   * `heightAt` is the world's blended height, and vegetation stops before the blend zone.
+   */
+  constructor(atmosphere: Atmosphere, opts: { ground?: ThresholdTerrain; heightAt?: (x: number, z: number) => number; embedded?: boolean } = {}) {
+    this.ground = opts.ground ?? new ThresholdTerrain();
+    this.heightFn = opts.heightAt ?? ((x, z) => this.ground.heightAt(x, z));
+    this.embedded = opts.embedded ?? false;
+    const m = (this.materials = createWorldMaterials());
     const rng = new Random('threshold-scatter');
     const col = (this.colliders = new ColliderWorld((x, z) => this.heightAt(x, z)));
 
     // --- ground and water
-    this.root.add(
+    if (!this.embedded) this.root.add(
       buildTerrain({
         halfSize: 720,
         segments: 312,
@@ -84,8 +98,10 @@ export class ProvingGrounds implements Level {
         colorAt: (x, z, h, slope, out) => this.colorAt(x, z, h, slope, out),
       }),
     );
-    this.root.add(buildWater(atmosphere, 1500, 0));
-    this.root.add(buildMountainRing({ inner: 620, outer: 2600, valleyAzimuth: 0.07, seed: 'ring' }));
+    if (!this.embedded) {
+      this.root.add(buildWater(atmosphere, 1500, 0));
+      this.root.add(buildMountainRing({ inner: 620, outer: 2600, valleyAzimuth: 0.07, seed: 'ring' }));
+    }
 
     // --- plaza, quay and bridge
     const built = new GeoBucket();
@@ -153,9 +169,24 @@ export class ProvingGrounds implements Level {
 
     // --- landmarks
     const citadel = buildCitadel(m);
-    citadel.position.set(CITADEL.x, CITADEL.y, CITADEL.z);
+    // In the streamed world the citadel is reachable. It moves twice as far out along
+    // the same sightline (clear of the valley exit), sits on the ground and is solid:
+    // stacked cylinders follow the crag's taper.
+    const far = this.embedded ? 1.95 : 1;
+    const cx = CITADEL.x * far, cz = CITADEL.z * far;
+    const citadelY = this.embedded ? this.heightAt(cx, cz) - 4 : CITADEL.y;
+    citadel.position.set(cx, citadelY, cz);
+    this.citadelAt.set(cx, citadelY, cz);
+    if (this.embedded) {
+      // Twice as far, twice as large: it still rises against the moon from the spawn
+      // (the crag's collision radii below are unscaled model units × `far`).
+      citadel.scale.setScalar(1.15 * far);
+      for (const [y0, y1, r] of [[0, 35, 150], [35, 70, 128], [70, 105, 108], [105, 140, 88]]) {
+        col.addCylinder(cx, citadelY + (y0 + y1) / 2 * far, cz, r * far, (y1 - y0) * far);
+      }
+    }
     citadel.rotation.y = Math.atan2(-CITADEL.x, -CITADEL.z);
-    citadel.scale.setScalar(1.15);
+    if (!this.embedded) citadel.scale.setScalar(1.15);
     this.root.add(citadel);
     const gate = buildMistGate(m);
     gate.position.set(MIST_GATE.x, -3, MIST_GATE.z);
@@ -242,76 +273,19 @@ export class ProvingGrounds implements Level {
   }
 
   heightAt(x: number, z: number): number {
-    const n = this.noise;
-    const r = Math.hypot(x, z);
-    let h = 2.3 + n.fbm(x * 0.011, z * 0.011, 4) * 3.2 + n.fbm(x * 0.05 + 7, z * 0.05 - 3, 2) * 0.6;
-    const hill = smoothstep(80, 330, r);
-    const valley = 1 - 0.8 * Math.exp(-Math.pow(this.azimuthOffset(x, z) / 0.22, 2));
-    h += hill * (12 + n.ridged(x * 0.005 + 3, z * 0.005 + 9, 4) * 62) * valley;
-
-    // Castle island and plaza terraces
-    h = lerp(h, CASTLE.y, 1 - smoothstep(17, 27, Math.hypot(x - CASTLE.x, z - CASTLE.z)));
-    h = lerp(h, PLAZA_Y, 1 - smoothstep(PLAZA_R, PLAZA_R + 7, r));
-
-    // Canal: stone quays in the centre, natural banks further out
-    const cz = canalZ(x);
-    const dc = Math.abs(z - cz);
-    const quay = 1 - smoothstep(38, 48, Math.abs(x + 10));
-    h = lerp(h, z > cz ? PLAZA_Y : CASTLE.y, (1 - smoothstep(14, 22, dc)) * quay);
-    const soft = 1 - smoothstep(5 + hill * 18, 9 + hill * 70, dc);
-    const hard = 1 - smoothstep(5.7, 6.2, dc);
-    const canal = lerp(soft, hard, quay) * (1 - smoothstep(95, 125, x));
-    h = lerp(h, -2.6, canal);
-
-    // Pine lake
-    const dl = Math.hypot(x - LAKE.x, (z - LAKE.z) * 1.25) + n.get(x * 0.02, z * 0.02) * 12;
-    h = lerp(h, -4.5, 1 - smoothstep(48, 76, dl));
-    return h;
+    return this.heightFn(x, z);
   }
 
-  private colorAt(x: number, z: number, h: number, slope: number, out: THREE.Color): void {
-    const n = this.noise.get(x * 0.035, z * 0.035) * 0.5 + 0.5;
-    const n2 = this.noise.get(x * 0.2 + 3, z * 0.2 - 8) * 0.5 + 0.5;
-    const c = new THREE.Color();
-    if (h < -0.5) {
-      out.set(0x1c3c40);
-      return;
-    }
-    if (h < 0.8) {
-      out.set(0x6e6c52).lerp(c.set(0x3e6446), smoothstep(0.1, 0.8, h));
-      return;
-    }
-    // Lush, saturated meadow greens
-    out.set(0x3f8a3a).lerp(c.set(0x78aa3c), smoothstep(0.55, 0.85, n));
-    out.lerp(c.set(0x2c6e52), smoothstep(0.5, 0.15, n) * 0.8);
-    out.multiplyScalar(0.92 + n2 * 0.16);
-    // Worn dirt trail from the plaza toward the lake
-    if (this.trailDistance(x, z) < 1.8) out.lerp(c.set(0x7a6448), 0.85);
-    // Rock on steep slopes and high ground, then pale lavender snow
-    out.lerp(c.set(0x6a6474), clamp(smoothstep(0.35, 0.6, slope) + smoothstep(55, 80, h), 0, 1));
-    out.lerp(c.set(0xd8d4ec), smoothstep(90, 110, h));
+  colorAt(x: number, z: number, h: number, slope: number, out: THREE.Color): void {
+    this.ground.colorAt(x, z, h, slope, out);
   }
 
   private trailDistance(x: number, z: number): number {
-    const pts = [
-      [PLAZA_R - 1, 3], [26, 7], [40, 4], [52, -4], [58, -12],
-    ];
-    let best = 1e9;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [ax, az] = pts[i];
-      const [bx, bz] = pts[i + 1];
-      const dx = bx - ax;
-      const dz = bz - az;
-      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
-      best = Math.min(best, Math.hypot(x - (ax + dx * t), z - (az + dz * t)));
-    }
-    return best + this.noise.get(x * 0.3, z * 0.3) * 0.6;
+    return this.ground.trailDistance(x, z);
   }
 
-  /** Angular distance (radians) of a point from the plaza→citadel sightline. */
   private azimuthOffset(x: number, z: number): number {
-    const d = Math.atan2(x, -z) - CITADEL_AZ;
-    return Math.abs(Math.atan2(Math.sin(d), Math.cos(d)));
+    return this.ground.azimuthOffset(x, z);
   }
 
   private slopeAt(x: number, z: number): number {
@@ -361,6 +335,8 @@ export class ProvingGrounds implements Level {
         x, y: h - 0.3, z, scale: height, rotY: rng.next() * Math.PI * 2,
         color: tintA.clone().lerp(tintB, rng.next()).multiplyScalar(0.95 + rng.next() * 0.2),
       };
+      // Inside the streamed world the biomes grow their own trees beyond the hub.
+      if (this.embedded && r > 470) continue;
       pines.push(item);
       trunks.push({ ...item, color: undefined });
       this.colliders.addCylinder(x, h + height * 0.3, z, 0.04 * height, height * 0.62);
@@ -423,5 +399,93 @@ export class ProvingGrounds implements Level {
     this.shrine.update(elapsed);
     this.fireflies.update(elapsed);
     this.course.update(elapsed);
+  }
+}
+
+/**
+ * The Threshold's ground as pure functions (height, colour, the plaza trail, the
+ * citadel sightline). Separate from the level so the streamed world (Job 6) can blend
+ * it with the biomes before the hub's props are placed.
+ */
+export class ThresholdTerrain {
+  readonly noise = new Noise2D('threshold');
+  private readonly scratch = new THREE.Color();
+
+  /** Alias used by the world engine's `HubTerrain` contract. */
+  baseHeight(x: number, z: number): number {
+    return this.heightAt(x, z);
+  }
+
+  heightAt(x: number, z: number): number {
+    const n = this.noise;
+    const r = Math.hypot(x, z);
+    let h = 2.3 + n.fbm(x * 0.011, z * 0.011, 4) * 3.2 + n.fbm(x * 0.05 + 7, z * 0.05 - 3, 2) * 0.6;
+    const hill = smoothstep(80, 330, r);
+    const valley = 1 - 0.8 * Math.exp(-Math.pow(this.azimuthOffset(x, z) / 0.22, 2));
+    h += hill * (12 + n.ridged(x * 0.005 + 3, z * 0.005 + 9, 4) * 62) * valley;
+
+    // Castle island and plaza terraces
+    h = lerp(h, CASTLE.y, 1 - smoothstep(17, 27, Math.hypot(x - CASTLE.x, z - CASTLE.z)));
+    h = lerp(h, PLAZA_Y, 1 - smoothstep(PLAZA_R, PLAZA_R + 7, r));
+
+    // Canal: stone quays in the centre, natural banks further out
+    const cz = canalZ(x);
+    const dc = Math.abs(z - cz);
+    const quay = 1 - smoothstep(38, 48, Math.abs(x + 10));
+    h = lerp(h, z > cz ? PLAZA_Y : CASTLE.y, (1 - smoothstep(14, 22, dc)) * quay);
+    const soft = 1 - smoothstep(5 + hill * 18, 9 + hill * 70, dc);
+    const hard = 1 - smoothstep(5.7, 6.2, dc);
+    const canal = lerp(soft, hard, quay) * (1 - smoothstep(95, 125, x));
+    h = lerp(h, -2.6, canal);
+
+    // Pine lake
+    const dl = Math.hypot(x - LAKE.x, (z - LAKE.z) * 1.25) + n.get(x * 0.02, z * 0.02) * 12;
+    h = lerp(h, -4.5, 1 - smoothstep(48, 76, dl));
+    return h;
+  }
+
+  colorAt(x: number, z: number, h: number, slope: number, out: THREE.Color): void {
+    const n = this.noise.get(x * 0.035, z * 0.035) * 0.5 + 0.5;
+    const n2 = this.noise.get(x * 0.2 + 3, z * 0.2 - 8) * 0.5 + 0.5;
+    const c = this.scratch;
+    if (h < -0.5) {
+      out.set(0x1c3c40);
+      return;
+    }
+    if (h < 0.8) {
+      out.set(0x6e6c52).lerp(c.set(0x3e6446), smoothstep(0.1, 0.8, h));
+      return;
+    }
+    // Lush, saturated meadow greens
+    out.set(0x3f8a3a).lerp(c.set(0x78aa3c), smoothstep(0.55, 0.85, n));
+    out.lerp(c.set(0x2c6e52), smoothstep(0.5, 0.15, n) * 0.8);
+    out.multiplyScalar(0.92 + n2 * 0.16);
+    // Worn dirt trail from the plaza toward the lake
+    if (this.trailDistance(x, z) < 1.8) out.lerp(c.set(0x7a6448), 0.85);
+    // Rock on steep slopes and high ground, then pale lavender snow
+    out.lerp(c.set(0x6a6474), clamp(smoothstep(0.35, 0.6, slope) + smoothstep(55, 80, h), 0, 1));
+    out.lerp(c.set(0xd8d4ec), smoothstep(90, 110, h));
+  }
+
+  trailDistance(x: number, z: number): number {
+    const pts = [
+      [PLAZA_R - 1, 3], [26, 7], [40, 4], [52, -4], [58, -12],
+    ];
+    let best = 1e9;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, az] = pts[i];
+      const [bx, bz] = pts[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      best = Math.min(best, Math.hypot(x - (ax + dx * t), z - (az + dz * t)));
+    }
+    return best + this.noise.get(x * 0.3, z * 0.3) * 0.6;
+  }
+
+  /** Angular distance (radians) of a point from the plaza→citadel sightline. */
+  azimuthOffset(x: number, z: number): number {
+    const d = Math.atan2(x, -z) - CITADEL_AZ;
+    return Math.abs(Math.atan2(Math.sin(d), Math.cos(d)));
   }
 }

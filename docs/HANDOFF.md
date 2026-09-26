@@ -1,9 +1,9 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 5](sessions/2026-09-26-job-5.md)
-records enemy ecology, passing checks and the Linux tooling.
+**Latest verification:** [2026-09-26 Job 6](sessions/2026-09-26-job-6.md)
+records the streamed world, passing checks and draw budgets.
 
-**Last updated:** 2026-09-26, at the end of Job 5.
+**Last updated:** 2026-09-26, at the end of Job 6.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -79,7 +79,7 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–5 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–6 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
@@ -220,6 +220,26 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   - HUD: target frame (top centre), blinding white-out, title cards (`GameHud.announce`).
   - `Game.step(seconds)` and `game.manual` drive the simulation deterministically.
 
+- **Job 6 — World Engine** (`src/world/World.ts`, `src/world/engine/`, `src/world/biomes/`):
+  - `World` implements `Level`: it builds `ProvingGrounds` in *embedded* mode (no own
+    terrain/water/mountain ring; vegetation stops at 470 m) around a `ThresholdTerrain`
+    that the world blends with 40 biome sites. `level.hub` is the old diorama.
+  - `WorldAtlas` (layout, weights, ridges/passes), `WorldTerrain` (height/colour, pure
+    functions), `TerrainStreamer` (quadtree), `PropStreamer`/`PropLibrary` (rings, cells,
+    collider groups), `Camps` (enemy camps), `Ambience` (motes), `BiomeLandmarks`.
+  - `Game` calls `level.setViewer(camera position)` every frame and prewarms once at
+    start (`setViewer(p, true)`). Camera far plane is 9 km.
+  - `ColliderWorld.beginGroup/endGroup/removeGroup` stream prop colliders.
+  - `Atmosphere.biomeDriven` + `setWeights` blend presets; `DEBUG_PRESETS` are keys 1–4,
+    and 0 hands the sky back to the biomes.
+  - `rangeClipped()` materials hand props from the mid to the far ring at 280 m.
+  - Budgets at the five anchor sites (software GL, so counts not timings): 94–160 terrain
+    tiles (≈200–370k triangles before frustum culling), 80–210 prop meshes.
+
+**Job 6 verification:** build passed; world suite 19/19; enemy 26/26, spells 38/38,
+kinetic 17/17, movement 11/11, combat 11/11. Screenshots inspected: spawn, hub-exit,
+wilderness, marsh, terrace, caverns, bloodstone, world-high.
+
 **Job 5 verification:** build passed; enemy suite 26/26, spells 38/38, kinetic 17/17,
 movement 11/11, combat 11/11 (all run on Linux with software WebGL via `render=0`).
 Knight, ruin and wizard-cast screenshots inspected. No GPU was available in this
@@ -230,6 +250,9 @@ session, so no frame-time numbers were taken.
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run worldtest` must pass (19 checks: layout, hub preservation, continuity,
+  ridges/passes, archetype signatures, tile coverage and LOD, streaming budget, prop
+  colliders, hub free of biome props, sky per biome, crossfade, titles, camps, walking out).
 - `npm run enemytest` must pass (26 checks: perception, LOS, telegraph timing, attack
   tokens, parry/expose, guard/poise/back rune, spell pierce, perfect dodge, body collision,
   water avoidance, wizard blink/lance/flash/orb reflect/dodge/interrupt, well pull,
@@ -285,19 +308,22 @@ session, so no frame-time numbers were taken.
   cylinder. Test "no overlap", not "cannot get past".
 - Encounter trigger circles fire whenever the player enters them, including in tests and
   screenshots that teleport the player; call `game.enemies.clear()` to isolate a scenario.
+- Streamed worlds need their viewer: after teleporting in a test, call
+  `game.level.setViewer(position, true)`, or props/colliders near the new spot won't exist.
+- Never add `PointLight`s per landmark: every lit material evaluates every light. Use the
+  world's anchor pool.
+- The pass ramps must not be gated by the ridge falloff (that left a 38 m seam once);
+  `worldtest`'s zoomed continuity check catches this class of bug.
 - Headless tests racing the render loop: after a real key press, wait for a frame
   (`requestAnimationFrame` twice) before asserting.
 
 ---
 
-## 6. Next: Job 6 — World Engine & Biome Framework
+## 6. Next: Job 7 — The 40-Biome Atlas
 
-- Biome definition data (terrain generator, palette, sky preset, props, fauna, mood).
-- Chunk streaming with LOD matched to the Smart-Pixel bands.
-- Smooth sky/fog blending at biome borders.
-- Fully built: Violet Marshes, Sunkeeper's Terrace, Crystal Caverns, Tranquil Wilderness,
-  Bloodstone & Shadow.
+- 8 chapters × 5 biomes as data variants of the archetypes, each with its own landmarks.
+- Landmark generator (citadels, portals, ruins, colossal bones).
+- World map and chapter gating (gates at `atlas.passes`).
 
-Keep The Threshold's encounters, pages and trial reachable (it becomes the starting
-region). Enemies read terrain via `ColliderWorld.heightAt` and treat ground under 0.15 m
-as water. See ROADMAP.md's Notes for Job 6.
+See ROADMAP.md's Notes for Job 7. The world streams around `level.setViewer`; tests call
+`level.setViewer(p, true)` after teleporting to build everything at once.

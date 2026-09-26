@@ -18,6 +18,8 @@ export interface Contact {
 interface ColliderBase {
   min: THREE.Vector3;
   max: THREE.Vector3;
+  /** Streaming group this collider belongs to (removable together). */
+  group?: string;
   /** Physical character body; spell damage queries handle these separately. */
   body?: boolean;
 }
@@ -67,7 +69,10 @@ const _q = new THREE.Quaternion();
 const _m = new THREE.Matrix4();
 
 export class ColliderWorld {
-  private colliders: Collider[] = [];
+  private colliders: (Collider | null)[] = [];
+  private readonly groups = new Map<string, number[]>();
+  private activeGroup: string | undefined;
+  private live = 0;
   private readonly bodies: DynamicBody[] = [];
   private grid = new Map<number, number[]>();
   private readonly cell = 8;
@@ -81,7 +86,54 @@ export class ColliderWorld {
   constructor(readonly heightAt: (x: number, z: number) => number) {}
 
   get count(): number {
-    return this.colliders.length;
+    return this.live;
+  }
+
+  /**
+   * Colliders added until `endGroup()` belong to `name` and can be removed together
+   * with `removeGroup(name)` (streamed prop cells).
+   */
+  beginGroup(name: string): void {
+    this.activeGroup = name;
+  }
+
+  endGroup(): void {
+    this.activeGroup = undefined;
+  }
+
+  hasGroup(name: string): boolean {
+    return this.groups.has(name);
+  }
+
+  removeGroup(name: string): void {
+    const list = this.groups.get(name);
+    if (!list) return;
+    this.groups.delete(name);
+    for (const index of list) {
+      const c = this.colliders[index];
+      if (!c) continue;
+      this.forCells(c, (key) => {
+        const cell = this.grid.get(key);
+        if (!cell) return;
+        const at = cell.indexOf(index);
+        if (at >= 0) { cell[at] = cell[cell.length - 1]; cell.pop(); }
+        if (cell.length === 0) this.grid.delete(key);
+      });
+      this.colliders[index] = null;
+      this.free.push(index);
+      this.live--;
+    }
+  }
+
+  private readonly free: number[] = [];
+
+  private forCells(c: Collider, fn: (key: number) => void): void {
+    const x0 = Math.floor(c.min.x / this.cell);
+    const x1 = Math.floor(c.max.x / this.cell);
+    const z0 = Math.floor(c.min.z / this.cell);
+    const z1 = Math.floor(c.max.z / this.cell);
+    for (let gz = z0; gz <= z1; gz++)
+      for (let gx = x0; gx <= x1; gx++) fn(gx * 73856093 + gz * 19349663);
   }
 
   /** Builders add colliders in local space between push/pop. */
@@ -177,19 +229,20 @@ export class ColliderWorld {
   }
 
   private add(c: Collider): void {
-    const index = this.colliders.length;
-    this.colliders.push(c);
-    const x0 = Math.floor(c.min.x / this.cell);
-    const x1 = Math.floor(c.max.x / this.cell);
-    const z0 = Math.floor(c.min.z / this.cell);
-    const z1 = Math.floor(c.max.z / this.cell);
-    for (let gz = z0; gz <= z1; gz++)
-      for (let gx = x0; gx <= x1; gx++) {
-        const key = gx * 73856093 + gz * 19349663;
-        let list = this.grid.get(key);
-        if (!list) this.grid.set(key, (list = []));
-        list.push(index);
-      }
+    const index = this.free.length ? this.free.pop()! : this.colliders.length;
+    this.colliders[index] = c;
+    this.live++;
+    if (this.activeGroup) {
+      c.group = this.activeGroup;
+      let list = this.groups.get(this.activeGroup);
+      if (!list) this.groups.set(this.activeGroup, (list = []));
+      list.push(index);
+    }
+    this.forCells(c, (key) => {
+      let list = this.grid.get(key);
+      if (!list) this.grid.set(key, (list = []));
+      list.push(index);
+    });
   }
 
   /** Collider indices overlapping a world-space AABB (may contain duplicates). */
@@ -204,7 +257,7 @@ export class ColliderWorld {
         const list = this.grid.get(gx * 73856093 + gz * 19349663);
         if (!list) continue;
         for (const i of list) {
-          const c = this.colliders[i];
+          const c = this.colliders[i]!;
           if (c.max.x < min.x || c.min.x > max.x || c.max.y < min.y || c.min.y > max.y || c.max.z < min.z || c.min.z > max.z)
             continue;
           out.add(i);
@@ -226,7 +279,7 @@ export class ColliderWorld {
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     const near = this.queryIndices(this.qMin, this.qMax, this.scratch);
     for (const i of near) {
-      const c = this.colliders[i];
+      const c = this.colliders[i]!;
       const hit = this.penetration(c, center, radius);
       if (!hit) continue;
       center.addScaledVector(hit.normal, hit.depth);
@@ -320,7 +373,7 @@ export class ColliderWorld {
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     let best: Contact | null = null;
     for (const i of this.queryIndices(this.qMin, this.qMax, this.scratch)) {
-      const hit = this.penetration(this.colliders[i], center, radius);
+      const hit = this.penetration(this.colliders[i]!, center, radius);
       if (hit && (!best || hit.depth > best.depth)) best = hit;
     }
     for (const b of this.bodies) {
@@ -336,8 +389,9 @@ export class ColliderWorld {
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     for (const i of this.queryIndices(this.qMin, this.qMax, this.scratch)) {
-      if (ignoreBodies && this.colliders[i].body) continue;
-      if (this.penetration(this.colliders[i], center, radius)) return true;
+      const c = this.colliders[i]!;
+      if (ignoreBodies && c.body) continue;
+      if (this.penetration(c, center, radius)) return true;
     }
     if (!ignoreBodies) for (const b of this.bodies) if (this.bodyPenetration(b, center, radius)) return true;
     return false;

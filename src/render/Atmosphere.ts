@@ -83,6 +83,13 @@ export class Atmosphere {
   readonly group = new THREE.Group();
 
   presetId = '';
+  /**
+   * When true, `setWeights` (the world's biome blend at the viewer) drives the mood.
+   * Any explicit `setPreset` (debug keys, URL `preset=`) turns it off.
+   */
+  biomeDriven = false;
+  private readonly resolved = new Map<string, AtmosphereState>();
+  private target: AtmosphereState | null = null;
   private from!: AtmosphereState;
   private to!: AtmosphereState;
   private current!: AtmosphereState;
@@ -117,6 +124,8 @@ export class Atmosphere {
   }
 
   setPreset(id: string, blendSeconds = 1.5): void {
+    this.biomeDriven = false;
+    this.target = null;
     const preset = getSkyPreset(id);
     this.presetId = preset.id;
     this.from = cloneState(this.current);
@@ -129,6 +138,41 @@ export class Atmosphere {
     }
   }
 
+  /**
+   * Biome-driven mood: a weighted mix of presets (weights need not sum to 1). The live
+   * state eases toward it, so walking across a border crossfades sky, fog and light.
+   * Pass `instant` to snap (teleports, level start).
+   */
+  setWeights(weights: ReadonlyMap<string, number>, instant = false): void {
+    if (!this.biomeDriven) return;
+    let total = 0;
+    for (const w of weights.values()) total += w;
+    if (total <= 0) return;
+    const t = this.target ?? (this.target = cloneState(this.current));
+    for (const k of COLOR_KEYS) t.colors[k].setRGB(0, 0, 0);
+    for (const k of NUM_KEYS) t.nums[k] = 0;
+    for (const k of VEC_KEYS) t.vecs[k].set(0, 0, 0);
+    let dominant = '';
+    let best = 0;
+    for (const [id, w] of weights) {
+      if (w <= 0) continue;
+      let s = this.resolved.get(id);
+      if (!s) { s = resolve(getSkyPreset(id)); this.resolved.set(id, s); }
+      const k = w / total;
+      for (const key of COLOR_KEYS) t.colors[key].r += s.colors[key].r * k, t.colors[key].g += s.colors[key].g * k, t.colors[key].b += s.colors[key].b * k;
+      for (const key of NUM_KEYS) t.nums[key] += s.nums[key] * k;
+      for (const key of VEC_KEYS) t.vecs[key].addScaledVector(s.vecs[key], k);
+      if (w > best) { best = w; dominant = id; }
+    }
+    for (const k of VEC_KEYS) if (t.vecs[k].lengthSq() < 1e-6) t.vecs[k].set(0, 1, 0); else t.vecs[k].normalize();
+    this.presetId = dominant;
+    this.blendT = 1;
+    if (instant) {
+      this.current = cloneState(t);
+      this.apply(this.current);
+    }
+  }
+
   /** Keeps the shadow frustum centred on what the camera looks at. */
   setFocus(p: THREE.Vector3): void {
     this.focus.copy(p);
@@ -136,7 +180,16 @@ export class Atmosphere {
 
   update(dt: number, elapsed: number): void {
     this.sky.uTime.value = elapsed;
-    if (this.blendT < 1) {
+    if (this.biomeDriven && this.target) {
+      // Ease toward the biome mix (about a second to settle).
+      const k = 1 - Math.exp(-dt * 2.5);
+      const a = this.target;
+      const c = this.current;
+      for (const key of COLOR_KEYS) c.colors[key].lerp(a.colors[key], k);
+      for (const key of NUM_KEYS) c.nums[key] += (a.nums[key] - c.nums[key]) * k;
+      for (const key of VEC_KEYS) c.vecs[key].lerp(a.vecs[key], k).normalize();
+      this.apply(c);
+    } else if (this.blendT < 1) {
       this.blendT = Math.min(1, this.blendT + dt / this.blendDuration);
       const t = this.blendT * this.blendT * (3 - 2 * this.blendT);
       const a = this.from;

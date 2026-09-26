@@ -101,3 +101,44 @@ export function dissolvable<T extends THREE.Material>(material: T, uniform: { va
   material.customProgramCacheKey = () => `dissolve-${edge}-${key ? key() : ''}`;
   return material;
 }
+
+/** Viewer position and hand-off radius shared by every range-clipped prop material. */
+export const rangeUniforms = {
+  uViewer: { value: new THREE.Vector3() },
+  uHandoff: { value: 280 },
+};
+
+/**
+ * Returns a copy of `material` that only draws fragments nearer than the hand-off
+ * radius (`keep: 'near'`) or beyond it (`keep: 'far'`), measured in xz from the viewer.
+ * Mid-range and long-range prop cells overlap spatially; this hands trees from one
+ * to the other at exactly one distance so nothing is drawn twice.
+ */
+export function rangeClipped<T extends THREE.Material>(material: T, keep: 'near' | 'far'): T {
+  const m = material.clone() as T;
+  const previous = material.onBeforeCompile;
+  m.onBeforeCompile = (shader, renderer) => {
+    previous?.call(m, shader, renderer);
+    shader.uniforms.uViewer = rangeUniforms.uViewer;
+    shader.uniforms.uHandoff = rangeUniforms.uHandoff;
+    shader.vertexShader = 'varying vec3 vRangePos;\n' + shader.vertexShader.replace(
+      '#include <project_vertex>',
+      `#include <project_vertex>
+      #ifdef USE_INSTANCING
+        vRangePos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+      #else
+        vRangePos = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+      #endif`,
+    );
+    shader.fragmentShader = 'uniform vec3 uViewer;\nuniform float uHandoff;\nvarying vec3 vRangePos;\n' +
+      shader.fragmentShader.replace(
+        'void main() {',
+        `void main() {
+        float rangeD = distance(vRangePos.xz, uViewer.xz);
+        if (rangeD ${keep === 'near' ? '>' : '<'} uHandoff) discard;`,
+      );
+  };
+  const key = material.customProgramCacheKey?.bind(material);
+  m.customProgramCacheKey = () => `range-${keep}-${key ? key() : ''}`;
+  return m;
+}

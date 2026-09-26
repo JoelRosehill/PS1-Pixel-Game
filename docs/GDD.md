@@ -108,6 +108,25 @@ strafing instead of being clamped to the run speed.
 - Pages persist through death within the current session. Persistent saves are Job 9.
 
 ## Pillar 4 — World Structure
+
+### Implemented in Job 6 (the world engine)
+The world is a 9 km disc. The Threshold (the Job 1–5 diorama) is the hub at its centre.
+Eight chapter sectors of 45° fan out clockwise from due north, each with five biome
+sites. Jagged 60–130 m ridges separate chapters, with one walkable pass between each
+consecutive pair (the Chapter VIII → I ridge is sealed). The hub's only exit is its
+northern valley into Chapter I, where the Spire Citadel now stands 1.5 km away.
+World-edge mountains ring everything at 4.1–4.75 km.
+
+| Archetype | Ground | Props | Sky | Landmark |
+|---|---|---|---|---|
+| Tranquil Wilderness | rolling hills, lakes | pines, broadleaf, meadow flowers | Sunlit Wilderness | Wayward Watchtower |
+| Violet Marshes | flat, half glowing pools | reeds, glowing mushrooms, dead trees, obelisks | Violet Marshes | The Drowned Circle |
+| Sunkeeper's Terrace | 2 m stepped lawns, turquoise pools | columns, blossom trees | Sunkeeper's Dusk | Temple of the Low Sun |
+| Crystal Caverns | 40 m massif with an ice basin under a rock roof | crystals, ice spikes, bones | Crystal Caverns | The Singing Hall |
+| Bloodstone & Shadow | 34 m plateau cut by red canyons | red spires, dead trees, bones | Crimson Vigil | Citadel of the Red Hour |
+
+Biome borders blend over ~80 m (ground, colour and vegetation interleave); the sky blends
+over ~300 m and eases over about a second. Entering a new region shows its title card.
 - Elden Ring-style pacing: long walks, landmarks visible from far away (made readable by
   Smart-Pixel), and a story found organically.
 - **40+ biomes in 8 chapters of 5.** Required archetypes are anchored as:
@@ -168,7 +187,10 @@ src/
   ui/GameHud.ts           health / Momentum / dash HUD
   ui/SpellbookUI.ts       reading screen, quick-wheel and spell HUD
   ui/EnemyHud.ts          target frame (enemy name, Vigour, poise, state cues)
-  world/                  levels + prop builders (terrain, castle, trial course, constructs…)
+  world/                  World (streamed level), ProvingGrounds (the hub), prop builders
+  world/engine/           WorldAtlas, WorldTerrain, TerrainStreamer, PropStreamer/Library,
+                          Camps, Ambience
+  world/biomes/           BiomeTypes, Archetypes, Chapters, BiomeLandmarks
   debug/                  fly camera, debug HUD
 tools/screenshot.mjs      headless Chrome screenshots for visual verification
 tools/movetest.mjs        headless movement assertions
@@ -176,4 +198,5 @@ tools/combattest.mjs      headless combat assertions
 tools/spelltest.mjs       spell behavior, pickups, progression and menu assertions
 tools/kinetictest.mjs     first-person camera and kinetic movement assertions
 tools/enemytest.mjs       deterministic enemy/encounter assertions (Game.step)
+tools/worldtest.mjs       world layout, streaming, biome and camp assertions
 ```
