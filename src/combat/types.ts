@@ -4,7 +4,7 @@ import type { CombatWorld } from './CombatWorld';
 
 export type Team = 'player' | 'enemy';
 
-export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy';
+export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy' | 'reflect';
 
 export interface HitInfo {
   damage: number;
@@ -19,6 +19,8 @@ export interface HitInfo {
   kind: HitKind;
   /** Who swung, so a parry can stagger them back. */
   attacker?: Damageable;
+  /** This blow is the recoil of a successful parry (enemies open up for a riposte). */
+  parry?: boolean;
 }
 
 export interface HitResult {
@@ -31,6 +33,8 @@ export interface HitResult {
   blocked?: boolean;
   /** The defender was invulnerable — a dodge, not a hit. */
   dodged?: boolean;
+  /** Struck a weak point or an exposed (parried / guard-broken) enemy. */
+  critical?: boolean;
 }
 
 /** A damageable thing that also ticks and draws itself. */

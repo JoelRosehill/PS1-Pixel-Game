@@ -1,9 +1,9 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-25 Job 4](sessions/2026-09-25-job-4.md)
-records the Living Spellbook, passing checks and current performance.
+**Latest verification:** [2026-09-26 Job 5](sessions/2026-09-26-job-5.md)
+records enemy ecology, passing checks and the Linux tooling.
 
-**Last updated:** 2026-09-25, at the end of Job 4.
+**Last updated:** 2026-09-26, at the end of Job 5.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -12,7 +12,7 @@ The full chat history for Jobs 1–3 is archived in [sessions/](sessions/) — r
 reasoning behind a decision; this file is the current state.
 
 **Suggested opening prompt for the new session:**
-> Read docs/HANDOFF.md, docs/ROADMAP.md and docs/GDD.md, then do Job 5.
+> Read docs/HANDOFF.md, docs/ROADMAP.md and docs/GDD.md, then do the next job.
 
 ---
 
@@ -70,19 +70,19 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 | Decision | Status |
 |---|---|
 | **Stack:** TypeScript + Three.js 0.186 (WebGL2) + Vite 8. Procedural world plus selected imported GLB hero pieces. | Asset pipeline completed in Job 3.5. |
-| **Third-person camera**, based on the composite reference | Built in Job 2. Still **not explicitly confirmed** by the user. |
+| **First-person camera** | Job 2 built a third-person chase camera; a later kinetic pass (after Job 4, undocumented at the time) switched to first person with hands/sword/book in a separate near-field scene. Jobs 5+ build for first person. |
 | Mana replacement is called the **Momentum Pool** (0–100, "Resonance" at 100) | In the GDD |
 | Rest/respawn points are **Ember Shrines** (a sword in embers) | In the GDD |
 | 40 biomes = **8 chapters × 5**. Ch.1 Tranquil Wilderness, Ch.2 Violet Marshes, Ch.3 Sunkeeper's Terrace, Ch.4 Crystal Caverns, Ch.5 Bloodstone & Shadow, Ch.6–8 expansions | In the GDD |
 | Physics: **custom kinematic controller**, no Rapier | Changed in Job 2 (reason in ROADMAP.md). Capsule = sphere stack vs analytic terrain + primitive colliders. |
-| No git repo yet. Claude offered to `git init`, and the user hasn't answered. | Open |
+| Git | The project now lives on GitHub (`JoelRosehill/PS1-Pixel-Game`); each job is a commit. |
 
 ---
 
-## 3. Current state: Jobs 1–4 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–5 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
-You play as a blocky spellblade in third person: WASD, Space jump, Shift dash, Ctrl slide,
+You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
 LMB attack, RMB charged heavy, Q parry, E cast, F bind a page, B read the book,
 hold Tab for the spell wheel, V for the debug fly camera.
 
@@ -194,11 +194,49 @@ measurements are refresh capped and do not establish a speedup over the old GPU.
 11/11. Final 1080p spawn/yard/player view measurements remain approximately 60 fps
 on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspected.
 
+- **Kinetic first-person pass** (after Job 4): `FirstPersonCamera` (eyes in the capsule,
+  speed FOV, wall-run roll, F6 toggles camera motion), `FirstPersonRig` (hands, sword and
+  book in their own near-field scene, rendered over the bands), wall-running with a
+  per-wall budget, air slam (C/Ctrl in the air) with a buffered rebound jump, a speed
+  readout and technique hints. `npm run kinetictest` (17 checks) covers it.
+
+- **Job 5 — Enemy Ecology** (`src/enemies/`, `src/ui/EnemyHud.ts`):
+  - `EnemyDirector` is a fixed-step `GameSystem`: owns live enemies, `AttackTokens`,
+    `Telegraphs` (ground markers + scheduled light strikes) and `EnemyProjectiles`,
+    runs encounters and shares alerts between companions. It freezes in fly mode.
+  - `Enemy` base: kinematic body (two spheres vs colliders, gravity, terrain, water
+    avoidance), `move()` wish + knockback blend, stagger, leash/return/heal, spawn rise,
+    per-instance dissolve uniform, hit flash, billboard bar. Subclasses implement
+    `think`, `animate` and `receive` (armour rules).
+  - `ShadowKnight` (190 HP, poise 100) and `SunkeeperWizard` (95 HP): see the GDD for
+    their full rules. Tunables are in `KNIGHT_TUNING`/`KNIGHT_ATTACKS` and
+    `WIZARD_TUNING`/`WIZARD_SPELLS`.
+  - `ColliderWorld` now has **dynamic bodies** (`addBody/removeBody`, linear list, not the
+    grid). `resolveSphere`/`deepestContact` take an `ignore` body. `HitInfo.parry` marks
+    parry recoil; `HitResult.critical` marks weak-point/exposed hits.
+  - `ProvingGrounds.encounters`: *The Bridge Warden* (castle bridge), *Graveyard Vigil*
+    (graves by the chapel, 2 waves, guards the Violet Well page), *Sunkeeper Watch*
+    (`props/SunkeeperRuin.ts`, 4 climbable pillars around a sun altar at x 22, z −90).
+  - HUD: target frame (top centre), blinding white-out, title cards (`GameHud.announce`).
+  - `Game.step(seconds)` and `game.manual` drive the simulation deterministically.
+
+**Job 5 verification:** build passed; enemy suite 26/26, spells 38/38, kinetic 17/17,
+movement 11/11, combat 11/11 (all run on Linux with software WebGL via `render=0`).
+Knight, ruin and wizard-cast screenshots inspected. No GPU was available in this
+session, so no frame-time numbers were taken.
+
 ---
 
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run enemytest` must pass (26 checks: perception, LOS, telegraph timing, attack
+  tokens, parry/expose, guard/poise/back rune, spell pierce, perfect dodge, body collision,
+  water avoidance, wizard blink/lance/flash/orb reflect/dodge/interrupt, well pull,
+  dissolve, leash, encounter waves/reward/reset, pause, target frame).
+- **Linux / containers:** the tools find Playwright's Chromium (`PLAYWRIGHT_BROWSERS_PATH`)
+  and add `--no-sandbox`. Logic suites append `render=0` so they run at 60 Hz even on
+  software WebGL (set `RENDER=1` to keep drawing). Screenshots still render (slowly).
 - `npm run spelltest` must pass (38 checks: world pickups, actual training-target
   spell impacts, costs, effects, collision, growth, death, menus and responsive fit).
 - `npm run assets:validate` checks all 40 GLBs, embedded textures and geometry.
@@ -243,19 +281,23 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   frames where no fixed step ran, or combo inputs vanish exactly when players press them.
 - Place new set-pieces away from existing ones: the training yard first landed inside the
   trial course's slide tunnel.
+- Round bodies deflect rather than stop: a player running at an enemy slides around its
+  cylinder. Test "no overlap", not "cannot get past".
+- Encounter trigger circles fire whenever the player enters them, including in tests and
+  screenshots that teleport the player; call `game.enemies.clear()` to isolate a scenario.
+- Headless tests racing the render loop: after a real key press, wait for a frame
+  (`requestAnimationFrame` twice) before asserting.
 
 ---
 
-## 6. Next: Job 5 — Enemy Ecology I
+## 6. Next: Job 6 — World Engine & Biome Framework
 
-- AI framework: perception, state machines, telegraphs and attack tokens.
-- Shadow Knight: heavy melee, guard, glowing weak points and parry bait.
-- Sunkeeper Wizard: evasive blink, light flash and ranged area attacks.
-- Encounter spawner, enemy health bars and death dissolve.
+- Biome definition data (terrain generator, palette, sky preset, props, fauna, mood).
+- Chunk streaming with LOD matched to the Smart-Pixel bands.
+- Smooth sky/fog blending at biome borders.
+- Fully built: Violet Marshes, Sunkeeper's Terrace, Crystal Caverns, Tranquil Wilderness,
+  Bloodstone & Shadow.
 
-Keep AI on the fixed simulation clock so book/wheel pause behavior stays correct.
-Respect `HitInfo.stagger` and knockback (negative knockback pulls toward a well).
-Register enemy body colliders as bodies so they do not block their own spell damage.
-The current sparring constructs have static body colliders; moving enemies will
-need collider lifecycle/update support. Preserve the existing melee and spell tests.
-See ROADMAP.md's Notes for Job 5 before beginning.
+Keep The Threshold's encounters, pages and trial reachable (it becomes the starting
+region). Enemies read terrain via `ColliderWorld.heightAt` and treat ground under 0.15 m
+as water. See ROADMAP.md's Notes for Job 6.

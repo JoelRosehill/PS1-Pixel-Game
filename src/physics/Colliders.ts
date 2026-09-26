@@ -47,6 +47,18 @@ interface SphereCollider extends ColliderBase {
 
 type Collider = BoxCollider | CylinderCollider | SphereCollider;
 
+/**
+ * A moving character body (enemies). Vertical cylinder from `position` (feet) up to
+ * `height`. Bodies are few, so they are tested linearly instead of living in the grid;
+ * the owner mutates `position` and `active` directly.
+ */
+export interface DynamicBody {
+  readonly position: THREE.Vector3;
+  radius: number;
+  height: number;
+  active: boolean;
+}
+
 const _v = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _local = new THREE.Vector3();
@@ -56,6 +68,7 @@ const _m = new THREE.Matrix4();
 
 export class ColliderWorld {
   private colliders: Collider[] = [];
+  private readonly bodies: DynamicBody[] = [];
   private grid = new Map<number, number[]>();
   private readonly cell = 8;
   // Penetration tests use _v internally. A march point must not alias that scratch
@@ -134,6 +147,35 @@ export class ColliderWorld {
     });
   }
 
+  addBody(body: DynamicBody): void {
+    if (!this.bodies.includes(body)) this.bodies.push(body);
+  }
+
+  removeBody(body: DynamicBody): void {
+    const i = this.bodies.indexOf(body);
+    if (i >= 0) this.bodies.splice(i, 1);
+  }
+
+  get bodyCount(): number {
+    return this.bodies.length;
+  }
+
+  /** Penetration of a sphere into a dynamic body's cylinder, or null. */
+  private bodyPenetration(b: DynamicBody, center: THREE.Vector3, radius: number): Contact | null {
+    if (!b.active) return null;
+    const half = b.height / 2;
+    const dx = center.x - b.position.x;
+    const dz = center.z - b.position.z;
+    const dy = center.y - (b.position.y + half);
+    const horiz = Math.hypot(dx, dz);
+    const hDepth = b.radius + radius - horiz;
+    const vDepth = half + radius - Math.abs(dy);
+    if (hDepth <= 0 || vDepth <= 0) return null;
+    if (vDepth < hDepth) return { normal: new THREE.Vector3(0, Math.sign(dy) || 1, 0), depth: vDepth };
+    const normal = horiz > 1e-5 ? new THREE.Vector3(dx / horiz, 0, dz / horiz) : new THREE.Vector3(1, 0, 0);
+    return { normal, depth: hDepth };
+  }
+
   private add(c: Collider): void {
     const index = this.colliders.length;
     this.colliders.push(c);
@@ -179,13 +221,20 @@ export class ColliderWorld {
    * Pushes a sphere out of every collider it overlaps, moving `center` in place.
    * Contact normals (pointing away from the surface) are appended to `contacts`.
    */
-  resolveSphere(center: THREE.Vector3, radius: number, contacts: Contact[]): void {
+  resolveSphere(center: THREE.Vector3, radius: number, contacts: Contact[], ignore?: DynamicBody): void {
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     const near = this.queryIndices(this.qMin, this.qMax, this.scratch);
     for (const i of near) {
       const c = this.colliders[i];
       const hit = this.penetration(c, center, radius);
+      if (!hit) continue;
+      center.addScaledVector(hit.normal, hit.depth);
+      contacts.push(hit);
+    }
+    for (const b of this.bodies) {
+      if (b === ignore) continue;
+      const hit = this.bodyPenetration(b, center, radius);
       if (!hit) continue;
       center.addScaledVector(hit.normal, hit.depth);
       contacts.push(hit);
@@ -266,12 +315,17 @@ export class ColliderWorld {
    * when probing downward, so ground snapping keeps the real surface normal (slides
    * need it to accelerate downhill).
    */
-  deepestContact(center: THREE.Vector3, radius: number): Contact | null {
+  deepestContact(center: THREE.Vector3, radius: number, ignore?: DynamicBody): Contact | null {
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     let best: Contact | null = null;
     for (const i of this.queryIndices(this.qMin, this.qMax, this.scratch)) {
       const hit = this.penetration(this.colliders[i], center, radius);
+      if (hit && (!best || hit.depth > best.depth)) best = hit;
+    }
+    for (const b of this.bodies) {
+      if (b === ignore) continue;
+      const hit = this.bodyPenetration(b, center, radius);
       if (hit && (!best || hit.depth > best.depth)) best = hit;
     }
     return best;
@@ -285,6 +339,7 @@ export class ColliderWorld {
       if (ignoreBodies && this.colliders[i].body) continue;
       if (this.penetration(this.colliders[i], center, radius)) return true;
     }
+    if (!ignoreBodies) for (const b of this.bodies) if (this.bodyPenetration(b, center, radius)) return true;
     return false;
   }
 

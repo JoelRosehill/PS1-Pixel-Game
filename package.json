@@ -16,7 +16,8 @@
     "assets:validate": "node tools/assets-manifest.mjs",
     "assettest": "node tools/assettest.mjs",
     "spelltest": "node tools/spelltest.mjs",
-    "kinetictest": "node tools/kinetictest.mjs"
+    "kinetictest": "node tools/kinetictest.mjs",
+    "enemytest": "node tools/enemytest.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

@@ -9,6 +9,8 @@ Job 3.5 adds a [Blender asset pipeline](docs/assets/PIPELINE.md) and an optimize
 of spawn; the dragon display is north-west beyond the castle.
 Job 4 adds the physical Living Spellbook, seven discoverable pages and eight
 Momentum-powered spells. Find the first page beside the central Ember Shrine.
+Job 5 adds Shadow Knights and Sunkeeper Wizards. Cross the castle bridge, visit the
+graves by the western chapel, or climb the Sunkeeper ruin north of the castle.
 
 ## Run it
 
@@ -27,6 +29,8 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run movetest` | Headless movement assertions (run after touching the controller) |
 | `npm run combattest` | Headless combat assertions (damage, parry, dodge, Momentum, death) |
 | `npm run spelltest` | Spell effects, collisions, pickups, book growth and keyboard/menu checks |
+| `npm run kinetictest` | First-person camera and kinetic movement (wall-run, slam, rebound) |
+| `npm run enemytest` | Deterministic enemy AI, combat rules and encounter checks |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -46,9 +50,11 @@ npm run dev        # open http://localhost:5173 and click to explore
 | B | Open/close the spellbook; arrows or buttons turn pages and equip spells |
 | Tab (hold) | Spell quick-wheel; mouse/arrows/1–8 choose, release Tab to equip; Esc cancels |
 | Shift | Dash (8-way, 3 charges, i-frames) |
-| Ctrl / C | Slide (keeps momentum, accelerates downhill) |
+| Ctrl / C | Slide (keeps momentum, accelerates downhill) · in the air: gravity slam (Space on landing to rebound) |
+| W into a wall at speed | Wall-run (per-wall budget) · Space kicks off and refunds a dash |
 | R | Respawn |
 | V | Debug fly camera (then WASD · Shift fast · Space/C up-down · G walk) |
+| F6 | Toggle camera motion (FOV kick, wall-run roll, shake) |
 | 1–4 | Sky presets: Cosmic Violet, Crimson Vigil, Sunlit Wilderness, Verdigris Mist |
 | F1 | Render mode: Smart-Pixel / Flat HD / Global pixel filter (comparison) |
 | F2 | Colour-code the depth bands |
@@ -74,6 +80,24 @@ currently lasts for the browser session (persistent saves are planned for Job 9)
 Missing pages have location clues in the book. Windstep is the reward at the end
 of the Wayfarer's Trial. Spells have individual recovery times and cannot be cast
 while staggered, dead, charging or in an active sword strike.
+
+## Enemies
+
+- **Shadow Knights** hide behind tower shields. Frontal light hits barely scratch them;
+  heavy blows, plunges and spells break the guard, and the glowing rune on their back is
+  a weak point. Parry their swings (especially the slow, blazing overhead) to leave them
+  open for a riposte.
+- **Sunkeeper Wizards** keep their distance and blink away when you close in. Dash
+  through or parry their orbs (a parry throws the orb back), keep moving when the ground
+  glows gold, and look away when the halo swells to avoid being blinded.
+- Encounters rise when you enter their ground and reset if you die or flee. Clearing one
+  restores Vigour and Momentum.
+
+## Testing on Linux / in containers
+
+The browser tools find Playwright's Chromium automatically and add `--no-sandbox`.
+Logic suites skip drawing (`render=0`) so they stay at 60 Hz on software WebGL;
+set `RENDER=1` to keep rendering, or `CHROME_PATH` to choose a browser.
 
 ## URL parameters
 

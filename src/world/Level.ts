@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { ModelLibrary } from '../assets/ModelLibrary';
 import type { CombatEntity } from '../combat/types';
+import type { EncounterDef } from '../enemies/Encounters';
 import type { ColliderWorld } from '../physics/Colliders';
 
 /** A playable space. Job 6 turns this into a streamed, biome-driven world. */
@@ -14,6 +15,8 @@ export interface Level {
   /** Fightable entities (Job 3+). */
   readonly enemies: CombatEntity[];
   readonly lostPage: THREE.Object3D;
+  /** Enemy encounters (Job 5): trigger circles that raise Shadow Knights and Sunkeepers. */
+  readonly encounters?: EncounterDef[];
   loadAssets?(library: ModelLibrary): Promise<string[]>;
   heightAt(x: number, z: number): number;
   update(dt: number, elapsed: number): void;

@@ -16,6 +16,8 @@ import { Input } from './Input';
 import { TimeControl } from './TimeControl';
 import { PagePickups } from '../spells/PagePickups';
 import { SpellbookUI } from '../ui/SpellbookUI';
+import { EnemyDirector } from '../enemies/EnemyDirector';
+import { EnemyHud } from '../ui/EnemyHud';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
 export interface GameSystem {
@@ -59,13 +61,17 @@ export class Game {
   readonly assetErrors: string[] = [];
   readonly pages: PagePickups;
   readonly spellbookUI: SpellbookUI;
+  readonly enemies: EnemyDirector;
+  /** Tests set this to drive the simulation only through `step()`. */
+  manual = false;
   /** Debug fly camera instead of the player's chase camera. */
   flyMode = false;
   frames = 0;
 
   private readonly fly: FlyCamera;
   private readonly hud: DebugHud;
-  private readonly gameHud: GameHud;
+  readonly gameHud: GameHud;
+  private readonly enemyHud: EnemyHud;
   private elapsed = 0;
   private accumulator = 0;
   private last = 0;
@@ -105,8 +111,22 @@ export class Game {
     this.pages = new PagePickups(this.level, this.player.spells);
     this.scene.add(this.pages.group, this.player.spells.group);
     this.spellbookUI = new SpellbookUI(this.player, this.input, this.pages, gameHudEl);
+    this.enemies = new EnemyDirector({
+      player: this.player,
+      colliders: this.level.colliders,
+      combat: this.combatWorld,
+      effects: this.effects,
+      time: this.time,
+      encounters: this.level.encounters,
+      blind: (seconds, strength) => this.gameHud.blind(seconds, strength),
+    });
+    this.enemies.onAnnounce = (title, subtitle) => this.gameHud.announce(title, subtitle);
+    this.systems.push(this.enemies);
+    this.scene.add(this.enemies.group);
+    this.enemyHud = new EnemyHud(gameHudEl);
     this.combatWorld.onHit = (target, hit, result) => {
       if (target === this.player.combat && result.hit) this.gameHud.onPlayerDamaged(result.damage ?? hit.damage);
+      this.enemies.onHit(target, hit, result);
     };
 
     this.fly = new FlyCamera(this.camera, this.input, (x, z) => this.level.heightAt(x, z));
@@ -155,14 +175,10 @@ export class Game {
     if (!this.spellbookUI.paused) this.handleDebugKeys();
     if (!this.flyMode && !this.spellbookUI.paused) this.player.camera.readLook();
 
-    this.accumulator += dt;
-    const playerPos = this.player.controller.position;
+    this.accumulator = this.manual ? 0 : this.accumulator + dt;
     let steps = 0;
     while (this.accumulator >= FIXED_DT) {
-      for (const s of this.systems) s.fixedUpdate?.(FIXED_DT);
-      for (const e of this.level.enemies) e.update(FIXED_DT, playerPos, this.combatWorld, this.effects);
-      this.pages.update(FIXED_DT, playerPos, this.player.combat.alive && !this.flyMode);
-      if (this.input.takePressed('KeyF') && !this.flyMode) this.pages.collectNearest();
+      this.fixedStep();
       this.accumulator -= FIXED_DT;
       steps++;
     }
@@ -180,7 +196,9 @@ export class Game {
     this.effects.update(dt, this.camera);
     this.camera.getWorldQuaternion(this.billboard);
     for (const e of this.level.enemies) e.faceCamera(this.billboard);
+    this.enemies.faceCamera(this.billboard);
     this.gameHud.update(realDt, this.player.combat, this.player.controller);
+    this.enemyHud.update(realDt, this.flyMode ? null : this.enemies.focus);
     this.spellbookUI.update(realDt);
 
     if (this.renderEnabled) this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
@@ -203,6 +221,27 @@ export class Game {
     this.frames++;
     requestAnimationFrame(this.tick);
   };
+
+  /** One 60 Hz simulation step: player, enemies, constructs and pickups. */
+  private fixedStep(): void {
+    const playerPos = this.player.controller.position;
+    for (const s of this.systems) s.fixedUpdate?.(FIXED_DT);
+    for (const e of this.level.enemies) e.update(FIXED_DT, playerPos, this.combatWorld, this.effects);
+    this.pages.update(FIXED_DT, playerPos, this.player.combat.alive && !this.flyMode);
+    if (this.input.takePressed('KeyF') && !this.flyMode) this.pages.collectNearest();
+  }
+
+  /**
+   * Advances the simulation deterministically by `seconds` (test harnesses; pair with
+   * `manual = true` so the render loop does not add steps of its own).
+   */
+  step(seconds: number): void {
+    const n = Math.max(1, Math.round(seconds / FIXED_DT));
+    for (let i = 0; i < n; i++) {
+      this.fixedStep();
+      for (const s of this.systems) s.update?.(FIXED_DT, 1);
+    }
+  }
 
   setFlyMode(on: boolean): void {
     this.flyMode = on;

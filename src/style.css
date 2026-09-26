@@ -222,3 +222,22 @@ body {
 @media (max-width: 1000px) {
   .kinetic-hud { bottom: 125px; }
 }
+
+/* ---- Job 5: enemies ---- */
+#gamehud .blind-flash { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, #fffdf0 30%, #fff1c4 100%); }
+#gamehud .announce { position: absolute; left: 0; right: 0; top: 22%; text-align: center; opacity: 0; transition: opacity 0.5s; }
+#gamehud .announce.shown { opacity: 1; }
+#gamehud .announce strong { display: block; font-size: clamp(22px, 3.6vw, 40px); font-weight: normal; letter-spacing: 0.24em; color: #f4e2ff; text-shadow: 3px 3px 0 #2a0a3a, 0 0 18px rgba(176, 124, 255, 0.55); }
+#gamehud .announce span { display: block; margin-top: 6px; font-size: 13px; letter-spacing: 0.18em; color: #c7b3ff; text-shadow: 1px 1px 0 #100a1d; }
+.enemy-frame { position: absolute; top: 20px; left: 50%; width: min(420px, 70vw); transform: translateX(-50%); opacity: 0; transition: opacity 0.25s; text-shadow: 1px 1px 0 #100a1d; }
+.enemy-frame.shown { opacity: 1; }
+.enemy-name { font-size: 12px; letter-spacing: 0.22em; color: #f0e6ff; margin-bottom: 4px; text-align: center; }
+.enemy-bar { position: relative; height: 10px; background: #140c1e; border: 2px solid #3c2358; box-shadow: 0 0 0 2px #0a0414; }
+.enemy-bar i, .enemy-bar b, .enemy-poise i { position: absolute; inset: 0; transform-origin: left; }
+.enemy-bar b { background: #6a1030; }
+.enemy-bar i { background: linear-gradient(#ff6b8a, #c01838); }
+.enemy-poise { position: relative; height: 4px; margin: 3px 12% 0; background: #1a1428; }
+.enemy-poise i { background: #c8d8ff; }
+.enemy-cue { min-height: 14px; margin-top: 4px; text-align: center; font-size: 10px; letter-spacing: 0.16em; color: #c7b3ff; }
+.enemy-frame.exposed .enemy-cue { color: #ffe070; }
+.enemy-frame.exposed .enemy-bar { border-color: #d0a040; }

@@ -60,3 +60,44 @@ export function withWind<T extends THREE.Material>(material: T, amplitude = 0.1,
   material.customProgramCacheKey = () => `wind-${amplitude}-${speed}`;
   return material;
 }
+
+/**
+ * Death dissolve: fragments vanish through a 4×4 Bayer pattern plus world-space noise as
+ * `uniform.value` rises 0 → 1, so bodies break apart in chunky pixels rather than fading.
+ * Each material keeps its own uniform; the shader program is shared.
+ */
+export function dissolvable<T extends THREE.Material>(material: T, uniform: { value: number }, edge = 0xffe0a0): T {
+  const previous = material.onBeforeCompile;
+  const edgeColor = new THREE.Color(edge);
+  material.onBeforeCompile = (shader, renderer) => {
+    previous?.call(material, shader, renderer);
+    shader.uniforms.uDissolve = uniform;
+    shader.vertexShader = 'varying vec3 vDissolvePos;\n' + shader.vertexShader.replace(
+      '#include <project_vertex>',
+      `#include <project_vertex>
+      #ifdef USE_INSTANCING
+        vDissolvePos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+      #else
+        vDissolvePos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      #endif`,
+    );
+    shader.fragmentShader = 'uniform float uDissolve;\nvarying vec3 vDissolvePos;\n' + shader.fragmentShader.replace(
+      '#include <dithering_fragment>',
+      `#include <dithering_fragment>
+      if (uDissolve > 0.0) {
+        vec3 cell = floor(vDissolvePos * 7.0);
+        float n = fract(sin(dot(cell, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+        ivec2 p = ivec2(mod(gl_FragCoord.xy, 4.0));
+        int i = p.x + p.y * 4;
+        float bayer = float(i == 0 ? 0 : i == 1 ? 8 : i == 2 ? 2 : i == 3 ? 10 : i == 4 ? 12 : i == 5 ? 4 : i == 6 ? 14 :
+          i == 7 ? 6 : i == 8 ? 3 : i == 9 ? 11 : i == 10 ? 1 : i == 11 ? 9 : i == 12 ? 15 : i == 13 ? 7 : i == 14 ? 13 : 5) / 16.0;
+        float k = n * 0.75 + bayer * 0.25;
+        if (k < uDissolve) discard;
+        if (k < uDissolve + 0.08) gl_FragColor.rgb = vec3(${edgeColor.r.toFixed(3)}, ${edgeColor.g.toFixed(3)}, ${edgeColor.b.toFixed(3)}) * 2.5;
+      }`,
+    );
+  };
+  const key = material.customProgramCacheKey?.bind(material);
+  material.customProgramCacheKey = () => `dissolve-${edge}-${key ? key() : ''}`;
+  return material;
+}

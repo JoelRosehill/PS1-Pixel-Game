@@ -48,6 +48,13 @@ const VIEWS = {
   'book-leather': { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet' },
   spellbook: { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet',
     eval: "window.__game.player.spells.collect('ember-lance'); window.__game.player.spells.book.select('ember-lance'); window.__game.spellbookUI.open('book')" },
+  // Enemies (Job 5). Spawned in manual mode and posed by stepping the simulation.
+  knights: { at: '20,2.5,64', yaw: 0, preset: 'cosmic-violet', holdMs: 400,
+    eval: "const g = window.__game; g.manual = true; const p = g.player.controller.position; const a = g.enemies.spawn('knight', 18, 58, { rise: false, facing: Math.PI }); const b = g.enemies.spawn('knight', 23, 57, { rise: false, facing: Math.PI * 0.9 }); a.perception.alert(p); b.perception.alert(p); g.step(1.5); a.attack = { id: 'doom', windup: 1.05, arc: 'overhead' }; a.state = 'windup'; a.stateTime = 0.8; g.step(1 / 60); a.think = () => {}; a.stateTime = 0.8; g.step(0.2);" },
+  ruin: { cam: '2,12,-66', look: '22,5,-90', preset: 'cosmic-violet', holdMs: 400,
+    eval: "const g = window.__game; for (const [x, y, z] of g.level.encounters[2].perches) g.enemies.spawn('wizard', x, z, { y, rise: false, facing: 0.9 });" },
+  'wizard-cast': { at: '22,2.2,-76', yaw: 0, preset: 'blood-moon', holdMs: 400,
+    eval: "const g = window.__game; g.manual = true; const [x, y, z] = g.level.encounters[2].perches[3]; const w = g.enemies.spawn('wizard', 22, -86, { rise: false, facing: 0 }); w.perception.alert(g.player.controller.position); w.think = () => {}; w.spell = 'flash'; w.state = 'cast'; w.stateTime = 0.85; g.step(1 / 60); const pp = g.player.controller.position.clone(); pp.x += 2.5; pp.z -= 3; pp.y = g.level.heightAt(pp.x, pp.z); g.enemies.telegraphs.circle(pp, 3.2, 30, 0xffd36a); g.enemies.telegraphs.update(0.6, 1); g.enemies.projectiles.fire(w.staffTip(new window.__three.Vector3()), new window.__three.Vector3(0.1, -0.15, 1), 0, 14, w, 0); g.gameHud.announce('SUNKEEPER WATCH', '2 waves'); g.player.camera.setYaw(0, 0.12);" },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 

@@ -19,6 +19,8 @@ import { boulderGeometry, cardGeometry, instancedChunks, pineGeometry, type Scat
 import { buildCitadel, buildMistGate, buildMountainRing } from './props/Landmarks';
 import { buildParkourCourse, type ParkourCourse } from './props/ParkourCourse';
 import { SparringConstruct } from './props/SparringConstruct';
+import { buildSunkeeperRuin } from './props/SunkeeperRuin';
+import type { EncounterDef } from '../enemies/Encounters';
 import { HeroAssets } from './props/HeroAssets';
 import { createWorldMaterials } from './props/WorldMaterials';
 import { buildTerrain } from './Terrain';
@@ -36,6 +38,9 @@ const CITADEL_AZ = Math.atan2(CITADEL.x, -CITADEL.z);
 const MIST_GATE = { x: 112, z: -84 };
 const QUAY = { x0: -48, x1: 28, offset: 6.1 };
 const COURSE = { x: 64, z: 10 };
+/** Sunkeeper Watch: the pillar ruin in the meadow north of the castle. */
+const RUIN = { x: 22, z: -90 };
+const GRAVEYARD = { x: -45, z: 31 };
 
 const canalZ = (x: number) => -26 + 2.5 * Math.sin(x * 0.025);
 
@@ -55,6 +60,7 @@ export class ProvingGrounds implements Level {
   readonly colliders: ColliderWorld;
   readonly enemies: SparringConstruct[] = [];
   readonly heroAssets = new HeroAssets();
+  readonly encounters: EncounterDef[] = [];
 
   private readonly noise = new Noise2D('threshold');
   private readonly shrine: EmberShrine;
@@ -168,8 +174,49 @@ export class ProvingGrounds implements Level {
       const construct = new SparringConstruct(ex, this.heightAt(ex, ez), ez, { aggressive });
       this.enemies.push(construct);
       this.root.add(construct.group);
-      col.addCylinder(ex, this.heightAt(ex, ez) + 1.15, ez, 0.7, 2.3, true);
+      col.addBody(construct.collider);
     }
+
+    // --- enemy encounters (Job 5)
+    const ruin = buildSunkeeperRuin(m, col, RUIN.x, RUIN.z, (x, z) => this.heightAt(x, z));
+    this.root.add(ruin.group);
+    this.encounters.push(
+      {
+        // Crossing the castle bridge wakes its warden on the island side.
+        id: 'bridge-warden', name: 'The Bridge Warden',
+        trigger: { x: BRIDGE.x, z: -27, radius: 6 }, leash: 22,
+        waves: [[{ kind: 'knight', x: BRIDGE.x, z: -44, facing: 0 }]],
+      },
+      {
+        // The Violet Well page lies among these graves; its keepers rise to guard it.
+        id: 'graveyard-vigil', name: 'Graveyard Vigil',
+        trigger: { x: GRAVEYARD.x, z: GRAVEYARD.z, radius: 9 },
+        waves: [
+          [{ kind: 'knight', x: -50, z: 40 }, { kind: 'knight', x: -37, z: 38 }],
+          [{ kind: 'knight', x: -44, z: 46 }, { kind: 'wizard', x: -56, z: 50 }],
+        ],
+        perches: [[-56, this.heightAt(-56, 50), 50], [-33, this.heightAt(-33, 46), 46]],
+      },
+      {
+        id: 'sunkeeper-watch', name: 'Sunkeeper Watch',
+        trigger: { x: RUIN.x, z: RUIN.z, radius: 15 }, leash: 30,
+        waves: [
+          [
+            { kind: 'wizard', x: ruin.perches[0][0], y: ruin.perches[0][1], z: ruin.perches[0][2] },
+            { kind: 'wizard', x: ruin.perches[2][0], y: ruin.perches[2][1], z: ruin.perches[2][2] },
+            { kind: 'knight', x: RUIN.x, z: RUIN.z - 6 },
+          ],
+          [
+            { kind: 'wizard', x: ruin.perches[1][0], y: ruin.perches[1][1], z: ruin.perches[1][2] },
+            { kind: 'wizard', x: ruin.perches[3][0], y: ruin.perches[3][1], z: ruin.perches[3][2] },
+            { kind: 'knight', x: RUIN.x + 6, z: RUIN.z },
+            { kind: 'knight', x: RUIN.x - 6, z: RUIN.z },
+          ],
+        ],
+        perches: ruin.perches,
+        reward: { vigour: 60, momentum: 50 },
+      },
+    );
 
     // --- movement trial course (Job 2)
     let baseY = -Infinity;
@@ -285,6 +332,8 @@ export class ProvingGrounds implements Level {
     if (this.trailDistance(x, z) < 2 + clearance * 0.5) return false;
     if (x > COURSE.x - 48 && x < COURSE.x + 44 && z > COURSE.z - 14 && z < COURSE.z + 18) return false;
     if (x > 6 && x < 36 && z > 20 && z < 42) return false; // training yard
+    if (Math.hypot(x - RUIN.x, z - RUIN.z) < 17 + clearance) return false; // Sunkeeper Watch
+    if (Math.hypot(x - GRAVEYARD.x, z - GRAVEYARD.z - 10) < 16 + clearance) return false; // vigil arena
     return true;
   }
 
