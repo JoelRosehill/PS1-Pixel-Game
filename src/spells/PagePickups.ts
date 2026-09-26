@@ -4,14 +4,6 @@ import { glow, toon } from '../render/Materials';
 import type { SpellCasting } from './SpellCasting';
 import { SPELL_PAGES, type SpellId } from './SpellBook';
 
-export const PAGE_SITES: { id: SpellId; x: number; z: number }[] = [
-  { id: 'comet-lance', x: -3, z: 3 },
-  { id: 'chain-storm', x: -12, z: -12 },
-  { id: 'glacial-rupture', x: -43, z: 30 },
-  { id: 'void-maw', x: 34, z: 18 },
-  { id: 'phoenix-flight', x: 20, z: 43 },
-  { id: 'blood-bloom', x: 19, z: -4 },
-];
 interface Pickup { id: SpellId; object: THREE.Object3D; baseY: number; trial: boolean; }
 export class PagePickups {
   readonly group = new THREE.Group();
@@ -21,7 +13,7 @@ export class PagePickups {
   constructor(private readonly level: Level, private readonly spells: SpellCasting) {
     this.group.name = 'lost-pages';
     const geo = new THREE.BoxGeometry(0.48, 0.64, 0.035);
-    for (const site of PAGE_SITES) {
+    for (const site of level.pageSites) {
       const page = SPELL_PAGES.find(p => p.id === site.id)!;
       const object = new THREE.Group();
       object.name = `lost-page:${site.id}`;
@@ -33,13 +25,10 @@ export class PagePickups {
         const line = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.018, 0.05), glow(page.color));
         line.position.y = y; object.add(line);
       }
-      object.position.set(site.x, level.heightAt(site.x, site.z) + 1.35, site.z);
+      object.position.set(site.x, site.y ?? level.heightAt(site.x, site.z) + 1.35, site.z);
       this.group.add(object);
       this.pickups.push({ id: site.id, object, baseY: object.position.y, trial: false });
     }
-    const trial = level.lostPage;
-    trial.name = 'lost-page:windstep';
-    this.pickups.push({ id: 'windstep', object: trial, baseY: trial.position.y, trial: true });
   }
   update(dt: number, position: THREE.Vector3, alive: boolean): void {
     this.elapsed += dt;

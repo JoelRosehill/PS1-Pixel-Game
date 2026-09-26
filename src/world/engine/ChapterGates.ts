@@ -3,20 +3,15 @@ import type { Progress } from '../../core/Progress';
 import type { ColliderWorld } from '../../physics/Colliders';
 import { glow, sharedUniforms } from '../../render/Materials';
 import { roman } from '../biomes/Chapters';
-import { box, cone, GeoBucket, place } from '../geometry';
+import { box, cone, cylinder, GeoBucket, place } from '../geometry';
 import type { WorldMaterials } from '../props/WorldMaterials';
-import { type Pass, SECTOR, type WorldAtlas } from './WorldAtlas';
+import { type ChapterGate, WORLD, type WorldAtlas } from './WorldAtlas';
 
-/** Half-width of each pass opening along the ridge (m). */
-const PASS_HALF = 80;
-/** Radius of the hub's rampart wall and the valley opening through it. */
-export const HUB_WALL_R = 585;
-export const HUB_OPENING = 0.1;
-const EDGE_WALL_R = 4350;
 
 export interface Gate {
   id: string;
-  pass: Pass;
+  /** Where it stands on the road. */
+  pass: ChapterGate;
   from: number;
   to: number;
   open: boolean;
@@ -26,11 +21,10 @@ export interface Gate {
 }
 
 /**
- * Chapter gating (Job 7). Ridges between chapters are backed by invisible walls along
- * their crests (so they cannot be climbed around), the hub is enclosed except for its
- * northern valley, and the world's edge is walled. Each pass holds a veil of mist that
- * opens once the chapter behind it has been proven: `need(chapter)` camps cleared.
- * Job 8 adds the chapter's boss as the final key.
+ * Chapter gating (Jobs 7, 15). Where two chapters meet, the Long Road's valley narrows
+ * into a gorge spanned by a colossal gateway holding a veil of mist; it opens once the
+ * chapter has been proven: `need(chapter)` camps cleared and its boss dead. (The valley's
+ * edge itself is an analytic boundary in the collision world; see `World`.)
  */
 export class ChapterGates {
   readonly gates: Gate[] = [];
@@ -55,8 +49,7 @@ export class ChapterGates {
       list.push(id);
       this.campsByChapter.set(chapter, list);
     }
-    this.buildWalls();
-    for (const pass of atlas.passes) this.buildGate(pass, m);
+    for (const gate of atlas.gates) this.buildGate(gate, m);
     for (const gate of this.gates) if (progress.gates.has(gate.id)) this.setOpen(gate, true);
   }
 
@@ -73,46 +66,18 @@ export class ChapterGates {
     return this.gates.find(g => g.from === from);
   }
 
-  // --- walls ---------------------------------------------------------------
-
-  private wall(x: number, z: number, length: number, rotY: number): void {
-    this.colliders.addBox(x, this.heightAt(x, z) + 150, z, 4, 600, length, rotY);
-  }
-
-  private buildWalls(): void {
-    // Along every ridge crest, except the pass openings.
-    for (let b = 0; b < 8; b++) {
-      const az = b * SECTOR + SECTOR / 2;
-      const pass = this.atlas.passFor(b);
-      for (let r = 640; r < EDGE_WALL_R; r += 64) {
-        const mid = r + 32;
-        if (pass && Math.abs(mid - pass.r) < PASS_HALF + 32) continue;
-        this.wall(Math.sin(az) * mid, -Math.cos(az) * mid, 66, Math.PI - az);
-      }
-    }
-    // Around the hub, leaving the northern valley open.
-    const valley = Math.atan2(54, 760);
-    const n = Math.ceil((Math.PI * 2 * HUB_WALL_R) / 30);
-    for (let i = 0; i < n; i++) {
-      const az = (i / n) * Math.PI * 2;
-      if (Math.abs(Math.atan2(Math.sin(az - valley), Math.cos(az - valley))) < HUB_OPENING) continue;
-      this.wall(Math.sin(az) * HUB_WALL_R, -Math.cos(az) * HUB_WALL_R, 32, Math.PI / 2 - az);
-    }
-    // The world's edge.
-    const e = Math.ceil((Math.PI * 2 * EDGE_WALL_R) / 64);
-    for (let i = 0; i < e; i++) {
-      const az = (i / e) * Math.PI * 2;
-      this.wall(Math.sin(az) * EDGE_WALL_R, -Math.cos(az) * EDGE_WALL_R, 66, Math.PI / 2 - az);
-    }
-  }
-
   // --- gates -----------------------------------------------------------------
 
-  private buildGate(pass: Pass, m: WorldMaterials): void {
+  /**
+   * A colossal gateway across the gorge: two towers, a lintel high overhead and, between
+   * them, the veil — a curtain of drifting light that blocks the way until it opens.
+   */
+  private buildGate(pass: ChapterGate, m: WorldMaterials): void {
     const id = `gate:${pass.from}-${pass.to}`;
-    const az = pass.azimuth;
-    const dirX = Math.sin(az), dirZ = -Math.cos(az);
     const ground = this.heightAt(pass.x, pass.z);
+    const half = pass.width + 4;
+    const rot = Math.atan2(pass.tx, pass.tz);
+    const [lx, lz] = this.atlas.road.leftNormal(pass.tx, pass.tz);
     const color = new THREE.Color(this.atlas.chapters[pass.to - 1]?.biomes[0]?.landmark.color ?? 0xb07cff);
     const curtain = new THREE.ShaderMaterial({
       uniforms: { uTime: sharedUniforms.uWindTime, uColor: { value: color.clone().multiplyScalar(1.6) }, uFade: { value: 1 } },
@@ -134,29 +99,40 @@ export class ChapterGates {
           gl_FragColor = vec4(uColor * a, a);
         }`,
     });
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(PASS_HALF * 2, 60, 1, 1), curtain);
-    plane.position.set(pass.x, ground + 26, pass.z);
-    plane.rotation.y = Math.PI / 2 - az;
+    const tall = 70;
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(half * 2, tall * 0.8, 1, 1), curtain);
+    plane.position.set(pass.x, ground + tall * 0.4 - 2, pass.z);
+    plane.rotation.y = rot;
     plane.renderOrder = 3;
     plane.frustumCulled = false;
-    // Guardian pillars at both ends of the veil.
     const b = new GeoBucket();
     const rune = glow(color.getHex(), 2.6);
     for (const side of [-1, 1]) {
-      const px = pass.x + dirX * side * (PASS_HALF + 3), pz = pass.z + dirZ * side * (PASS_HALF + 3);
-      const py = this.heightAt(px, pz) - 1;
-      b.add(m.darkStone, place(box(4, 30, 4, 2), px, py + 15, pz, Math.PI / 2 - az));
-      b.add(m.darkStone, place(cone(3, 5, 4, 1), px, py + 32.5, pz, Math.PI / 2 - az + Math.PI / 4));
-      b.add(rune, place(box(0.5, 20, 4.1, 1), px, py + 14, pz, Math.PI / 2 - az));
-      this.colliders.addBox(px, py + 15, pz, 4, 30, 4, Math.PI / 2 - az);
+      const px = pass.x + lx * side * (half + 7), pz = pass.z + lz * side * (half + 7);
+      const py = Math.min(ground, this.heightAt(px, pz)) - 2;
+      // A stepped tower: base, shaft, crown and spire.
+      b.add(m.darkStone, place(box(18, 10, 18, 3), px, py + 5, pz, rot));
+      b.add(m.darkStone, place(box(13, tall, 13, 6), px, py + 10 + tall / 2, pz, rot));
+      b.add(m.darkStone, place(box(17, 5, 17, 2), px, py + 10 + tall, pz, rot));
+      b.add(m.darkStone, place(cone(9, 22, 4, 1), px, py + 22.5 + tall, pz, rot + Math.PI / 4));
+      b.add(rune, place(box(1.2, tall * 0.8, 13.2, 1), px, py + 10 + tall * 0.5, pz, rot));
+      for (let k = 0; k < 4; k++) b.add(rune, place(cylinder(0.8, 0.8, 3, 6, 1), px + lx * side * 7, py + 20 + k * 14, pz + lz * side * 7));
+      this.colliders.addBox(px, py + (10 + tall) / 2, pz, 18, 10 + tall + 10, 18, rot);
     }
+    // The lintel spanning the gorge high overhead, and its keystone.
+    const span = (half + 7) * 2 + 13;
+    b.add(m.darkStone, place(box(span, 8, 10, 6), pass.x, ground + tall + 4, pass.z, rot));
+    b.add(rune, place(box(span * 0.7, 1.2, 10.2, 3), pass.x, ground + tall + 1.2, pass.z, rot));
+    b.add(m.darkStone, place(cone(7, 14, 4, 1), pass.x, ground + tall + 15, pass.z, rot + Math.PI / 4));
     const group = b.build(new THREE.Group());
     group.add(plane);
     group.name = id;
     this.group.add(group);
     const gate: Gate = { id, pass, from: pass.from, to: pass.to, open: false, group, curtain, fade: 1 };
     this.colliders.beginGroup(id);
-    this.colliders.addBox(pass.x, ground + 150, pass.z, 4, 600, PASS_HALF * 2, Math.PI - az);
+    // The veil's barrier spans the gorge out to the valley's edge, so it cannot be
+    // climbed around on the slopes.
+    this.colliders.addBox(pass.x, ground + 150, pass.z, (pass.width + WORLD.wallOffset) * 2 + 40, 600, 4, rot);
     this.colliders.endGroup();
     this.gates.push(gate);
   }
@@ -203,7 +179,7 @@ export class ChapterGates {
         this.onOpen(gate);
         continue;
       }
-      if (Math.hypot(at.x - gate.pass.x, at.z - gate.pass.z) < PASS_HALF + 30) hint = why;
+      if (Math.hypot(at.x - gate.pass.x, at.z - gate.pass.z) < gate.pass.width + 40) hint = why;
     }
     return hint;
   }

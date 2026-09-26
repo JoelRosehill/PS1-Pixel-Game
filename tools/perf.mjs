@@ -15,14 +15,15 @@ try {
   const page = await browser.newPage();
   await page.goto(`${server.resolvedUrls.local[0]}?shot=1&render=0&frames=3`);
   await page.waitForFunction('window.__ready || window.__error', { timeout: 180000 });
-  const scenarios = ['hub', 'run-north', 'chapter-2', 'camp-fight', 'boss'];
+  const scenarios = ['start', 'run-road', 'chapter-2', 'camp-fight', 'boss'];
   for (const name of scenarios) {
     const r = await page.evaluate(async scenario => {
       const g = window.__game, L = g.level, p = g.player, V = window.__three.Vector3;
       g.input.clear(); g.enemies.clear(); p.combat.reset();
       const place = (x, z, yaw = 0) => { p.controller.teleport(x, L.heightAt(x, z) + 0.2, z, yaw); p.camera.setYaw(yaw, 0); L.setViewer(new V(x, 10, z), true); };
-      if (scenario === 'hub') place(6, 11, Math.atan2(2, 71));
-      if (scenario === 'run-north') { place(40, -560, 0); g.input.down.add('KeyW'); g.input.down.add('ShiftLeft'); }
+      const st = L.atlas.start;
+      if (scenario === 'start') place(st.x, st.z, st.yaw);
+      if (scenario === 'run-road') { const q = L.atlas.road.pointAt(700); place(q.x, q.z, Math.atan2(-q.tx, -q.tz)); g.input.down.add('KeyW'); }
       if (scenario === 'chapter-2') { const s = L.atlas.sites.find(x => x.chapter === 2); place(s.x, s.z); }
       if (scenario === 'camp-fight') {
         const enc = g.enemies.encounters.find(e => e.def.id.startsWith('camp:c1-'));
@@ -37,7 +38,7 @@ try {
       // Warm up, then time the whole frame function over real animation frames.
       const orig = g.tick;
       const samples = [];
-      g.tick = now => { const t0 = performance.now(); orig(now); samples.push(performance.now() - t0); if (p.combat.health < 1e8 && scenario !== 'hub' && scenario !== 'run-north' && scenario !== 'chapter-2') p.combat.health = 1e9; };
+      g.tick = now => { const t0 = performance.now(); orig(now); samples.push(performance.now() - t0); if (p.combat.health < 1e8 && scenario !== 'start' && scenario !== 'run-road' && scenario !== 'chapter-2') p.combat.health = 1e9; };
       await new Promise(res => { let n = 0; const f = () => (++n > 300 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
       g.tick = orig;
       g.input.clear();

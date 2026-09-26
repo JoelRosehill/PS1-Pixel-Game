@@ -1,5 +1,6 @@
-// World engine regression suite (Job 6): layout, blended terrain, ridges and passes,
-// quadtree streaming and LOD, prop streaming and colliders, biome moods, camps.
+// World engine regression suite (Jobs 6, 15): the Long Road's layout, its valleys and
+// mountains, grounded structures, quadtree streaming and LOD, prop streaming and colliders,
+// biome moods, camps and walking the road.
 //
 //   npm run worldtest
 import puppeteer from 'puppeteer-core';
@@ -31,119 +32,144 @@ try {
     } catch (e) { check(name, false, e.message); }
   };
 
-  // --- layout and terrain ------------------------------------------------------
-  await run('eight chapters of five biome sites', () => {
+  // --- the Long Road ---------------------------------------------------------------
+  await run('forty biomes along one road, five per chapter, in order', () => {
     const A = window.__game.level.atlas;
-    const per = {};
-    for (const s of A.sites) per[s.chapter] = (per[s.chapter] ?? 0) + 1;
-    const archetypes = new Set(A.sites.map(s => s.biome.archetype));
-    return { ok: A.sites.length === 40 && Object.values(per).every(n => n === 5) && archetypes.size === 5 && A.passes.length === 7,
-      detail: `sites=${A.sites.length} archetypes=${[...archetypes].join(',')} passes=${A.passes.length}` };
+    let contiguous = true, ordered = true;
+    A.sites.forEach((s, i) => {
+      if (i && Math.abs(s.s0 - A.sites[i - 1].s1) > 1e-6) contiguous = false;
+      if (i && s.chapter < A.sites[i - 1].chapter) ordered = false;
+    });
+    const perChapter = [1, 2, 3, 4, 5, 6, 7, 8].every(c => A.sites.filter(s => s.chapter === c).length === 5);
+    const end = A.sites.at(-1).s1;
+    return { ok: A.sites.length === 40 && contiguous && ordered && perChapter && Math.abs(end - A.road.length) < 1 && A.road.length > 15000,
+      detail: `road ${(A.road.length / 1000).toFixed(1)} km, ${A.gates.length} chapter gates` };
   });
-  await run('the hub is untouched inside its radius', () => {
-    const L = window.__game.level;
-    let worst = 0;
-    for (let i = 0; i < 400; i++) {
-      const a = i * 2.39996, r = Math.sqrt(i / 400) * 375;
-      const x = Math.sin(a) * r, z = Math.cos(a) * r;
-      worst = Math.max(worst, Math.abs(L.heightAt(x, z) - L.hub.ground.heightAt(x, z)));
+  await run('the road is dry and walkable end to end', () => {
+    const L = window.__game.level, A = L.atlas;
+    let worstSlope = 0, wet = 0, off = 0;
+    let prev = null;
+    for (let s = 0; s <= A.road.length; s += 10) {
+      const p = A.road.pointAt(s);
+      const h = L.heightAt(p.x, p.z);
+      if (h < 0.9) wet++;
+      if (Math.abs(h - A.roadHeight(s)) > 1.2 && !L.bossArenas.some(a => Math.hypot(a.center.x - p.x, a.center.z - p.z) < a.radius + 50)
+        && Math.hypot(p.x, p.z) > 600) off++; // the last stretch ramps onto the Dawnspire's plaza
+      if (prev !== null) worstSlope = Math.max(worstSlope, Math.abs(h - prev) / 10);
+      prev = h;
     }
-    return { ok: worst === 0, detail: `max difference ${worst}` };
+    return { ok: wet === 0 && off === 0 && worstSlope < 0.4, detail: `wet=${wet} off-profile=${off} steepest=${worstSlope.toFixed(2)}` };
   });
   await run('biome borders are continuous', () => {
+    // Steep ground is allowed (canyons, cliffs); a jump in the height function is not.
     const L = window.__game.level, A = L.atlas;
-    // Find the largest step along each border crossing, then zoom into it: a steep slope
-    // shrinks when sampled 100× finer, a discontinuity does not.
-    let worst = 0, where = '';
-    for (const s of A.sites) {
-      let o = null, best = Infinity;
-      for (const t of A.sites) { const d = Math.hypot(t.x - s.x, t.z - s.z); if (t !== s && d < best) { best = d; o = t; } }
-      const at = f => L.heightAt(s.x + (o.x - s.x) * f, s.z + (o.z - s.z) * f);
-      let prev = at(0), big = 0, bigAt = 0;
-      for (let k = 1; k <= 800; k++) {
-        const h = at(k / 800);
-        if (Math.abs(h - prev) > big) { big = Math.abs(h - prev); bigAt = k; }
-        prev = h;
+    let worst = 0, at = '';
+    for (const site of A.sites.slice(1)) for (const lat of [0, 40, -60, 120]) {
+      for (let ds = -120; ds <= 120; ds += 1) {
+        const a = A.road.offset(site.s0 + ds, lat), b = A.road.offset(site.s0 + ds + 0.05, lat);
+        const d = Math.abs(L.heightAt(a.x, a.z) - L.heightAt(b.x, b.z));
+        if (d > worst) { worst = d; at = `${site.id}@${ds},${lat}`; }
       }
-      let zoom = 0;
-      prev = at((bigAt - 1) / 800);
-      for (let k = 1; k <= 100; k++) {
-        const h = at((bigAt - 1 + k / 100) / 800);
-        zoom = Math.max(zoom, Math.abs(h - prev));
-        prev = h;
-      }
-      if (zoom > worst) { worst = zoom; where = `${s.id}→${o.id} coarse ${big.toFixed(2)} m`; }
     }
-    return { ok: worst < 0.4, detail: `largest step at ${(1 / 100).toFixed(2)}× spacing: ${worst.toFixed(3)} m (${where})` };
+    return { ok: worst < 0.6, detail: `largest change over 5 cm: ${worst.toFixed(2)} m at ${at}` };
   });
-  await run('blend weights sum to one and favour the nearest site', () => {
+  await run('blend weights sum to one', () => {
     const A = window.__game.level.atlas;
     const sites = [], w = [];
-    let ok = true;
-    for (const s of A.sites) {
-      const n = A.weights(s.x, s.z, sites, w);
-      const sum = w.slice(0, n).reduce((a, b) => a + b, 0);
-      if (Math.abs(sum - 1) > 1e-9 || sites[0] !== s || w[0] < 0.9) ok = false;
+    let bad = 0;
+    for (let i = 0; i < 600; i++) {
+      const n = A.weights((Math.random() - 0.5) * 9000, (Math.random() - 0.5) * 9000, sites, w);
+      let sum = 0;
+      for (let k = 0; k < n; k++) sum += w[k];
+      if (Math.abs(sum - 1) > 1e-6 || n < 1) bad++;
     }
-    return { ok, detail: 'checked all 40 site centres' };
+    return { ok: bad === 0, detail: `${bad} bad samples` };
   });
-  await run('ridges divide chapters; passes cut through them', () => {
+  await run('colossal mountains wall the valleys', () => {
     const L = window.__game.level, A = L.atlas;
-    const at = (az, r) => L.heightAt(Math.sin(az) * r, -Math.cos(az) * r);
-    const results = [];
-    let ok = true;
-    for (let b = 0; b < 8; b++) {
-      const az = b * Math.PI / 4 + Math.PI / 8;
-      const pass = A.passFor(b);
-      // Ridge: the crest stands well above ground 250 m to either side.
-      const r = pass ? (pass.r > 2500 ? pass.r - 700 : pass.r + 700) : 2200;
-      const side = Math.max(at(az - 250 / r, r), at(az + 250 / r, r));
-      const ridge = at(az, r) - side;
-      if (ridge < 40) ok = false;
-      let detail = `${b}:ridge+${ridge.toFixed(0)}`;
-      if (pass) {
-        // Pass: far below the crest nearby, and walkable straight across.
-        const crest = Math.max(at(az, pass.r - 320), at(az, pass.r + 320));
-        const drop = crest - at(az, pass.r);
-        let steepest = 0;
-        let prev = at(az - 150 / pass.r, pass.r);
-        for (let k = -149; k <= 150; k++) {
-          const h = at(az + k / pass.r, pass.r);
-          steepest = Math.max(steepest, Math.abs(h - prev));
-          prev = h;
-        }
-        if (drop < 30 || steepest > 1) ok = false;
-        detail += ` pass-${drop.toFixed(0)} slope ${steepest.toFixed(2)}`;
-      } else detail += ' sealed';
-      results.push(detail);
+    const heights = [];
+    for (let s = 200; s < A.road.length - 600; s += 250) {
+      const q = A.road.pointAt(s);
+      const W = A.widthAt(s);
+      for (const side of [1, -1]) {
+        if (A.seaAt(s, side) > 0.01) continue;
+        const p = A.road.offset(s, side * (W + 420));
+        if (A.road.nearest(p.x, p.z).d < W + 300) continue; // another turn of the road
+        heights.push(L.heightAt(p.x, p.z) - A.roadHeight(s));
+      }
+      void q;
     }
-    return { ok, detail: results.join(' | ') };
+    heights.sort((a, b) => a - b);
+    const low = heights[Math.floor(heights.length * 0.05)];
+    return { ok: heights.length > 100 && low > 120, detail: `${heights.length} samples; 5th percentile ${low.toFixed(0)} m above the road, median ${heights[heights.length >> 1].toFixed(0)} m` };
   });
-  await run('the world is ringed by high mountains', () => {
+  await run('the Sunkeepers\' Coast falls to the sea', () => {
+    const L = window.__game.level, A = L.atlas;
+    const coast = A.sites.filter(s => s.leg.sea);
+    let sea = 0, n = 0;
+    for (const site of coast) for (let f = 0.2; f < 0.9; f += 0.2) {
+      const s = site.s0 + (site.s1 - site.s0) * f;
+      const side = site.leg.sea === 'left' ? 1 : -1;
+      const p = A.road.offset(s, side * (A.widthAt(s) + 350));
+      n++;
+      if (L.heightAt(p.x, p.z) < -4) sea++;
+    }
+    return { ok: coast.length === 5 && sea >= n * 0.8, detail: `${sea}/${n} open water` };
+  });
+  await run('the turns of the spiral stay far apart', () => {
+    const A = window.__game.level.atlas;
+    let closest = Infinity;
+    for (let s = 0; s < A.road.length; s += 100) {
+      const p = A.road.pointAt(s);
+      for (let t = s + 4000; t < A.road.length; t += 50) {
+        const q = A.road.pointAt(t);
+        closest = Math.min(closest, Math.hypot(p.x - q.x, p.z - q.z));
+      }
+    }
+    return { ok: closest > 1400, detail: `closest approach of two turns: ${closest.toFixed(0)} m` };
+  });
+  await run('structures stand on level ground, clear of the road', () => {
+    const L = window.__game.level, A = L.atlas;
+    const bad = [];
+    for (const st of L.structures.placed) {
+      if (st.spec.hover || st.spec.planted !== undefined) continue;
+      let worst = 0;
+      for (let i = 0; i < 12; i++) {
+        const a = i / 12 * Math.PI * 2, r = st.radius * 0.6;
+        worst = Math.max(worst, Math.abs(L.heightAt(st.x + Math.sin(a) * r, st.z + Math.cos(a) * r) - st.y));
+      }
+      const road = A.road.nearest(st.x, st.z).d;
+      if (worst > 0.3 || road < st.radius + 5) bad.push(`${st.spec.model}:${worst.toFixed(2)}m/${road.toFixed(0)}m`);
+    }
+    return { ok: bad.length === 0 && L.structures.placed.length >= 30, detail: bad.length ? bad.join(' ') : `${L.structures.placed.length} structures level` };
+  });
+  await run('the supplied structures all load', () => {
     const L = window.__game.level;
-    let lowest = Infinity;
-    for (let i = 0; i < 64; i++) { const a = i / 64 * Math.PI * 2; lowest = Math.min(lowest, L.heightAt(Math.sin(a) * 4800, Math.cos(a) * 4800)); }
-    return { ok: lowest > 200, detail: `lowest edge peak ${lowest.toFixed(0)} m` };
+    const missing = L.structures.placed.filter(p => !p.object).map(p => p.spec.model);
+    return { ok: !missing.length && !L.structures.errors.length, detail: missing.join(',') + L.structures.errors.join(',') };
   });
-
-  // --- archetype signatures --------------------------------------------------
+  await run('the Dawnspire rises at the centre, chained to the moon', () => {
+    const g = window.__game, L = g.level, V = window.__three.Vector3;
+    const solid = L.colliders.overlaps(new V(0, L.dawnspire.top - 200, 0), 1);
+    return { ok: L.dawnspire.top > 1000 && solid && g.atmosphere.moonAnchor?.y > L.dawnspire.top, detail: `top=${L.dawnspire.top.toFixed(0)} m, moon at ${g.atmosphere.moonAnchor?.y} m` };
+  });
   await run('each archetype has its signature ground', () => {
     const L = window.__game.level, A = L.atlas;
     const stats = {};
-    for (const s of A.sites.filter(s => s.slot === 0 && s.chapter <= 5)) {
+    for (const arch of ['wilderness', 'marsh', 'terrace', 'caverns', 'bloodstone']) {
+      const sites = A.sites.filter(s => s.biome.archetype === arch);
       const hs = [];
-      for (let i = 0; i < 900; i++) {
-        const a = i * 2.39996, r = Math.sqrt(i / 900) * s.radius * 0.6;
-        hs.push(L.heightAt(s.x + Math.sin(a) * r, s.z + Math.cos(a) * r));
+      for (const s of sites) for (let i = 0; i < 200; i++) {
+        const f = Math.random(), lat = (Math.random() * 2 - 1) * s.leg.width * 0.8;
+        const p = A.road.offset(s.s0 + (s.s1 - s.s0) * f, lat);
+        hs.push(L.heightAt(p.x, p.z));
       }
       const water = hs.filter(h => h < 0).length / hs.length;
       const mean = [...hs].sort((a, b) => a - b)[hs.length >> 1];
-      const low = hs.filter(h => h < 8).length / hs.length;
-      const rim = Math.max(...[0, 1, 2, 3, 4, 5].map(k => L.heightAt(s.x + Math.sin(k) * s.radius * 0.66, s.z + Math.cos(k) * s.radius * 0.66)));
-      stats[s.biome.archetype] = { water, mean, low, centre: L.heightAt(s.x, s.z), rim };
+      stats[arch] = { water, mean };
     }
     const w = stats.wilderness, m = stats.marsh, t = stats.terrace, c = stats.caverns, b = stats.bloodstone;
-    const ok = w.water > 0.02 && w.mean > 3 && m.water > 0.2 && m.mean < 2.5 && t.water > 0.05 && c.rim - c.centre > 20 && b.mean > 18 && b.low > 0.03;
+    const ok = w.water > 0.01 && m.water > 0.06 && m.mean < 4 && t.mean > 3 && c.mean > 20 && b.mean > 15;
     const f = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, +v.toFixed(2)]));
     return { ok, detail: { wilderness: f(w), marsh: f(m), terrace: f(t), caverns: f(c), bloodstone: f(b) } };
   });
@@ -151,7 +177,7 @@ try {
   // --- streaming ---------------------------------------------------------------
   await run('terrain tiles cover the view without holes or overlaps', () => {
     const T = window.__three, L = window.__game.level;
-    const v = new T.Vector3(700, 10, -700);
+    const q = window.__game.level.atlas.road.pointAt(19000), v = new T.Vector3(q.x, 10, q.z);
     L.setViewer(v, true);
     const tiles = L.tiles.visibleTiles;
     let bad = 0;
@@ -164,7 +190,7 @@ try {
   });
   await run('tile size grows with distance (LOD follows the bands)', () => {
     const T = window.__three, L = window.__game.level;
-    const v = new T.Vector3(700, 10, -700);
+    const q = window.__game.level.atlas.road.pointAt(19000), v = new T.Vector3(q.x, 10, q.z);
     L.setViewer(v, true);
     const sizeAt = (d) => L.tiles.visibleTiles.find(t => Math.abs(v.x + d - t.cx) <= t.size / 2 && Math.abs(v.z - t.cz) <= t.size / 2)?.size ?? -1;
     const s0 = sizeAt(0), s1 = sizeAt(120), s2 = sizeAt(600), s3 = sizeAt(2000);
@@ -172,7 +198,7 @@ try {
   });
   await run('streaming stays within its time budget while moving', () => {
     const T = window.__three, L = window.__game.level;
-    const v = new T.Vector3(700, 10, -700);
+    const q = window.__game.level.atlas.road.pointAt(19000), v = new T.Vector3(q.x, 10, q.z);
     L.setViewer(v, true);
     let worst = 0;
     for (let i = 0; i < 90; i++) {
@@ -217,16 +243,22 @@ try {
     });
     return { ok: tested > 5 && blocked === tested, detail: `${blocked}/${tested} trunks solid` };
   });
-  await run('no biome props inside the hub', () => {
+  await run('no props on the road bed', () => {
     const T = window.__three, L = window.__game.level;
-    L.setViewer(new T.Vector3(0, 5, 0), true);
+    const q = L.atlas.road.pointAt(900);
+    L.setViewer(new T.Vector3(q.x, 5, q.z), true);
     const m = new T.Matrix4(), p = new T.Vector3();
-    let inside = 0;
+    let on = 0, total = 0;
     L.props.group.traverse(o => {
       if (!o.isInstancedMesh) return;
-      for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); p.setFromMatrixPosition(m); if (Math.hypot(p.x, p.z) < 460) inside++; }
+      for (let i = 0; i < o.count; i++) {
+        o.getMatrixAt(i, m); p.setFromMatrixPosition(m);
+        if (Math.hypot(p.x - q.x, p.z - q.z) > 250) continue;
+        total++;
+        if (L.atlas.road.nearest(p.x, p.z).d < 3.5) on++;
+      }
     });
-    return { ok: inside === 0, detail: `${inside} instances inside r<460` };
+    return { ok: on === 0 && total > 100, detail: `${on} of ${total} nearby instances on the road` };
   });
 
   // --- mood --------------------------------------------------------------------
@@ -238,9 +270,10 @@ try {
       L.setViewer(new T.Vector3(s.x, 10, s.z), true);
       out[arch] = g.atmosphere.presetId === s.biome.sky ? 'ok' : g.atmosphere.presetId;
     }
-    L.setViewer(new T.Vector3(0, 5, 0), true);
-    out.hub = g.atmosphere.presetId;
-    return { ok: Object.values(out).every(v => v === 'ok' || v === 'cosmic-violet') && out.hub === 'cosmic-violet', detail: out };
+    const s = L.atlas.start;
+    L.setViewer(new T.Vector3(s.x, 5, s.z), true);
+    out.start = g.atmosphere.presetId;
+    return { ok: Object.values(out).every(v => v === 'ok' || v === 'cosmic-violet') && out.start === 'cosmic-violet', detail: out };
   });
   await run('crossing a border crossfades rather than snapping', () => {
     const T = window.__three, g = window.__game, L = g.level;
@@ -261,12 +294,13 @@ try {
     const titles = [];
     const prev = L.onRegion;
     L.onRegion = (t, s) => titles.push(`${t} / ${s}`);
-    L.setViewer(new T.Vector3(0, 5, 0), true);
+    const s0 = L.atlas.start;
+    L.setViewer(new T.Vector3(s0.x, 5, s0.z), true);
     const s = L.atlas.sites.find(x => x.id === 'c4-0');
     L.setViewer(new T.Vector3(s.x, 10, s.z));
     for (let i = 0; i < 100; i++) L.update(1 / 60, 0);
     L.onRegion = prev;
-    return { ok: titles.length === 1 && titles[0].startsWith('CRYSTAL CAVERNS / Chapter IV'), detail: titles };
+    return { ok: titles.length === 1 && titles[0].startsWith('RIMEFROST GALLERIES / Chapter IV'), detail: titles };
   });
 
   // --- camps and walking ---------------------------------------------------------
@@ -274,9 +308,11 @@ try {
     const g = window.__game, L = g.level, A = L.atlas;
     const camps = L.encounters.filter(e => e.id.startsWith('camp:'));
     const sites = new Set(camps.map(e => e.id.split(':')[1]));
-    const bad = camps.filter(e => L.heightAt(e.trigger.x, e.trigger.z) < 1 || Math.hypot(e.trigger.x, e.trigger.z) < 600 || A.boundary(e.trigger.x, e.trigger.z).distance < 150);
+    const bad = camps.filter(e => L.heightAt(e.trigger.x, e.trigger.z) < 1 || A.road.nearest(e.trigger.x, e.trigger.z).d > 90
+      || A.gates.some(gt => Math.hypot(gt.x - e.trigger.x, gt.z - e.trigger.z) < 120));
     const registered = g.enemies.encounters.filter(e => e.def.id.startsWith('camp:')).length;
-    return { ok: sites.size === 40 && bad.length === 0 && registered === camps.length, detail: `camps=${camps.length} sites=${sites.size} bad=${bad.length}` };
+    const levels = camps.every(e => e.level === Number(e.id.split(':')[1].slice(1, 2)));
+    return { ok: sites.size === 40 && bad.length === 0 && registered === camps.length && levels, detail: `camps=${camps.length} sites=${sites.size} bad=${bad.length} levels=${levels}` };
   });
   await run('walking into a camp raises its enemies', () => {
     const T = window.__three, g = window.__game, L = g.level;
@@ -297,26 +333,30 @@ try {
     g.enemies.clear();
     return { ok: before === 'dormant' && state === 'active' && dry, detail: `${enc.def.name}: ${before}→${state} ${kinds} y=${ys}` };
   });
-  await run('the player walks out of the hub into Chapter I', () => {
-    const T = window.__three, g = window.__game, L = g.level;
+  await run('the player walks the road out of Hollowmere', () => {
+    const T = window.__three, g = window.__game, L = g.level, A = L.atlas;
     g.enemies.clear();
     const p = g.player;
     p.combat.reset();
-    p.controller.teleport(40, L.heightAt(40, -560) + 0.1, -560, 0);
-    p.camera.setYaw(0.05, 0);
+    const st = A.start;
+    p.controller.teleport(st.x, L.heightAt(st.x, st.z) + 0.1, st.z, 0);
     L.setViewer(p.controller.position, true);
     g.input.down.add('KeyW');
     let lowestGap = Infinity;
-    for (let i = 0; i < 480; i++) {
+    const s0 = A.road.nearest(st.x, st.z).s;
+    for (let i = 0; i < 600; i++) {
+      // Steer along the road like a player would.
+      const h = A.road.nearest(p.controller.position.x, p.controller.position.z);
+      const ahead = A.road.pointAt(h.s + 12);
+      p.camera.setYaw(Math.atan2(-(ahead.x - p.controller.position.x), -(ahead.z - p.controller.position.z)), 0);
       g.step(1 / 60);
-      L.setViewer(p.controller.position); L.update(1 / 60, i / 60);
+      if (i % 20 === 0) { L.setViewer(p.controller.position); L.update(1 / 60, i / 60); }
       lowestGap = Math.min(lowestGap, p.controller.position.y - L.heightAt(p.controller.position.x, p.controller.position.z));
     }
     g.input.clear();
-    const z = p.controller.position.z;
-    const chapter = L.atlas.chapterAt(p.controller.position.x, z);
+    const s1 = A.road.nearest(p.controller.position.x, p.controller.position.z).s;
     p.respawn();
-    return { ok: z < -610 && lowestGap > -0.2 && chapter === 1, detail: `reached z=${z.toFixed(0)} chapter=${chapter} min ground clearance=${lowestGap.toFixed(2)}` };
+    return { ok: s1 - s0 > 60 && lowestGap > -0.2, detail: `walked ${(s1 - s0).toFixed(0)} m along the road; min ground clearance=${lowestGap.toFixed(2)}` };
   });
 } finally {
   await browser?.close();

@@ -1,6 +1,6 @@
 import { CreatureLibrary } from '../assets/Creatures';
 import { FOE_WEAPONS } from '../enemies/Bestiary';
-import { BOSS_PROPS } from '../enemies/bosses/Roster';
+import { BOSS_PROPS, BOSSES } from '../enemies/bosses/Roster';
 import { SPELL_PAGES } from '../spells/SpellBook';
 import * as THREE from 'three';
 import { ModelLibrary } from '../assets/ModelLibrary';
@@ -36,6 +36,7 @@ import { SoundDirector } from '../audio/SoundDirector';
 import { MenuUI } from '../ui/MenuUI';
 import { ACTIONS, keyName, Settings } from './Settings';
 import { LORE, MEMORIALS } from '../story/Lore';
+import { FIRST_SHRINE } from '../world/StoryProps';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
 export interface GameSystem {
@@ -101,7 +102,7 @@ export class Game {
   readonly storyUI: StoryUI;
   readonly save: SaveGame;
   /** The Ember Shrine the player last rested at (respawn point, saved). */
-  restShrine = 'threshold';
+  restShrine = FIRST_SHRINE;
   /** Seconds of unpaused play, and deaths, across the whole journey (saved). */
   playTime = 0;
   deaths = 0;
@@ -223,7 +224,7 @@ export class Game {
     this.enemyHud = new EnemyHud(gameHudEl);
     this.bossHud = new BossHud(gameHudEl);
     this.worldMap = new WorldMap(this.level, this.player, this.input, this.progress, this.enemies);
-    this.interactions = new Interactions(this.pages, this.level.story, this.level.hub.wanderer, id => this.progress.lore.has(id));
+    this.interactions = new Interactions(this.pages, this.level.story, this.level.wanderer, id => this.progress.lore.has(id));
     this.interactions.onRest = shrine => this.restAt(shrine);
     this.interactions.onRead = spot => this.readLore(spot);
     this.interactions.onTalk = () => this.talkToWanderer();
@@ -250,8 +251,8 @@ export class Game {
     this.save = new SaveGame(opts.save ?? true);
     const saved = opts.fresh ? null : this.save.load();
     if (saved) this.applySave(saved, !opts.camera && !opts.playerAt);
-    // The Threshold's fire has always been lit.
-    this.progress.kindle('threshold');
+    // Hollowmere's fire has always been lit.
+    this.progress.kindle(FIRST_SHRINE);
     this.progress.onChange(() => this.requestSave());
     this.bookRevision = this.player.spells.book.revision;
     window.addEventListener('pagehide', () => this.saveNow());
@@ -267,7 +268,7 @@ export class Game {
       settings: this.settings,
       applySettings: () => this.applySettings(),
       resumed: () => this.resumed,
-      continueLabel: () => `${this.level.story.shrine(this.restShrine)?.name ?? 'The Threshold'} · ${this.formatTime(this.playTime)}`,
+      continueLabel: () => `${this.level.story.shrine(this.restShrine)?.name ?? 'Hollowmere'} · ${this.formatTime(this.playTime)}`,
       begin: () => this.audio.start(),
       newJourney: () => this.beginAnew(),
       toTitle: () => { this.saveNow(); this.resetting = true; location.reload(); },
@@ -313,7 +314,7 @@ export class Game {
       this.models.instantiate('ps1-italian-broadsword', { size: 1.35, grounded: false })
         .then(asset => this.player.model.setSwordModel(asset.root))
         .catch(error => { this.assetErrors.push(`sword: ${error}`); }),
-      this.level.loadAssets?.(this.models).then(errors => this.assetErrors.push(...errors)),
+      this.level.loadAssets?.(this.models, this.creatures).then(errors => this.assetErrors.push(...errors)),
       this.creatures.preload().then(() => this.assetErrors.push(...this.creatures.errors))
         .catch(error => { this.assetErrors.push(`creatures: ${error}`); }),
       this.models.preload([...FOE_WEAPONS, ...BOSS_PROPS]),
@@ -477,7 +478,7 @@ export class Game {
     if (this.finaleTimer <= 0) { this.endingShown = true; this.menu.open('ending'); }
   }
 
-  /** Behind the title screen the camera drifts slowly over the Threshold. */
+  /** Behind the title screen the camera drifts slowly over Hollowmere (see World.titleView). */
   private updateTitleCamera(dt: number): void {
     const title = this.menu.screen === 'title';
     if (title !== this.titleShown) {
@@ -487,10 +488,8 @@ export class Game {
     if (!title || this.flyMode) return;
     this.titleTime += dt;
     const t = this.titleTime;
-    // Over the plaza toward the castle and the moon, drifting slowly.
-    const yaw = 0.3 + Math.sin(t * 0.06) * 0.22;
-    this.camera.position.set(15 + Math.sin(t * 0.05) * 2.5, 7.5 + Math.sin(t * 0.08) * 0.6, 26);
-    this.camera.rotation.set(0.1, yaw, 0, 'YXZ');
+    this.camera.rotation.order = 'YXZ';
+    this.level.titleView(t, this.camera);
     this.camera.fov = 62;
     this.camera.updateMatrixWorld();
     this.player.view.scene.visible = false;
@@ -511,7 +510,7 @@ export class Game {
       this.shrineBearing = bearing;
     }
     const site = this.level.siteAt(p.x, p.z);
-    this.gameHud.setHeading(this.player.camera.yaw, site ? site.biome.name : 'The Threshold', this.shrineBearing);
+    this.gameHud.setHeading(this.player.camera.yaw, site.biome.name, this.shrineBearing);
   }
 
   // --- story, shrines and saving (Job 9) -------------------------------------------
@@ -562,7 +561,7 @@ export class Game {
     this.audio.play('lore');
     this.progress.readLore(spot.id);
     const f = spot.fragment;
-    const where = f.chapter ? `CHAPTER ${roman(f.chapter)} · ${this.level.atlas.chapters[f.chapter - 1]?.name.toUpperCase() ?? ''}` : 'THE THRESHOLD';
+    const where = f.chapter ? `CHAPTER ${roman(f.chapter)} · ${this.level.atlas.chapters[f.chapter - 1]?.name.toUpperCase() ?? ''}` : 'HOLLOWMERE';
     this.storyUI.read({ kicker: spot.kind === 'memorial' ? `${where} · THE KNEELING DEAD` : where, title: f.title, text: f.text });
   }
 
@@ -586,7 +585,7 @@ export class Game {
     return [
       `Journey ${hours ? `${hours} h ` : ''}${minutes} min · ${this.deaths} death${this.deaths === 1 ? '' : 's'}`,
       `${this.player.spells.book.count} / ${SPELL_PAGES.length} pages · ${p.gates.size} / 7 gates open`,
-      `${p.bosses.size} / 3 great foes felled · ${p.lore.size} fragments read`,
+      `${p.bosses.size} / ${BOSSES.length} great foes felled · ${p.lore.size} fragments read`,
     ].join('\n');
   }
 
@@ -625,7 +624,7 @@ export class Game {
     for (const shrine of this.level.story.shrines) if (this.progress.kindled.has(shrine.id)) shrine.prop.setKindled(true);
     this.playTime = data.playTime;
     this.deaths = data.deaths;
-    const shrine = this.level.story.shrine(data.shrine) ?? this.level.story.shrine('threshold')!;
+    const shrine = this.level.story.shrine(data.shrine) ?? this.level.story.shrine(FIRST_SHRINE)!;
     this.restShrine = shrine.id;
     this.player.setRespawn(shrine.rest, shrine.facing);
     if (placePlayer) this.player.respawn();

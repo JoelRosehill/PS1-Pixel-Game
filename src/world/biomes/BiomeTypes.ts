@@ -67,11 +67,15 @@ export interface PropSpec {
 }
 
 export interface FaunaSpec {
-  /** Enemy camps per km² of the biome's cell. */
+  /** Enemy camps per km² of the biome's cell (the old radial atlas). */
   campsPerKm2: number;
-  /** Relative share of each enemy kind. */
-  knight: number;
-  wizard: number;
+  /** Relative share of Shadow Knights and Sunkeepers (used when `foes` is absent). */
+  knight?: number;
+  wizard?: number;
+  /** Relative share of each Bestiary foe (Job 15: every biome names its own). */
+  foes?: Record<string, number>;
+  /** Camps along this biome's stretch of the Long Road. */
+  camps?: number;
   /** Enemies per wave and number of waves. */
   size: [number, number];
   waves: [number, number];

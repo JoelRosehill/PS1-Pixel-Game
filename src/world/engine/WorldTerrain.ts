@@ -1,40 +1,43 @@
 import * as THREE from 'three';
 import { lerp, Noise2D, smoothstep } from '../../core/Noise';
 import type { BiomeDef } from '../biomes/BiomeTypes';
-import { azimuthOf, type BiomeSite, type Pass, SECTOR, WORLD, type WorldAtlas } from './WorldAtlas';
+import { type BiomeSite, WORLD, type WorldAtlas } from './WorldAtlas';
 
-/** The hand-made hub (The Threshold) supplies its own ground inside `WORLD.hubInner`. */
-export interface HubTerrain {
-  baseHeight(x: number, z: number): number;
-  colorAt(x: number, z: number, h: number, slope: number, out: THREE.Color): void;
-}
+/** Levelled ground: a structure's footprint or an arena. */
+interface Plateau { x: number; z: number; r: number; h: number; blend: number }
 
-/** Keeps the spawn → citadel sightline open as it leaves the hub (see ProvingGrounds). */
-const CITADEL_AZ = Math.atan2(54, 760);
+const PLATEAU_CELL = 256;
 
 /**
- * The world's ground as pure functions of (x, z): per-biome shape and colour from
- * `BiomeDef.terrain`/`palette`, blended across soft Voronoi borders, with sector
- * ridges, carved passes, the hub in the middle and mountains at the world's edge.
- * Being analytic, it serves rendering, collision and AI with no baked data.
+ * The world's ground as pure functions of (x, z) (Job 15). Around the road, each biome's
+ * own relief (hills, lakes, terraces, canyons) sits on the road's smooth height profile;
+ * the road bed itself is levelled; beyond the valley edge the ground climbs into colossal
+ * ridged mountains (hundreds of metres) that separate the turns of the spiral — or, on the
+ * Sunkeepers' Coast, falls away into the sea. Structures and arenas stand on levelled
+ * plateaus so nothing floats. Analytic, so rendering, collision and AI share it.
  */
 export class WorldTerrain {
   private readonly noises = new Map<number, Noise2D>();
-  private readonly global = new Noise2D('world');
+  private readonly mountains = new Noise2D('mountains');
   private readonly sites: BiomeSite[] = [];
   private readonly w: number[] = [];
   private readonly colorSites: BiomeSite[] = [];
   private readonly colorW: number[] = [];
   private readonly tmp = new THREE.Color();
-  /** Flattened circles (boss arenas): x, z, radius, height. */
-  private readonly plateaus: [number, number, number, number][] = [];
-  /** Ground height on each side of every pass, for its smooth ramp (lazily cached). */
-  private readonly passEnds = new Map<Pass, [number, number]>();
+  private readonly plateauCells = new Map<number, Plateau[]>();
   private readonly acc = new THREE.Color();
   private readonly sample = new THREE.Color();
   private readonly paint = new THREE.Color();
 
-  constructor(readonly atlas: WorldAtlas, private readonly hub: HubTerrain) {}
+  constructor(readonly atlas: WorldAtlas) {
+    // The road climbs through each biome at its base height.
+    atlas.buildProfile(s => {
+      const n = atlas.weightsAtS(s, this.sites, this.w, 220);
+      let h = 0;
+      for (let i = 0; i < n; i++) h += this.w[i] * this.sites[i].biome.terrain.base;
+      return h;
+    });
+  }
 
   private noise(site: BiomeSite): Noise2D {
     let n = this.noises.get(site.seed);
@@ -42,99 +45,91 @@ export class WorldTerrain {
     return n;
   }
 
-  /** Weight of the hand-made hub at a radius (1 inside, 0 beyond `hubOuter`). */
-  hubWeight(x: number, z: number): number {
-    return 1 - smoothstep(WORLD.hubInner, WORLD.hubOuter, Math.hypot(x, z));
+  /** The great mountains between the turns of the road (absolute height, m). */
+  mountainHeight(x: number, z: number): number {
+    const m = this.mountains;
+    // Broad massifs (fbm) carrying sharp ridges and peaks (ridged), then rock detail.
+    const massif = m.fbm(x * 0.0007 + 3, z * 0.0007 - 8, 3) * 0.5 + 0.5;
+    const r = m.ridged(x * 0.0019, z * 0.0019, 4);
+    return 170 + massif * 260 + r * r * 300 + m.fbm(x * 0.008 + 9, z * 0.008 - 4, 3) * 26;
+  }
+
+  /** Ground before plateaus. */
+  private natural(x: number, z: number): number {
+    const a = this.atlas;
+    const hit = a.near(x, z);
+    const s = hit.s, d = hit.d;
+    const W = a.widthAt(s);
+    const road = a.roadHeight(s);
+
+    // Biome relief on the road's profile, levelled toward the road bed.
+    let relief = 0;
+    const count = a.weightsAtS(s, this.sites, this.w);
+    for (let i = 0; i < count; i++) {
+      const site = this.sites[i];
+      relief += this.w[i] * (this.biomeHeight(site, x, z) - site.biome.terrain.base);
+    }
+    // Relief grows with distance from the road: a levelled bed, then the biome's shape.
+    let h = road + relief * smoothstep(5, 26, d);
+    // The valley floor rises a little toward its edges (foothills).
+    h += smoothstep(W * 0.45, W, d) * 14 * (0.6 + this.mountains.get(x * 0.01, z * 0.01) * 0.4);
+
+    const sea = hit.d > 1 ? a.seaAt(s, hit.side) : 0;
+    const M = this.mountainHeight(x, z);
+    const wall = smoothstep(W * 0.92, W + WORLD.wallRise, d);
+    if (sea < 1) h = lerp(h, Math.max(h, M), wall * (1 - sea));
+    if (sea > 0) {
+      // Beaches, then open water, then sea cliffs where the next turn's mountains begin.
+      const shore = lerp(h, -16, smoothstep(W * 0.55, W + 140, d));
+      const cliffs = lerp(shore, M, smoothstep(W + 650, W + 950, d));
+      h = lerp(h, cliffs, sea);
+    }
+    // The start and the end of the road are closed valleys (the mountains close around).
+    // The Dawnspire's plaza at the centre of the world.
+    const rc = Math.hypot(x, z);
+    if (rc < WORLD.plaza + 120) h = lerp(h, a.roadHeight(a.road.length), 1 - smoothstep(WORLD.plaza, WORLD.plaza + 120, rc));
+    return h;
   }
 
   heightAt = (x: number, z: number): number => {
-    const r = Math.hypot(x, z);
-    if (r <= WORLD.hubInner) return this.hub.baseHeight(x, z);
-    const world = this.worldHeight(x, z, r);
-    const hubW = 1 - smoothstep(WORLD.hubInner, WORLD.hubOuter, r);
-    let h = (hubW > 0 ? lerp(world, this.hub.baseHeight(x, z), hubW) : world) + this.rampart(x, z, r);
-    for (const [px, pz, pr, ph] of this.plateaus) {
-      const d = Math.hypot(x - px, z - pz);
-      if (d < pr + 30) h = lerp(h, ph, 1 - smoothstep(pr, pr + 30, d));
+    let h = this.natural(x, z);
+    const list = this.plateauCells.get(this.cellKey(x, z));
+    if (list) for (const p of list) {
+      const d = Math.hypot(x - p.x, z - p.z);
+      if (d < p.r + p.blend) h = lerp(h, p.h, 1 - smoothstep(p.r, p.r + p.blend, d));
     }
     return h;
   };
 
-  /** Levels a circle to `height` with a 30 m blend (boss arenas). */
-  addPlateau(x: number, z: number, radius: number, height: number): void {
-    this.plateaus.push([x, z, radius, height]);
+  private cellKey(x: number, z: number): number {
+    return Math.floor(x / PLATEAU_CELL) * 73856093 + Math.floor(z / PLATEAU_CELL) * 19349663;
   }
 
   /**
-   * Mountains ringing the hub (450–760 m), broken only by the northern valley toward
-   * the Spire Citadel — the hub's single way out, matching its enclosing wall.
+   * Levels a circle to `height` with a soft `blend` (structures, arenas). Returns the
+   * height used. Must be called before the ground around it is sampled for rendering.
    */
-  private rampart(x: number, z: number, r: number): number {
-    const ring = smoothstep(450, 540, r) * (1 - smoothstep(640, 780, r));
-    if (ring <= 0) return 0;
-    const az = azimuthOf(x, z);
-    const off = Math.abs(Math.atan2(Math.sin(az - CITADEL_AZ), Math.cos(az - CITADEL_AZ)));
-    const open = Math.exp(-((off / 0.085) ** 2));
-    return ring * (1 - open) * (55 + this.global.ridged(x * 0.008, z * 0.008, 4) * 75);
-  }
-
-  /** Blended biome ground only (no ridges, passes or edge). */
-  private blendedHeight(x: number, z: number): number {
-    const count = this.atlas.weights(x, z, this.sites, this.w);
-    let h = 0;
-    for (let i = 0; i < count; i++) h += this.w[i] * this.biomeHeight(this.sites[i], x, z);
-    return h;
-  }
-
-  private worldHeight(x: number, z: number, r: number): number {
-    let h = this.blendedHeight(x, z);
-
-    // Sector ridges with a carved pass (sealed between Chapter VIII and Chapter I).
-    const { distance, index } = this.atlas.boundary(x, z);
-    const pass = this.atlas.passFor(index);
-    const carve = pass ? Math.exp(-(((r - pass.r) / 60) ** 2)) : 0;
-    const ridgeK = (1 - smoothstep(20, 130, distance)) * smoothstep(WORLD.ridgeStart, WORLD.ridgeStart + 260, r);
-    if (ridgeK > 0) {
-      // Jagged crests, not smooth walls.
-      const ridgeH = 55 + this.global.ridged(x * 0.006, z * 0.006, 4) * 70 + this.global.fbm(x * 0.03, z * 0.03, 2) * 6;
-      h += ridgeK * (1 - carve * 0.97) * ridgeH;
-    }
-    // The pass itself is a smooth ramp between the ground on either side, so it is
-    // always walkable whatever cliffs the neighbouring biomes have.
-    if (pass && carve > 1e-3) {
-      const az = azimuthOf(x, z);
-      const bAz = index * SECTOR + SECTOR / 2;
-      const t = Math.atan2(Math.sin(az - bAz), Math.cos(az - bAz)) * r;
-      const corridor = carve * (1 - smoothstep(150, 200, Math.abs(t)));
-      if (corridor > 0) {
-        const [left, right] = this.passEndsFor(pass);
-        h = lerp(h, lerp(left, right, smoothstep(-200, 200, t)), corridor);
+  addPlateau(x: number, z: number, radius: number, height: number, blend = 30): number {
+    const p: Plateau = { x, z, r: radius, h: height, blend };
+    const reach = radius + blend;
+    for (let gz = Math.floor((z - reach) / PLATEAU_CELL); gz <= Math.floor((z + reach) / PLATEAU_CELL); gz++)
+      for (let gx = Math.floor((x - reach) / PLATEAU_CELL); gx <= Math.floor((x + reach) / PLATEAU_CELL); gx++) {
+        const key = gx * 73856093 + gz * 19349663;
+        let list = this.plateauCells.get(key);
+        if (!list) this.plateauCells.set(key, (list = []));
+        list.push(p);
       }
-    }
-
-    // Keep the hub's northern valley open toward the citadel for a while.
-    const az = azimuthOf(x, z);
-    const off = Math.abs(Math.atan2(Math.sin(az - CITADEL_AZ), Math.cos(az - CITADEL_AZ)));
-    const valley = Math.exp(-((off / 0.06) ** 2)) * (1 - smoothstep(900, 1350, r));
-    if (valley > 0) h = lerp(h, Math.min(h, 7), valley * 0.85);
-
-    // World's edge: a ring of great mountains.
-    const edge = smoothstep(WORLD.edgeStart, WORLD.edgeFull, r);
-    if (edge > 0) h += edge * (240 + this.global.ridged(x * 0.0016, z * 0.0016, 4) * 380);
-    return h;
+    return height;
   }
 
-  private passEndsFor(pass: Pass): [number, number] {
-    let ends = this.passEnds.get(pass);
-    if (!ends) {
-      const sample = (t: number) => {
-        const a = pass.azimuth + t / pass.r;
-        return Math.max(1, this.blendedHeight(Math.sin(a) * pass.r, -Math.cos(a) * pass.r));
-      };
-      ends = [sample(-200), sample(200)];
-      this.passEnds.set(pass, ends);
+  /** Average ground height over a disc (for choosing a plateau level). */
+  averageHeight(x: number, z: number, radius: number): number {
+    let sum = this.heightAt(x, z), n = 1;
+    for (const f of [0.4, 0.8]) for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      sum += this.heightAt(x + Math.sin(a) * radius * f, z + Math.cos(a) * radius * f); n++;
     }
-    return ends;
+    return sum / n;
   }
 
   /** Shape of a single biome at (x, z), before blending. */
@@ -148,7 +143,6 @@ export class WorldTerrain {
     h += ridge * ridge * t.ridgeAmp;
 
     if (t.terraces) {
-      // Flat steps with sharp risers.
       const s = t.terraces.step;
       const q = Math.floor(h / s);
       const f = h / s - q;
@@ -174,6 +168,8 @@ export class WorldTerrain {
       const threshold = 1 - t.water * 1.7;
       const k = smoothstep(threshold, threshold + 0.14, lake);
       if (k > 0) {
+        // Lakes reach below the sea-level water plane (the road profile ≈ the base, so the
+        // relief keeps them there).
         const depth = -0.5 - smoothstep(threshold + 0.1, threshold + 0.45, lake) * 3;
         h = lerp(h, Math.min(h, depth), k);
       }
@@ -183,10 +179,9 @@ export class WorldTerrain {
 
   /** Ground colour (vertex colour of terrain tiles). */
   colorAt = (x: number, z: number, h: number, slope: number, out: THREE.Color): void => {
-    const r = Math.hypot(x, z);
-    const hubW = 1 - smoothstep(WORLD.hubInner, WORLD.hubOuter, r);
-    if (hubW >= 1) { this.hub.colorAt(x, z, h, slope, out); return; }
-    const count = this.atlas.weights(x, z, this.colorSites, this.colorW);
+    const a = this.atlas;
+    const hit = a.near(x, z);
+    const count = a.weightsAtS(hit.s, this.colorSites, this.colorW);
     this.acc.setRGB(0, 0, 0);
     for (let i = 0; i < count; i++) {
       this.biomeColor(this.colorSites[i], x, z, h, slope, this.sample);
@@ -194,14 +189,24 @@ export class WorldTerrain {
       this.acc.g += this.sample.g * this.colorW[i];
       this.acc.b += this.sample.b * this.colorW[i];
     }
-    // Ridges and world-edge mountains read as bare rock and snow.
-    const edge = smoothstep(WORLD.edgeStart, WORLD.edgeFull, r);
-    if (edge > 0) this.acc.lerp(this.tmp.set(0x6a6474), edge * 0.6).lerp(this.tmp.set(0xd8d4ec), smoothstep(160, 260, h) * edge);
     out.copy(this.acc);
-    if (hubW > 0) {
-      this.hub.colorAt(x, z, h, slope, this.tmp);
-      out.lerp(this.tmp, hubW);
+    // The road: packed earth with a paler crown, worn at the edges.
+    const edge = 3.2 + this.mountains.get(x * 0.4, z * 0.4) * 0.6;
+    if (hit.d < edge + 1.2) {
+      const site = this.colorSites[0];
+      this.paint.set(site.biome.palette.shore).lerp(this.tmp.set(0x8a7458), 0.55);
+      if (hit.d < 1.1) this.paint.multiplyScalar(1.12);
+      out.lerp(this.paint, 1 - smoothstep(edge, edge + 1.2, hit.d));
     }
+    // Mountains: bare rock with snow on the heights.
+    const W = a.widthAt(hit.s);
+    const mountain = smoothstep(W, W + WORLD.wallRise * 0.7, hit.d);
+    if (mountain > 0) {
+      const rock = this.tmp.set(this.colorSites[0].biome.palette.rock).lerp(this.paint.set(0x6a6474), 0.4);
+      out.lerp(rock, mountain * Math.max(0.55, smoothstep(0.2, 0.45, slope)));
+      out.lerp(this.paint.set(0xe4e0f0), smoothstep(330, 420, h + this.mountains.get(x * 0.02, z * 0.02) * 30) * mountain);
+    }
+    if (h < -2) out.lerp(this.paint.set(0x1c3c40), smoothstep(-2, -8, h));
   };
 
   private biomeColor(site: BiomeSite, x: number, z: number, h: number, slope: number, out: THREE.Color): void {
@@ -210,23 +215,22 @@ export class WorldTerrain {
     const n = this.noise(site);
     const n1 = n.get(x * 0.035, z * 0.035) * 0.5 + 0.5;
     const n2 = n.get(x * 0.21 + 3, z * 0.21 - 8) * 0.5 + 0.5;
-    const rel = (h - t.base) / Math.max(4, t.amplitude + t.ridgeAmp * 0.5);
+    const rel = (h - this.atlas.roadHeight(this.atlas.near(x, z).s)) / Math.max(4, t.amplitude + t.ridgeAmp * 0.5);
     out.set(p.low).lerp(this.paint.set(p.mid), smoothstep(-0.3, 0.35, rel + (n1 - 0.5) * 0.4));
     out.lerp(this.paint.set(p.high), smoothstep(0.35, 0.9, rel));
     out.multiplyScalar(0.9 + n2 * 0.18);
     if (n1 > 0.72) out.lerp(this.paint.set(p.accent), smoothstep(0.72, 0.9, n1) * 0.55);
     // Waterline and shallows.
     out.lerp(this.paint.set(p.shore), 1 - smoothstep(0.2, 1.4, h));
-    // Steep ground is rock (with strata bands where the palette asks for them).
+    const road = this.atlas.roadHeight(this.atlas.near(x, z).s);
     const rock = smoothstep(0.32, 0.58, slope);
     if (rock > 0) {
       this.paint.set(p.rock);
       if (p.strata) this.paint.multiplyScalar(1 + Math.sin(h * 0.9) * p.strata);
       out.lerp(this.paint, rock);
     }
-    if (p.peak !== undefined) out.lerp(this.paint.set(p.peak), smoothstep(t.base + t.amplitude + t.ridgeAmp * 0.55, t.base + t.amplitude + t.ridgeAmp * 0.9, h));
+    if (p.peak !== undefined) out.lerp(this.paint.set(p.peak), smoothstep(road + t.amplitude + t.ridgeAmp * 0.55, road + t.amplitude + t.ridgeAmp * 0.9, h));
     if (t.crater) {
-      // The cavern floor is ice.
       const d = Math.hypot(x - site.x, z - site.z);
       const R = site.radius * t.crater.radius;
       out.lerp(this.paint.set(p.low), (1 - smoothstep(R * 0.6, R * 0.8, d)) * 0.8);
@@ -235,23 +239,19 @@ export class WorldTerrain {
 
   /**
    * Biome mix around (x, z) with a wide blend for sky and mood, as preset → weight,
-   * plus the dominant site. The hub counts as its own preset.
+   * plus the dominant site.
    */
-  moodAt(x: number, z: number, hubPreset: string, out: Map<string, number>): BiomeSite | null {
+  moodAt(x: number, z: number, out: Map<string, number>): BiomeSite {
     out.clear();
-    const hubW = 1 - smoothstep(WORLD.hubInner - 60, WORLD.hubOuter + 60, Math.hypot(x, z));
-    if (hubW > 0) out.set(hubPreset, hubW);
-    if (hubW >= 1) return null;
-    const count = this.atlas.weights(x, z, this.colorSites, this.colorW, 140, 3);
+    const count = this.atlas.weights(x, z, this.colorSites, this.colorW, 160);
     for (let i = 0; i < count; i++) {
       const id = this.colorSites[i].biome.sky;
-      out.set(id, (out.get(id) ?? 0) + this.colorW[i] * (1 - hubW));
+      out.set(id, (out.get(id) ?? 0) + this.colorW[i]);
     }
     return this.colorSites[0];
   }
 
-  biomeAt(x: number, z: number): BiomeDef | null {
-    if (this.hubWeight(x, z) > 0.5) return null;
+  biomeAt(x: number, z: number): BiomeDef {
     return this.atlas.nearest(x, z).biome;
   }
 }

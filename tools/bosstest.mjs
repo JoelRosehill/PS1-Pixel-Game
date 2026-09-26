@@ -81,7 +81,7 @@ try {
       const boss = window.__enter(a.boss.id).boss;
       const t0 = boss.model?.mixer?.time ?? 0;
       const clips = new Set();
-      for (let i = 0; i < 8 * 60; i++) {
+      for (let i = 0; i < 12 * 60; i++) {
         g.step(1 / 60);
         if (g.player.combat.health < 50) g.player.combat.health = 100;
         const c = boss.model?.current;
@@ -132,13 +132,15 @@ try {
             const px = c.x + (x - c.x) * f, pz = c.z + (z - c.z) * f;
             pc.teleport(px, g.level.heightAt(px, pz) + 0.2, pz, 0);
           }
+          g.player.combat.maxHealth = 1e6;
+          g.player.combat.health = 1e6;
           g.step(1 / 60);
-          g.player.combat.health = 100;
           if (!g.player.combat.alive) break;
           if (boss.state === 'staggered') boss.staggerTimer = 0;
         }
         phases.add(boss.phase);
       }
+      g.player.combat.maxHealth = 100; g.player.combat.health = 100;
       const used = new Set(boss.history);
       const all = boss.moveIds();
       const missing = all.filter(m => !used.has(m));
@@ -272,21 +274,13 @@ try {
     return { ok: waiting && arena.state === 'defeated' && g.progress.bosses.has('gloomhorn') && gate.open && !arena.wallsUp && titles.includes('GREAT FOE FELLED'),
       detail: `waited=${waiting} state=${arena.state} gate=${gate.open} titles=${titles.join(',')}` };
   });
-  await run('felling Vermilion frees the Threshold sky', () => {
-    const g = window.__game, T = window.__three, L = g.level;
-    const arena = window.__enter('vermilion');
-    arena.boss.applyHit({ damage: 99999, direction: new T.Vector3(0, 0, -1), point: arena.boss.position.clone(), knockback: 0, stagger: 0, source: 'player', kind: 'heavy' });
-    g.step(0.2);
-    L.update(1 / 60, 0);
-    const dragon = L.hub.heroAssets.dragon;
-    return { ok: g.progress.bosses.has('vermilion') && (!dragon || dragon.visible === false), detail: `display dragon ${dragon ? (dragon.visible ? 'visible' : 'hidden') : 'not loaded'}` };
-  });
   await run('the Pale Sovereign ends the long night', () => {
     const g = window.__game, T = window.__three;
     const arena = window.__enter('sovereign');
     arena.boss.applyHit({ damage: 99999, direction: new T.Vector3(0, 0, -1), point: arena.boss.position.clone(), knockback: 0, stagger: 0, source: 'player', kind: 'heavy' });
     g.step(0.2);
-    return { ok: g.finale && g.progress.bosses.has('sovereign'), detail: `finale=${g.finale}` };
+    g.level.update(1 / 60, 0);
+    return { ok: g.finale && g.progress.bosses.has('sovereign') && g.level.dawnspire.chainBroken, detail: `finale=${g.finale} chain broken=${g.level.dawnspire.chainBroken}` };
   });
 } finally {
   await browser?.close();

@@ -39,13 +39,16 @@ try {
   await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8`);
   await page.waitForFunction('window.__ready === true || !!window.__error');
   const game = await page.evaluate(() => {
-    const game = window.__game;
-    let assets = 0, graves = 0;
-    game.scene.traverse(o => { if (o.name.startsWith('asset:')) assets++; if (o.name === 'graveyard-piece') graves++; });
-    return { errors: game.assetErrors, assets, graves, error: window.__error };
+    const game = window.__game, placed = game.level.structures.placed;
+    let graves = 0;
+    game.scene.traverse(o => { if (o.name === 'graveyard') graves++; });
+    const models = placed.filter(p => !p.spec.model.startsWith('proc:'));
+    const loaded = models.filter(p => p.object?.getObjectByProperty('type', 'Mesh')).length;
+    return { errors: game.assetErrors, models: models.length, loaded, graves, wantGraves: placed.filter(p => p.spec.model === 'proc:graveyard').length,
+      sword: !!game.player.model.cloneSword().getObjectByProperty('type', 'Mesh'), error: window.__error };
   });
-  if (game.error || game.errors.length || game.assets !== 4 || game.graves !== 8) errors.push(`Game integration: ${JSON.stringify(game)}`);
-  else console.log('PASS game integration: sword, church, demon, dragon, and eight graveyard pieces');
+  if (game.error || game.errors.length || game.loaded !== game.models || game.graves !== game.wantGraves || !game.sword) errors.push(`Game integration: ${JSON.stringify(game)}`);
+  else console.log(`PASS game integration: sword, ${game.loaded} supplied structures on the Long Road, ${game.graves} graveyards`);
   // Contact sheets keep visual review practical without modifying the screenshots.
   const names = Object.keys(manifest.models);
   for (let i = 0; i < names.length; i += 8) {

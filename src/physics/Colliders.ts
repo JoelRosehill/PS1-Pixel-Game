@@ -274,7 +274,15 @@ export class ColliderWorld {
    * Pushes a sphere out of every collider it overlaps, moving `center` in place.
    * Contact normals (pointing away from the surface) are appended to `contacts`.
    */
+  /**
+   * An analytic outer boundary (Job 15: the Long Road's valley edge). Returns the push
+   * back inside for a sphere beyond it, or null. Applies to everything that collides.
+   */
+  boundary: ((center: THREE.Vector3, radius: number) => Contact | null) | null = null;
+
   resolveSphere(center: THREE.Vector3, radius: number, contacts: Contact[], ignore?: DynamicBody): void {
+    const edge = this.boundary?.(center, radius);
+    if (edge) { center.addScaledVector(edge.normal, edge.depth); contacts.push(edge); }
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     const near = this.queryIndices(this.qMin, this.qMax, this.scratch);
@@ -371,7 +379,7 @@ export class ColliderWorld {
   deepestContact(center: THREE.Vector3, radius: number, ignore?: DynamicBody): Contact | null {
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
-    let best: Contact | null = null;
+    let best: Contact | null = this.boundary?.(center, radius) ?? null;
     for (const i of this.queryIndices(this.qMin, this.qMax, this.scratch)) {
       const hit = this.penetration(this.colliders[i]!, center, radius);
       if (hit && (!best || hit.depth > best.depth)) best = hit;
@@ -386,6 +394,7 @@ export class ColliderWorld {
 
   /** True if a sphere at this position overlaps anything (used for stand-up / step checks). */
   overlaps(center: THREE.Vector3, radius: number, ignoreBodies = false): boolean {
+    if (this.boundary?.(center, radius)) return true;
     this.qMin.set(center.x - radius, center.y - radius, center.z - radius);
     this.qMax.set(center.x + radius, center.y + radius, center.z + radius);
     for (const i of this.queryIndices(this.qMin, this.qMax, this.scratch)) {

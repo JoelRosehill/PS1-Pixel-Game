@@ -1,7 +1,7 @@
 // Headless screenshot tool: boots the Vite dev server, opens the game in Chrome
 // with fixed camera/time, and saves PNGs to ./screenshots/.
 //
-//   npm run shot                       → the default Job 1 view set
+//   npm run shot                       → the default view set (the Long Road)
 //   npm run shot -- --view=spawn       → one named view
 //   npm run shot -- --name=x --cam=0,5,10 --look=0,5,-50 --preset=blood-moon --bands
 //
@@ -13,99 +13,54 @@ import { createServer } from 'vite';
 import { browserPath, launchArgs } from './browser.mjs';
 
 const VIEWS = {
-  spawn: { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet' },
-  'spawn-blood': { cam: '9,4.6,17', look: '6,10,-60', preset: 'blood-moon' },
-  'spawn-bands': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', bands: true },
-  'spawn-flat': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', mode: 'flat' },
-  plaza: { cam: '5.5,3.4,10.5', look: '0,2.6,0', preset: 'cosmic-violet' },
-  castle: { cam: '-6,4.2,-12', look: '-12,9,-54', preset: 'cosmic-violet' },
-  lake: { cam: '40,5,-6', look: '112,8,-84', preset: 'verdigris-mist' },
-  day: { cam: '30,4.5,4', look: '100,6,-60', preset: 'sunlit-wilderness' },
-  high: { cam: '60,70,90', look: '-10,0,-90', preset: 'blood-moon' },
-  // Player views (chase camera). 'at' teleports the player, 'yaw' aims the camera.
-  hero: { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet' },
-  'hero-course': { at: '20,5,10', yaw: 270, preset: 'cosmic-violet' },
-  course: { cam: '16,17,30', look: '70,8,8', preset: 'cosmic-violet' },
-  // Action poses: keys are held down for holdMs before the shot.
-  'hero-run': { at: '6,2.1,24', yaw: 0, preset: 'cosmic-violet', hold: ['w'], holdMs: 900 },
-  'hero-slide': { at: '54,11,10', yaw: 90, preset: 'sunlit-wilderness', hold: ['w', 'Control'], holdMs: 1100 },
-  'hero-air': { at: '6,2.1,24', yaw: 0, preset: 'cosmic-violet', hold: ['w', ' '], holdMs: 380 },
-  // Combat (Job 3). 'eval' runs in the page first; 'mouse' holds buttons before the shot.
-  yard: { cam: '6,10,44', look: '26,3,28', preset: 'cosmic-violet' },
-  fight: { at: '19,4,28.4', yaw: 0, preset: 'cosmic-violet', mouse: ['left'], holdMs: 150,
-    eval: 'window.__game.player.combat.momentum.value = 64' },
-  'fight-heavy': { at: '19,4,28.6', yaw: 0, preset: 'blood-moon', mouse: ['right'], holdMs: 520 },
-  'fight-burst': { at: '19,4,29', yaw: 0, preset: 'cosmic-violet', holdMs: 220,
-    eval: "const c = window.__game.player.combat; c.momentum.value = 100; c.momentum.resonance = true; setTimeout(() => window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' })), 60)" },
-  'hero-ramp': { at: '52,10,10', yaw: 100, preset: 'sunlit-wilderness' },
-  'hero-shaft': { at: '70,4,10', yaw: 80, preset: 'cosmic-violet' },
-  'hero-bridge': { at: '-12,2.2,-18', yaw: 0, preset: 'blood-moon' },
-  chapel: { cam: '-24,13,55', look: '-61,8,27', preset: 'cosmic-violet' },
-  demon: { cam: '-66,6,28', look: '-78,5,19', preset: 'blood-moon' },
-  dragon: { cam: '-63,24,-58', look: '-92,24,-87', preset: 'sunlit-wilderness' },
-  'book-cast': { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet', holdMs: 230,
-    eval: "const p = window.__game.player; for (const id of ['ember-lance','frost-needle','violet-well','windstep','updraft','ember-ward','mend']) p.spells.collect(id); p.spells.book.select('ember-ward'); p.combat.momentum.value = 80; p.spells.cast();" },
-  'book-leather': { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet' },
-  spellbook: { at: '6,2.1,11', yaw: 186, preset: 'cosmic-violet',
-    eval: "window.__game.player.spells.collect('ember-lance'); window.__game.player.spells.book.select('ember-lance'); window.__game.spellbookUI.open('book')" },
-  // Enemies (Job 5). Spawned in manual mode and posed by stepping the simulation.
-  knights: { at: '20,2.5,64', yaw: 0, preset: 'cosmic-violet', holdMs: 400,
-    eval: "const g = window.__game; g.manual = true; const p = g.player.controller.position; const a = g.enemies.spawn('knight', 18, 58, { rise: false, facing: Math.PI }); const b = g.enemies.spawn('knight', 23, 57, { rise: false, facing: Math.PI * 0.9 }); a.perception.alert(p); b.perception.alert(p); g.step(1.5); a.attack = { id: 'doom', windup: 1.05, arc: 'overhead' }; a.state = 'windup'; a.stateTime = 0.8; g.step(1 / 60); a.think = () => {}; a.stateTime = 0.8; g.step(0.2);" },
-  ruin: { cam: '2,12,-66', look: '22,5,-90', preset: 'cosmic-violet', holdMs: 400,
-    eval: "const g = window.__game; for (const [x, y, z] of g.level.encounters[2].perches) g.enemies.spawn('wizard', x, z, { y, rise: false, facing: 0.9 });" },
-  'wizard-cast': { at: '22,2.2,-76', yaw: 0, preset: 'blood-moon', holdMs: 400,
-    eval: "const g = window.__game; g.manual = true; const [x, y, z] = g.level.encounters[2].perches[3]; const w = g.enemies.spawn('wizard', 22, -86, { rise: false, facing: 0 }); w.perception.alert(g.player.controller.position); w.think = () => {}; w.spell = 'flash'; w.state = 'cast'; w.stateTime = 0.85; g.step(1 / 60); const pp = g.player.controller.position.clone(); pp.x += 2.5; pp.z -= 3; pp.y = g.level.heightAt(pp.x, pp.z); g.enemies.telegraphs.circle(pp, 3.2, 30, 0xffd36a); g.enemies.telegraphs.update(0.6, 1); g.enemies.projectiles.fire(w.staffTip(new window.__three.Vector3()), new window.__three.Vector3(0.1, -0.15, 1), 0, 14, w, 0); g.gameHud.announce('SUNKEEPER WATCH', '2 waves'); g.player.camera.setYaw(0, 0.12);" },
-  // Biomes (Job 6): fly-camera views of each archetype's anchor site.
-  wilderness: { cam: '-45,26,-990', look: '15,14,-1056' },
-  marsh: { cam: '650,14,-610', look: '708,6,-670' },
-  terrace: { cam: '960,20,95', look: '1018,10,40' },
-  caverns: { cam: '560,14,560', look: '659,30,653' },
-  bloodstone: { cam: '-110,70,1030', look: '-30,60,1139' },
-  'world-high': { cam: '0,420,700', look: '0,0,-900', preset: 'cosmic-violet' },
-  // Walking out of the hub along the northern valley.
-  'hub-exit': { at: '40,6,-560', yaw: 0 },
-  // Job 7 landmark kinds and chapter gates (positions resolved in the page).
-  'lm-bones': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('bones:')); const p = new V(lm.x + 55, L.heightAt(lm.x + 55, lm.z + 40) + 18, lm.z + 40); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 6, lm.z)); L.setViewer(p, true);", holdMs: 300 },
-  'lm-tree': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('great-tree:')); const p = new V(lm.x + 60, L.heightAt(lm.x + 60, lm.z + 50) + 14, lm.z + 50); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 22, lm.z)); L.setViewer(p, true);", holdMs: 300 },
-  'lm-portal': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('portal:')); const p = new V(lm.x + 40, L.heightAt(lm.x + 40, lm.z + 35) + 8, lm.z + 35); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 10, lm.z)); L.setViewer(p, true);", holdMs: 300 },
-  'lm-ruins': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('ruins:')); const p = new V(lm.x + 50, L.heightAt(lm.x + 50, lm.z + 45) + 16, lm.z + 45); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 6, lm.z)); L.setViewer(p, true);", holdMs: 300 },
-  'lm-arch': { cam: '0,20,0', look: '0,20,-10', eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const lm = L.landmarks.find(l => l.group.name.startsWith('arch:')); const p = new V(lm.x + 60, L.heightAt(lm.x + 60, lm.z + 45) + 12, lm.z + 45); g.fly.setPose(p, new V(lm.x, L.heightAt(lm.x, lm.z) + 12, lm.z)); L.setViewer(p, true);", holdMs: 300 },
-  gate: { cam: '0,20,0', look: '0,20,-10', holdMs: 300,
-    eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const gate = L.gates.gates[0]; const a = gate.pass.azimuth - 0.05; const p = new V(Math.sin(a) * (gate.pass.r - 40), 0, -Math.cos(a) * (gate.pass.r - 40)); p.y = L.heightAt(p.x, p.z) + 6; g.fly.setPose(p, new V(gate.pass.x, L.heightAt(gate.pass.x, gate.pass.z) + 14, gate.pass.z)); L.setViewer(p, true);" },
-  map: { at: '6,2.1,11', yaw: 186, holdMs: 400,
-    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0', 'c8-0']) g.progress.discover(id); g.progress.clear(g.level.encounters.find(e => e.id.startsWith('camp:c1-0')).id); g.worldMap.open();" },
-  // Bosses (Job 8): an intro frame and a fight frame each.
-  'boss-intro': { at: '0,20,0', yaw: 0, holdMs: 500,
+  // The Long Road (Job 15). Player views start at the spawn in Hollowmere; fly views are
+  // placed from the level's own data (road positions, structures, gates, arenas).
+  spawn: { at: 'spawn', preset: 'cosmic-violet' },
+  'spawn-bands': { at: 'spawn', preset: 'cosmic-violet', bands: true },
+  vista: { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const p = A.road.pointAt(40); fly(new V(p.x - p.tx * 40, L.heightAt(p.x, p.z) + 45, p.z - p.tz * 40), new V(0, 700, 0));" },
+  'road-ahead': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const site = A.sites.find(s => s.id === (window.__site ?? 'c1-1')); const s = site.s0 + (site.s1 - site.s0) * 0.3; const p = A.road.pointAt(s), q = A.road.pointAt(s + 120); fly(new V(p.x, L.heightAt(p.x, p.z) + 3, p.z), new V(q.x, L.heightAt(q.x, q.z) + 4, q.z));" },
+  gate: { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const gt = A.gates[0]; const p = A.road.pointAt(gt.s - 110); fly(new V(p.x, L.heightAt(p.x, p.z) + 8, p.z), new V(gt.x, L.heightAt(gt.x, gt.z) + 30, gt.z));" },
+  dawnspire: { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const p = A.road.pointAt(A.road.length - 700); fly(new V(p.x, L.heightAt(p.x, p.z) + 6, p.z), new V(0, 600, 0));" },
+  church: { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'church-psx'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 1.2 + 40), z = st.z + dz / d * (st.radius * 1.2 + 40); fly(new V(x, L.heightAt(x, z) + 20, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'red-keep': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'castle-xiii'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 1.0 + 40), z = st.z + dz / d * (st.radius * 1.0 + 40); fly(new V(x, L.heightAt(x, z) + 60, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'sword-graveyard': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'ps1-sword-b'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 3 + 40), z = st.z + dz / d * (st.radius * 3 + 40); fly(new V(x, L.heightAt(x, z) + 30, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'obsolete-sea': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'retro-lowpoly-crt-tv'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 2 + 40), z = st.z + dz / d * (st.radius * 2 + 40); fly(new V(x, L.heightAt(x, z) + 20, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'temple-of-the-sun': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'proc:temple'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 1.0 + 40), z = st.z + dz / d * (st.radius * 1.0 + 40); fly(new V(x, L.heightAt(x, z) + 60, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'moat-keep': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'lowpoly-castle'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 0.8 + 40), z = st.z + dz / d * (st.radius * 0.8 + 40); fly(new V(x, L.heightAt(x, z) + 120, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  'pale-cathedral': { cam: '0,20,0', look: '0,20,-10', holdMs: 400, eval: "const g = window.__game, L = g.level, A = L.atlas, V = window.__three.Vector3; const fly = (from, to) => { g.fly.walk = false; g.fly.setPose(from, to); g.setFlyMode(true); L.setViewer(from, true); }; const st = L.structures.placed.find(p => p.spec.model === 'the-lost-relic'); const h = A.road.nearest(st.x, st.z); const dx = h.x - st.x, dz = h.z - st.z, d = Math.hypot(dx, dz); const x = st.x + dx / d * (st.radius * 1.0 + 40), z = st.z + dz / d * (st.radius * 1.0 + 40); fly(new V(x, L.heightAt(x, z) + 40, z), new V(st.x, st.y + st.radius * 0.2, st.z));" },
+  map: { at: 'spawn', holdMs: 400,
+    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0', 'c8-0']) g.progress.discover(id); g.progress.clear(g.level.encounters.find(e => e.id.startsWith('camp:c1-')).id); g.worldMap.open();" },
+  // Bosses: a fight frame each.
+  'boss-intro': { at: 'spawn', holdMs: 500,
     eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(1.6); " },
-  'boss-gloomhorn': { at: '0,20,0', yaw: 0, holdMs: 500,
+  'boss-gloomhorn': { at: 'spawn', holdMs: 500,
     eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'gloomhorn'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('slam', g.enemies.ctx); g.step(0.7);" },
-  'boss-vermilion': { at: '0,20,0', yaw: 0, holdMs: 500,
-    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('breathRun', g.enemies.ctx); g.step(1.1);" },
-  'boss-sovereign': { at: '0,20,0', yaw: 0, holdMs: 500,
-    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'sovereign'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('moonDescent', g.enemies.ctx); g.step(1.0);" },
-  // Story (Job 9): a kindled shrine, the rest menu, a lore tablet and the journal.
-  shrine: { at: '0,20,0', yaw: 0, holdMs: 700,
-    eval: "const g = window.__game, s = g.level.story.shrine('c1-0'), V = window.__three.Vector3; const out = s.rest.clone().sub(s.position).setY(0).normalize(); const p = s.rest.clone().addScaledVector(out, 2.5); p.y = g.level.heightAt(p.x, p.z); g.player.controller.teleport(p.x, p.y + 0.2, p.z, s.facing); g.player.camera.setYaw(s.facing, -0.12); g.level.setViewer(p, true); s.prop.setKindled(true); g.progress.kindle('c1-0');" },
-  'rest-menu': { at: '0,20,0', yaw: 0, holdMs: 500,
-    eval: "const g = window.__game, S = g.level.story; for (const id of ['c1-1', 'c1-3', 'c2-0', 'c2-4']) { S.shrine(id).prop.setKindled(true); g.progress.kindle(id); } const s = S.shrine('c1-0'); g.travelTo(s); s.prop.setKindled(true); g.playTime = 4520; g.deaths = 7; g.restAt(s);" },
-  'lore-reader': { at: '0,20,0', yaw: 0, holdMs: 500,
+  'boss-vermilion': { at: 'spawn', holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('breath', g.enemies.ctx); g.step(1.4);" },
+  'boss-sovereign': { at: 'spawn', holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'sovereign'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('descent', g.enemies.ctx); g.step(1.0);" },
+  // Story: a kindled shrine, the rest menu, a lore tablet and the journal.
+  shrine: { at: 'spawn', holdMs: 700,
+    eval: "const g = window.__game, s = g.level.story.shrine('c1-1'); const out = s.rest.clone().sub(s.position).setY(0).normalize(); const p = s.rest.clone().addScaledVector(out, 2.5); p.y = g.level.heightAt(p.x, p.z); g.player.controller.teleport(p.x, p.y + 0.2, p.z, s.facing); g.player.camera.setYaw(Math.atan2(-out.x, -out.z) + Math.PI, -0.12); g.level.setViewer(p, true); s.prop.setKindled(true); g.progress.kindle('c1-1');" },
+  'rest-menu': { at: 'spawn', holdMs: 500,
+    eval: "const g = window.__game, S = g.level.story; for (const id of ['c1-1', 'c1-3', 'c2-0', 'c2-4']) { S.shrine(id).prop.setKindled(true); g.progress.kindle(id); } const s = S.shrine('c1-1'); g.travelTo(s); g.playTime = 4520; g.deaths = 7; g.restAt(s);" },
+  'lore-reader': { at: 'spawn', holdMs: 500,
     eval: "const g = window.__game, spot = g.level.story.lore.find(l => l.id === 'c1-2'); const p = spot.position; g.player.controller.teleport(p.x + 2, g.level.heightAt(p.x + 2, p.z) + 0.2, p.z, Math.PI / 2); g.level.setViewer(p, true); g.readLore(spot);" },
-  journal: { at: '6,2.1,11', yaw: 186, holdMs: 500,
-    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0']) g.progress.discover(id); for (const id of ['hub-1', 'hub-2', 'c1-0', 'c1-2', 'c1-4', 'mem-1', 'c2-0']) g.progress.readLore(id); g.progress.remember('rem-gloomhorn'); g.storyUI.openJournal();" },
-  wanderer: { at: '5.6,2.1,8.2', yaw: 55, holdMs: 400 },
-  // Job 10: title, menus, final HUD, ending, pixel bloom.
-  title: { at: '6,2.1,11', yaw: 186, title: true, holdMs: 1500, eval: "window.__game.menu.dialog.querySelector('[data-autofocus]')?.blur()" },
-  pause: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "window.__game.menu.open('pause')" },
-  settings: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"display\"]').click();" },
-  controls: { at: '6,2.1,11', yaw: 186, holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"controls\"]').click();" },
-  'hud-final': { at: '0,20,0', yaw: 0, holdMs: 900,
-    eval: "const g = window.__game, s = g.level.story.shrine('c1-3'), V = window.__three.Vector3; const out = s.rest.clone().sub(s.position).setY(0).normalize(); const p = s.position.clone().addScaledVector(out, 45); p.y = g.level.heightAt(p.x, p.z); g.player.controller.teleport(p.x, p.y + 0.2, p.z, 0); g.player.camera.setYaw(Math.atan2(out.x, out.z) + 0.25, -0.05); g.level.setViewer(p, true); g.player.combat.momentum.value = 70; g.markerTimer = 0;" },
-  ending: { at: '6,2.1,11', yaw: 186, holdMs: 400,
-    eval: "const g = window.__game; g.playTime = 9 * 3600 + 42 * 60; g.deaths = 57; for (const s of g.level.story.shrines.slice(0, 33)) s.prop.setKindled(true); for (const id of ['gloomhorn', 'vermilion', 'sovereign']) g.progress.fellBoss(id); g.menu.open('ending');" },
-  'bloom-off': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0' },
-  'bloom-on': { cam: '9,4.6,17', look: '6,10,-60', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0.6' },
+  journal: { at: 'spawn', holdMs: 500,
+    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0']) g.progress.discover(id); for (const id of ['c1-0', 'c1-2', 'c1-4', 'mem-1', 'c2-0']) g.progress.readLore(id); g.progress.remember('rem-gloomhorn'); g.storyUI.openJournal();" },
+  wanderer: { at: 'spawn', holdMs: 400,
+    eval: "const g = window.__game, w = g.level.wanderer.position, p = g.player.controller.position; g.player.camera.setYaw(Math.atan2(-(w.x - p.x), -(w.z - p.z)), -0.05);" },
+  // Title, menus, HUD, ending, pixel bloom.
+  title: { at: 'spawn', title: true, holdMs: 1500, eval: "window.__game.menu.dialog.querySelector('[data-autofocus]')?.blur()" },
+  pause: { at: 'spawn', holdMs: 400, eval: "window.__game.menu.open('pause')" },
+  settings: { at: 'spawn', holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"display\"]').click();" },
+  controls: { at: 'spawn', holdMs: 400, eval: "const m = window.__game.menu; m.open('pause'); m.dialog.querySelector('[data-action=\"settings\"]').click(); m.dialog.querySelector('[data-tab=\"controls\"]').click();" },
+  ending: { at: 'spawn', holdMs: 400,
+    eval: "const g = window.__game; g.playTime = 9 * 3600 + 42 * 60; g.deaths = 57; for (const s of g.level.story.shrines.slice(0, 33)) s.prop.setKindled(true); for (const b of ['morrow', 'gloomhorn', 'solenne', 'glutton', 'vermilion', 'caddoc', 'hivequeen', 'sovereign']) g.progress.fellBoss(b); g.menu.open('ending');" },
+  'bloom-off': { at: 'spawn', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0' },
+  'bloom-on': { at: 'spawn', preset: 'cosmic-violet', holdMs: 600, eval: 'window.__game.pixel.settings.bloom = 0.6' },
 };
-const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
+const DEFAULT_SET = ['spawn', 'vista', 'road-ahead', 'gate', 'church', 'red-keep', 'dawnspire', 'boss-vermilion'];
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {

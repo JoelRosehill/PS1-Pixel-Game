@@ -133,7 +133,7 @@ try {
   // --- sound hooks -----------------------------------------------------------------------
   await run('movement, sword and spells make sounds', async () => {
     const g = window.__game, c = g.audio.counts, p = g.player;
-    window.__at(6, 30);
+    window.__at(g.level.testSite.x, g.level.testSite.z);
     const before = { ...c };
     // Dash in the air: on the ground, Shift standing still channels Momentum instead.
     window.__press('Space'); g.step(0.2);
@@ -154,7 +154,8 @@ try {
   await run('hits, hurts and enemy tells make sounds', () => {
     const g = window.__game, c = g.audio.counts, V = window.__three.Vector3;
     const before = { ...c };
-    const target = g.level.enemies[0];
+    const target = g.level.trainingYard()[0];
+    g.combatWorld.register(target);
     const hit = (source, kind) => ({ damage: 10, direction: new V(0, 0, 1), point: new V(), knockback: 0, stagger: 0, source, kind });
     g.combatWorld.strike(target, hit('player', 'light'));
     g.combatWorld.strike(g.player.combat, hit('enemy', 'light'));
@@ -171,7 +172,7 @@ try {
   await run('rest, lore and the world announce themselves', () => {
     const g = window.__game, c = g.audio.counts;
     const before = { ...c };
-    g.restAt(g.level.story.shrine('threshold'));
+    g.restAt(g.level.story.shrine('hollowmere'));
     g.storyUI.close(false);
     g.readLore(g.level.story.lore[0]);
     g.storyUI.close(false);
@@ -182,26 +183,27 @@ try {
   });
   await run('the score follows the journey', () => {
     const g = window.__game, S = g.sound;
+    const first = g.level.atlas.sites[0];
+    window.__at(first.x, first.z);
     const explore = S.state();
     const site = g.level.atlas.sites.find(s => s.chapter === 3);
-    const lm = g.level.landmarks[g.level.atlas.sites.indexOf(site)];
-    window.__at(lm.x + 30, lm.z + 30);
+    window.__at(site.x, site.z);
     const coast = S.state();
-    window.__at(6, 30);
+    window.__at(g.level.testSite.x, g.level.testSite.z);
     g.enemies.clear();
     const enc = g.enemies.encounters[0];
     const was = enc.state;
     enc.state = 'active';
     const combat = S.state();
     enc.state = was;
-    const rested = g.restAt(g.level.story.shrine('threshold'));
+    const rested = g.restAt(g.level.story.shrine('hollowmere'));
     const why = g.restBlocker(), mode = g.storyUI.mode, dialogs = [...document.querySelectorAll('dialog[open]')].map(d => d.className);
     const rest = S.state();
     g.storyUI.close(false);
     g.finale = true;
     const fin = S.state();
     g.finale = false;
-    const ok = explore.intensity === 'explore' && explore.mood === 0 && coast.mood === 3 && combat.intensity === 'combat' && rest.intensity === 'rest' && fin.mood === 'finale';
+    const ok = explore.intensity === 'explore' && explore.mood === 1 && coast.mood === 3 && combat.intensity === 'combat' && rest.intensity === 'rest' && fin.mood === 'finale';
     return { ok, detail: `${explore.intensity}/${explore.mood} coast=${coast.mood} ${combat.intensity} ${rest.intensity} ${fin.mood} rested=${rested} why=${why} mode=${mode} open=${dialogs}` };
   });
 
@@ -264,7 +266,7 @@ try {
     const swapped = keys.use === 'KeyE' && keys.cast === 'KeyF';
     g.menu.close(false);
     // K now jumps and Space does nothing.
-    window.__at(6, 30);
+    window.__at(g.level.testSite.x, g.level.testSite.z);
     const c = g.audio.counts;
     const j0 = c.jump ?? 0;
     window.__press('Space'); g.step(0.8);
@@ -295,7 +297,7 @@ try {
   // --- HUD ---------------------------------------------------------------------------------
   await run('compass shows heading, region and the nearest unlit shrine', async () => {
     const g = window.__game;
-    const s = g.level.story.shrine('c1-0');
+    const s = g.level.story.shrine('c1-1');
     const out = s.rest.clone().sub(s.position).setY(0).normalize();
     const x = s.position.x + out.x * 60, z = s.position.z + out.z * 60;
     window.__at(x, z, Math.atan2(out.x, out.z));
@@ -309,7 +311,7 @@ try {
     await window.__frames(3);
     const behind = marker.hidden;
     const site = g.level.siteAt(x, z);
-    return { ok: facingMarker && behind && region === (site?.biome.name ?? 'The Threshold'), detail: `region=${region} ahead=${facingMarker} behind-hidden=${behind}` };
+    return { ok: facingMarker && behind && region === site.biome.name, detail: `region=${region} ahead=${facingMarker} behind-hidden=${behind}` };
   });
   await run('the ending card follows the final victory', async () => {
     const g = window.__game;
@@ -345,7 +347,7 @@ try {
     const confirm = g.menu.screen === 'confirm-new';
     d.querySelector('[data-action="back"]').click();
     const back = g.menu.screen === 'title';
-    return { ok: !!cont && label.includes('The Threshold') && confirm && back && r.bands === 4 && r.music === 0.3, detail: `${label} ${JSON.stringify(r)}` };
+    return { ok: !!cont && label.includes('Hollowmere') && confirm && back && r.bands === 4 && r.music === 0.3, detail: `${label} ${JSON.stringify(r)}` };
   });
   await page.evaluate((a, b) => { window.__game.resetting = true; localStorage.removeItem(a); localStorage.removeItem(b); }, SAVE_KEY, SETTINGS_KEY);
   await run('corrupt settings fall back to defaults', async () => {

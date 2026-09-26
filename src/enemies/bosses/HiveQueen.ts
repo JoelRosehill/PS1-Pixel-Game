@@ -33,7 +33,8 @@ export class HiveQueen extends CreatureBoss {
     this.add(
       {
         id: 'barbs', range: [0, 80], weight: 3, cooldown: 1.8, duration: 1.8,
-        start: () => this.act('roar', 0.5),
+        // The stinger curls forward and looses barbs.
+        start: () => this.act('attack_sting', 0.5),
         tick: (t, dt, ctx) => {
           this.face(ctx, dt);
           for (const at of [0.5, 0.9, 1.3]) if (this.at(t, at, dt)) this.volleyOrbs(ctx, this.phase ? 5 : 3, 0.18, 24, 16, 0.7, 'moon', 1, 'stinger');
@@ -80,7 +81,8 @@ export class HiveQueen extends CreatureBoss {
       },
       {
         id: 'drone', range: [0, 16], weight: 1.5, cooldown: 5, duration: 1.8,
-        start: () => this.act('roar', 0.9),
+        // A frantic buzz of the wings that thumps the ground below.
+        start: () => this.hold('run', 1.8, 2.2),
         tick: (t, dt, ctx) => {
           this.stop();
           if (this.at(t, 0.9, dt)) {

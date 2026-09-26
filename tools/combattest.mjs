@@ -21,6 +21,14 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 await page.goto(`${server.resolvedUrls.local[0]}?shot=1&frames=8${logicQuery}`, { waitUntil: 'load' });
 await page.waitForFunction('window.__ready === true || !!window.__error');
+// The training yard (two dummies, two sparring constructs) is raised at the test site.
+await page.evaluate(() => {
+  const g = window.__game;
+  for (const e of g.level.trainingYard()) g.combatWorld.register(e);
+  const t = g.level.testSite;
+  g.player.controller.teleport(t.x, t.y + 0.2, t.z + 30, 0);
+  g.level.setViewer(g.player.controller.position.clone(), true);
+});
 await page.mouse.move(480, 270);
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
