@@ -27,6 +27,18 @@ export class GameHud {
   private readonly blindEl: HTMLElement;
   private readonly announceEl: HTMLElement;
   private readonly hintEl: HTMLElement;
+  private readonly compass: HTMLElement;
+  private readonly compassStrip: HTMLElement;
+  private readonly compassRegion: HTMLElement;
+  private readonly compassMarker: HTMLElement;
+  private readonly saved: HTMLElement;
+  private savedTime = 0;
+  private showHints = true;
+  /** Last value written per element and property: the DOM is only touched on change. */
+  private readonly written = new Map<HTMLElement, Record<string, string>>();
+  private keys = { slide: 'Ctrl', jump: 'Space' };
+  /** Called with every title card (audio stinger). */
+  onAnnounce: (title: string) => void = () => {};
 
   constructor(container: HTMLElement) {
     container.innerHTML = `
@@ -40,6 +52,8 @@ export class GameHud {
       <div class="announce"><strong></strong><span></span></div>
       <div class="world-hint" role="status" aria-live="polite" hidden></div>
       <div class="banner"></div>
+      <div class="compass" aria-hidden="true"><div class="compass-window"><div class="compass-strip"></div><i class="compass-marker">✦</i></div><span class="compass-region"></span></div>
+      <div class="save-indicator" role="status" aria-live="polite"><i></i>Journey saved</div>
       <div class="aim-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="kinetic-hud"><div><strong class="velocity">0</strong><span>m/s</span></div><div class="speed-track"><i></i></div><p class="movement-hint"></p></div>`;
     this.root = container;
@@ -55,6 +69,17 @@ export class GameHud {
     this.velocity = container.querySelector('.velocity')!;
     this.movementHint = container.querySelector('.movement-hint')!;
     this.speedFill = container.querySelector('.speed-track i')!;
+    this.compass = container.querySelector('.compass')!;
+    this.compassStrip = container.querySelector('.compass-strip')!;
+    this.compassRegion = container.querySelector('.compass-region')!;
+    this.compassMarker = container.querySelector('.compass-marker')!;
+    this.saved = container.querySelector('.save-indicator')!;
+    // Three turns of 15° ticks so the strip can scroll either way without a seam.
+    const names: Record<number, string> = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+    let ticks = '';
+    for (let turn = 0; turn < 3; turn++)
+      for (let deg = 0; deg < 360; deg += 15) ticks += `<span class="${names[deg] ? (deg % 90 ? 'mid' : 'card') : ''}">${names[deg] ?? '·'}</span>`;
+    this.compassStrip.innerHTML = ticks;
     const pipHolder = container.querySelector('.pips')!;
     for (let i = 0; i < 3; i++) {
       const pip = document.createElement('div');
@@ -85,6 +110,49 @@ export class GameHud {
     this.announceEl.querySelector('strong')!.textContent = title;
     this.announceEl.querySelector('span')!.textContent = subtitle;
     this.announceTime = 3.2;
+    this.onAnnounce(title);
+  }
+
+  /** Brief "Journey saved" ember in the corner. */
+  flashSaved(): void {
+    this.savedTime = 1.8;
+  }
+
+  setOptions(o: { hints: boolean; compass: boolean; slideKey?: string; jumpKey?: string }): void {
+    this.showHints = o.hints;
+    this.compass.hidden = !o.compass;
+    this.keys = { slide: o.slideKey ?? 'Ctrl', jump: o.jumpKey ?? 'Space' };
+  }
+
+  private css(el: HTMLElement, prop: 'width' | 'opacity' | 'transform', value: string): void {
+    const cache = this.written.get(el) ?? {};
+    if (cache[prop] === value) return;
+    cache[prop] = value;
+    this.written.set(el, cache);
+    el.style[prop] = value;
+  }
+
+  private text(el: HTMLElement, value: string): void {
+    const cache = this.written.get(el) ?? {};
+    if (cache.text === value) return;
+    cache.text = value;
+    this.written.set(el, cache);
+    el.textContent = value;
+  }
+
+  /**
+   * Compass: `yaw` is the camera yaw (0 = facing north, −z); `marker` is a world bearing
+   * in radians for the nearest unlit shrine (null hides it).
+   */
+  setHeading(yaw: number, region: string, marker: number | null): void {
+    const deg = (((-yaw * 180) / Math.PI) % 360 + 360) % 360;
+    const px = 22 / 15; // px per degree
+    this.css(this.compassStrip, 'transform', `translateX(${(-(deg + 360) * px + 130 - 11).toFixed(1)}px)`);
+    if (this.compassRegion.textContent !== region) this.compassRegion.textContent = region;
+    if (marker === null) { this.compassMarker.hidden = true; return; }
+    const m = ((marker * 180) / Math.PI - deg + 540) % 360 - 180;
+    this.compassMarker.hidden = Math.abs(m) > 88;
+    this.css(this.compassMarker, 'transform', `translateX(${(m * px).toFixed(1)}px)`);
   }
 
   /** A persistent prompt near the bottom (e.g. why a gate is closed). */
@@ -101,13 +169,13 @@ export class GameHud {
     const health = combat.health / 100;
     // The "ghost" bar drains behind the real one so damage spikes are legible.
     this.ghost = this.ghost > health ? Math.max(health, this.ghost - dt * 0.5) : health;
-    this.healthFill.style.width = `${health * 100}%`;
-    this.healthGhost.style.width = `${this.ghost * 100}%`;
+    this.css(this.healthFill, 'width', `${(health * 100).toFixed(1)}%`);
+    this.css(this.healthGhost, 'width', `${(this.ghost * 100).toFixed(1)}%`);
 
     const m = combat.momentum;
-    this.momentumFill.style.width = `${m.fraction * 100}%`;
+    this.css(this.momentumFill, 'width', `${(m.fraction * 100).toFixed(1)}%`);
     this.root.classList.toggle('resonance', m.resonance);
-    this.momentumLabel.textContent = m.resonance ? 'RESONANCE' : `MOMENTUM ${Math.round(m.value)}`;
+    this.text(this.momentumLabel, m.resonance ? 'RESONANCE' : `MOMENTUM ${Math.round(m.value)}`);
 
     for (let i = 0; i < this.pips.length; i++) {
       this.pips[i].classList.toggle('spent', i >= controller.dashCharges);
@@ -115,22 +183,26 @@ export class GameHud {
 
     this.blindTime = Math.max(0, this.blindTime - dt);
     const b = this.blinded;
-    this.blindEl.style.opacity = String(Math.min(1, b * 1.15));
+    this.css(this.blindEl, 'opacity', Math.min(1, b * 1.15).toFixed(3));
     this.announceTime = Math.max(0, this.announceTime - dt);
     this.announceEl.classList.toggle('shown', this.announceTime > 0.4);
 
     this.flashAmount = Math.max(0, this.flashAmount - dt * 2.2);
-    this.flash.style.opacity = String(this.flashAmount * 0.7);
+    this.css(this.flash, 'opacity', (this.flashAmount * 0.7).toFixed(3));
+
+    this.savedTime = Math.max(0, this.savedTime - dt);
+    this.saved.classList.toggle('shown', this.savedTime > 0);
 
     const dead = !combat.alive;
-    this.banner.textContent = dead ? 'THE EMBER FADES' : '';
+    this.text(this.banner, dead ? 'THE EMBER FADES' : '');
     this.banner.classList.toggle('shown', dead);
-    this.velocity.textContent = String(Math.round(controller.speed));
-    this.speedFill.style.transform = `scaleX(${Math.min(1, controller.speed / 42)})`;
+    this.text(this.velocity, String(Math.round(controller.speed)));
+    this.css(this.speedFill, 'transform', `scaleX(${Math.min(1, controller.speed / 42).toFixed(3)})`);
     this.root.classList.toggle('at-speed', controller.speed > 18);
     this.root.classList.toggle('is-guarding', combat.guarding);
-    this.movementHint.textContent = dead ? '' : controller.wallRunning ? `WALL RUN ${controller.wallRunRemaining.toFixed(1)}s · SPACE kick` :
-      controller.slamming ? 'SLAM · SPACE at impact to rebound' : controller.techniqueTime > 0 ? controller.lastTechnique :
-      'Ctrl slide → Space launch · C in air: slam';
+    const k = this.keys;
+    this.text(this.movementHint, dead || !this.showHints ? '' : controller.wallRunning ? `WALL RUN ${controller.wallRunRemaining.toFixed(1)}s · ${k.jump.toUpperCase()} kick` :
+      controller.slamming ? `SLAM · ${k.jump.toUpperCase()} at impact to rebound` : controller.techniqueTime > 0 ? controller.lastTechnique :
+      `${k.slide} slide → ${k.jump} launch · in air: slam`);
   }
 }

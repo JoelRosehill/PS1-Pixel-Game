@@ -1,4 +1,27 @@
 /**
+ * Rebinding (Job 10): physical key → the default key whose meaning it takes over, or null
+ * when a default key was moved to another action and is now unbound. Gameplay code keeps
+ * asking for the default codes ('KeyF', 'Space'…); menus translate with `logicalCode`.
+ */
+const keymap = new Map<string, string | null>();
+
+export function logicalCode(code: string): string | null {
+  return keymap.has(code) ? keymap.get(code)! : code;
+}
+
+/** `bindings` and `defaults` map action ids to key codes. */
+export function setKeyBindings(bindings: Record<string, string>, defaults: Record<string, string>): void {
+  keymap.clear();
+  const bound = new Set(Object.values(bindings));
+  for (const action of Object.keys(defaults)) {
+    const d = defaults[action], b = bindings[action] ?? d;
+    if (b === d) continue;
+    keymap.set(b, d);
+    if (!bound.has(d)) keymap.set(d, null);
+  }
+}
+
+/**
  * Keyboard + mouse state with pointer lock.
  * `pressed`/`released` are edge-triggered and cleared by `endFrame()`.
  * Keys use `KeyboardEvent.code` (layout independent: 'KeyW', 'Space', 'ShiftLeft'…).
@@ -15,6 +38,8 @@ export class Input {
   wheel = 0;
   locked = false;
   blocked = false;
+  /** Screenshot and test runs never capture the mouse (headless locks come and go). */
+  lockEnabled = true;
 
   clear(): void {
     this.down.clear(); this.pressedSet.clear(); this.releasedSet.clear();
@@ -41,7 +66,7 @@ export class Input {
   }
 
   requestLock(): void {
-    if (!this.locked) this.element.requestPointerLock?.();
+    if (!this.locked && this.lockEnabled) this.element.requestPointerLock?.();
   }
 
   isDown(code: string): boolean {
@@ -89,13 +114,17 @@ export class Input {
     if (this.blocked) return;
     if (e.code.startsWith('F') && e.code.length <= 3) e.preventDefault();
     if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
-    if (!this.down.has(e.code)) this.pressedSet.add(e.code);
-    this.down.add(e.code);
+    const code = logicalCode(e.code);
+    if (!code) return;
+    if (!this.down.has(code)) this.pressedSet.add(code);
+    this.down.add(code);
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
-    this.down.delete(e.code);
-    this.releasedSet.add(e.code);
+    const code = logicalCode(e.code);
+    if (!code) return;
+    this.down.delete(code);
+    this.releasedSet.add(code);
   };
 
   private onBlur = () => {

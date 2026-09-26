@@ -7,11 +7,11 @@ import { Atmosphere } from '../render/Atmosphere';
 import { sharedUniforms } from '../render/Materials';
 import { DEBUG_PRESETS, getSkyPreset } from '../render/sky/SkyPresets';
 import { Effects } from '../render/effects/Effects';
-import { PIXEL_MODES, SmartPixelRenderer } from '../render/SmartPixelRenderer';
+import { PIXEL_MODES, SmartPixelRenderer, smartMode } from '../render/SmartPixelRenderer';
 import { GameHud } from '../ui/GameHud';
 import { Player } from '../player/Player';
 import { World } from '../world/World';
-import { Input } from './Input';
+import { Input, setKeyBindings } from './Input';
 import { TimeControl } from './TimeControl';
 import { PagePickups } from '../spells/PagePickups';
 import { SpellbookUI } from '../ui/SpellbookUI';
@@ -27,6 +27,11 @@ import type { LoreSpot, Shrine } from '../world/StoryProps';
 import { StoryUI } from '../ui/StoryUI';
 import { REMEMBRANCES, WANDERER_LINES } from '../story/Lore';
 import { roman } from '../world/biomes/Chapters';
+import { AudioEngine } from '../audio/AudioEngine';
+import { SoundDirector } from '../audio/SoundDirector';
+import { MenuUI } from '../ui/MenuUI';
+import { ACTIONS, keyName, Settings } from './Settings';
+import { LORE, MEMORIALS } from '../story/Lore';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
 export interface GameSystem {
@@ -53,6 +58,14 @@ export interface GameOptions {
   save?: boolean;
   /** Ignore any existing save and start a new journey. */
   fresh?: boolean;
+  /** Create audio (it still waits for a user gesture to start). */
+  audio?: boolean;
+  /** Open on the title screen. */
+  title?: boolean;
+  /** Force the debug overlay on or off (screenshots); otherwise the setting decides. */
+  debugHud?: boolean;
+  /** Capture the mouse for play (off for screenshots and tests). */
+  pointerLock?: boolean;
 }
 
 const FIXED_DT = 1 / 60;
@@ -88,6 +101,10 @@ export class Game {
   deaths = 0;
   /** A save was found and applied at startup. */
   resumed = false;
+  readonly settings: Settings;
+  readonly audio: AudioEngine;
+  readonly sound: SoundDirector;
+  readonly menu: MenuUI;
   /** Tests set this to drive the simulation only through `step()`. */
   manual = false;
   /** Debug fly camera instead of the player's chase camera. */
@@ -112,6 +129,14 @@ export class Game {
   private bookRevision = -1;
   private wasAlive = true;
   private resetting = false;
+  private finaleTimer = -1;
+  private endingShown = false;
+  private titleTime = 0;
+  private titleShown = false;
+  private wasLocked = false;
+  private markerTimer = 0;
+  private shrineBearing: number | null = null;
+  private readonly debugHudOverride: boolean | undefined;
   private readonly billboard = new THREE.Quaternion();
 
   constructor(container: HTMLElement, hudEl: HTMLElement, gameHudEl: HTMLElement, opts: GameOptions = {}) {
@@ -125,6 +150,7 @@ export class Game {
     else this.pixel.resize();
 
     this.input = new Input(this.pixel.renderer.domElement);
+    this.input.lockEnabled = opts.pointerLock ?? true;
     this.hud = new DebugHud(hudEl);
 
     this.level = new World(this.atmosphere, this.progress);
@@ -164,6 +190,7 @@ export class Game {
       this.player.controller.frozen = true;
       this.input.clear();
       this.gameHud.announce(arena.def.boss.name.toUpperCase(), arena.def.boss.epithet);
+      this.audio?.play('bossRoar');
     };
     this.enemies.onBossBegin = arena => {
       this.player.controller.frozen = this.flyMode;
@@ -176,6 +203,7 @@ export class Game {
       this.progress.fellBoss(boss.id);
       const rem = REMEMBRANCES.find(r => r.boss === boss.id);
       if (rem) this.progress.remember(rem.id);
+      this.audio?.play('bossDefeat');
       this.player.combat.health = 100;
       this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED', boss.id === 'sovereign' ? 'The moon is free. Thank you for playing.' : `${boss.name}, ${boss.epithet}`);
       if (boss.id === 'sovereign') this.finale = true;
@@ -200,6 +228,7 @@ export class Game {
     this.combatWorld.onHit = (target, hit, result) => {
       if (target === this.player.combat && result.hit) this.gameHud.onPlayerDamaged(result.damage ?? hit.damage);
       this.enemies.onHit(target, hit, result);
+      this.sound?.onHit(target, hit, result);
     };
 
     this.fly = new FlyCamera(this.camera, this.input, (x, z) => this.level.heightAt(x, z));
@@ -219,6 +248,40 @@ export class Game {
     this.progress.onChange(() => this.requestSave());
     this.bookRevision = this.player.spells.book.revision;
     window.addEventListener('pagehide', () => this.saveNow());
+
+    // Job 10: settings, audio, menus.
+    this.debugHudOverride = opts.debugHud;
+    this.settings = new Settings(opts.save ?? true);
+    this.audio = new AudioEngine(opts.audio ?? true);
+    this.sound = new SoundDirector(this, this.audio);
+    this.gameHud.onAnnounce = () => this.audio.play('announce');
+    this.menu = new MenuUI({
+      input: this.input,
+      settings: this.settings,
+      applySettings: () => this.applySettings(),
+      resumed: () => this.resumed,
+      continueLabel: () => `${this.level.story.shrine(this.restShrine)?.name ?? 'The Threshold'} · ${this.formatTime(this.playTime)}`,
+      begin: () => this.audio.start(),
+      newJourney: () => this.beginAnew(),
+      toTitle: () => { this.saveNow(); this.resetting = true; location.reload(); },
+      openJournal: () => this.storyUI.openJournal(),
+      openMap: () => this.worldMap.open(),
+      endingStats: () => this.endingStats(),
+      sound: name => this.audio.play(name),
+    });
+    this.applySettings();
+    document.addEventListener('pointerlockchange', () => {
+      if (this.input.locked) { this.wasLocked = true; return; }
+      // Esc released the mouse during play: pause (menus release it themselves).
+      if (this.wasLocked && !this.menuOpen && !document.querySelector('dialog[open]')) this.menu.open('pause');
+      this.wasLocked = false;
+    });
+    window.addEventListener('keydown', e => {
+      if (e.code !== 'Escape' || this.menuOpen || this.input.locked || document.querySelector('dialog[open]')) return;
+      e.preventDefault();
+      this.menu.open('pause');
+    }, true);
+    if (opts.title) this.menu.open('title');
     if (opts.playerAt) {
       const p = opts.playerAt;
       this.player.controller.teleport(p.x, p.y, p.z, opts.playerYaw ?? 0);
@@ -257,6 +320,7 @@ export class Game {
     this.elapsed = this.frozenTime ?? this.elapsed + dt;
     if (!this.flyMode) this.playTime += dt;
     this.updateAutosave(realDt);
+    this.updateFinale(realDt);
 
     if (!this.menuOpen) this.handleDebugKeys();
     if (!this.flyMode && !this.menuOpen) this.player.camera.readLook();
@@ -273,6 +337,7 @@ export class Game {
 
     if (this.flyMode) this.fly.update(dt);
     this.updateCinematic();
+    this.updateTitleCamera(realDt);
     this.level.setViewer?.(this.camera.position);
     this.level.update(dt, this.elapsed);
     sharedUniforms.uWindTime.value = this.elapsed;
@@ -290,6 +355,8 @@ export class Game {
     this.bossHud.update(realDt, this.flyMode ? null : this.enemies.activeBoss, !!this.enemies.intro);
     this.gameHud.setHint(this.flyMode ? '' : this.level.gateHint ?? '');
     this.spellbookUI.update(realDt, this.flyMode || this.menuOpen ? '' : this.interactions.prompt());
+    this.updateCompass(realDt);
+    this.sound.frame();
 
     if (this.renderEnabled) this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
     const pc = this.player.controller;
@@ -334,7 +401,7 @@ export class Game {
 
   /** A pausing menu (spellbook, quick-wheel or world map) is open. */
   get menuOpen(): boolean {
-    return this.spellbookUI.paused || this.worldMap.paused || this.storyUI.paused;
+    return this.spellbookUI.paused || this.worldMap.paused || this.storyUI.paused || this.menu.paused;
   }
 
   /** One 60 Hz simulation step: player, enemies, constructs and pickups. */
@@ -348,6 +415,93 @@ export class Game {
     if (this.input.takePressed('KeyF') && !this.flyMode) this.interactions.interact();
     if (this.wasAlive && !alive) { this.deaths++; this.requestSave(); }
     this.wasAlive = alive;
+    this.sound.fixedStep();
+  }
+
+  // --- settings, menus and presentation (Job 10) -----------------------------------
+
+  /** Pushes the current settings into the renderer, camera, audio, HUD and keymap. */
+  applySettings(): void {
+    const s = this.settings.data;
+    this.audio.setVolumes({ master: s.master, music: s.music, sfx: s.sfx, ambience: s.ambience });
+    const px = this.pixel;
+    const smart = px.mode.id.startsWith('smart');
+    if (smart && px.mode.bands.length !== s.bands) px.setMode(smartMode(s.bands));
+    if (px.settings.baseLines !== s.pixelLines) { px.settings.baseLines = s.pixelLines; px.resize(); }
+    px.settings.bloom = s.bloom;
+    px.settings.outline = s.outline ? 1 : 0;
+    const cam = this.player.camera;
+    cam.sensitivity = 0.0022 * s.sensitivity;
+    cam.invertY = s.invertY;
+    cam.baseFov = s.fov;
+    cam.motionScale = s.motion ? 1 : 0;
+    this.gameHud.setOptions({ hints: s.hints, compass: s.compass, slideKey: keyName(s.keys.slide), jumpKey: keyName(s.keys.jump) });
+    const debug = this.debugHudOverride ?? s.debugHud;
+    if (this.hud.visible !== debug) this.hud.toggle();
+    setKeyBindings(s.keys, Object.fromEntries(ACTIONS.map(a => [a.id, a.key])));
+  }
+
+  formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600), m = Math.floor(seconds / 60) % 60;
+    return h ? `${h} h ${m} min` : `${m} min`;
+  }
+
+  private endingStats(): [string, string][] {
+    const p = this.progress;
+    return [
+      ['JOURNEY', this.formatTime(this.playTime)],
+      ['DEATHS', String(this.deaths)],
+      ['SHRINES KINDLED', `${this.level.story.shrines.filter(s => s.prop.kindled).length} / ${this.level.story.shrines.length}`],
+      ['FRAGMENTS READ', `${p.lore.size} / ${Object.keys(LORE).length + Object.keys(MEMORIALS).length}`],
+      ['PAGES', `${this.player.spells.book.count} / 8`],
+      ['GREAT FOES', `${p.bosses.size} / 3`],
+    ];
+  }
+
+  /** The ending card appears a few seconds after the final boss falls. */
+  private updateFinale(dt: number): void {
+    if (!this.finale || this.endingShown) return;
+    if (this.finaleTimer < 0) this.finaleTimer = 7;
+    if (this.menuOpen) return;
+    this.finaleTimer -= dt;
+    if (this.finaleTimer <= 0) { this.endingShown = true; this.menu.open('ending'); }
+  }
+
+  /** Behind the title screen the camera drifts slowly over the Threshold. */
+  private updateTitleCamera(dt: number): void {
+    const title = this.menu.screen === 'title';
+    if (title !== this.titleShown) {
+      this.titleShown = title;
+      this.gameHud.setVisible(!title && !this.flyMode);
+    }
+    if (!title || this.flyMode) return;
+    this.titleTime += dt;
+    const t = this.titleTime;
+    // Over the plaza toward the castle and the moon, drifting slowly.
+    const yaw = 0.3 + Math.sin(t * 0.06) * 0.22;
+    this.camera.position.set(15 + Math.sin(t * 0.05) * 2.5, 7.5 + Math.sin(t * 0.08) * 0.6, 26);
+    this.camera.rotation.set(0.1, yaw, 0, 'YXZ');
+    this.camera.fov = 62;
+    this.camera.updateMatrixWorld();
+    this.player.view.scene.visible = false;
+  }
+
+  /** Heading, region name and a marker for the nearest unlit shrine. */
+  private updateCompass(dt: number): void {
+    const p = this.player.controller.position;
+    this.markerTimer -= dt;
+    if (this.markerTimer <= 0) {
+      this.markerTimer = 0.5;
+      let best = 700, bearing: number | null = null;
+      for (const s of this.level.story.shrines) {
+        if (s.prop.kindled) continue;
+        const d = Math.hypot(s.position.x - p.x, s.position.z - p.z);
+        if (d < best) { best = d; bearing = Math.atan2(s.position.x - p.x, -(s.position.z - p.z)); }
+      }
+      this.shrineBearing = bearing;
+    }
+    const site = this.level.siteAt(p.x, p.z);
+    this.gameHud.setHeading(this.player.camera.yaw, site ? site.biome.name : 'The Threshold', this.shrineBearing);
   }
 
   // --- story, shrines and saving (Job 9) -------------------------------------------
@@ -363,6 +517,7 @@ export class Game {
   restAt(shrine: Shrine): boolean {
     const blocked = this.restBlocker();
     if (blocked) { this.gameHud.announce('THE EMBER WILL NOT ANSWER', blocked); return false; }
+    this.audio.play(shrine.prop.kindled ? 'rest' : 'kindle');
     if (!shrine.prop.kindled) {
       shrine.prop.setKindled(true);
       this.effects.sparkBurst(shrine.position.clone().setY(shrine.position.y + 1), new THREE.Vector3(0, 1, 0), 0xff8a3a, 24, 6);
@@ -388,11 +543,13 @@ export class Game {
     this.restShrine = shrine.id;
     this.enemies.resetActive();
     this.level.setViewer(r, true);
+    this.audio.play('travel');
     this.gameHud.announce(shrine.name.toUpperCase(), shrine.chapter ? `Chapter ${roman(shrine.chapter)}` : 'The last fire');
     this.saveNow();
   }
 
   readLore(spot: LoreSpot): void {
+    this.audio.play('lore');
     this.progress.readLore(spot.id);
     const f = spot.fragment;
     const where = f.chapter ? `CHAPTER ${roman(f.chapter)} · ${this.level.atlas.chapters[f.chapter - 1]?.name.toUpperCase() ?? ''}` : 'THE THRESHOLD';
@@ -409,6 +566,7 @@ export class Game {
   }
 
   talkToWanderer(): void {
+    this.audio.play('lore');
     this.storyUI.read({ kicker: 'THE THRESHOLD', title: 'The Wanderer', text: this.wandererLine(), speaker: 'the Wanderer' });
   }
 
@@ -431,7 +589,9 @@ export class Game {
   saveNow(): boolean {
     this.saveTimer = -1;
     if (this.resetting) return false;
-    return this.save.save(this.snapshot());
+    const ok = this.save.save(this.snapshot());
+    if (ok) this.gameHud.flashSaved();
+    return ok;
   }
 
   /** Debounced autosave (progress changes, new pages, deaths). */
@@ -504,7 +664,7 @@ export class Game {
     if (inp.takePressed('F6')) this.player.camera.motionScale = this.player.camera.motionScale ? 0 : 1;
     if (inp.pressed('BracketLeft')) px.cycleBaseLines(-1);
     if (inp.pressed('BracketRight')) px.cycleBaseLines(1);
-    if (inp.pressed('KeyH')) this.hud.toggle();
+    if (inp.pressed('KeyH')) { this.hud.toggle(); this.settings.data.debugHud = this.hud.visible; this.settings.save(); }
     if (inp.pressed('KeyV')) this.setFlyMode(!this.flyMode);
     if (inp.pressed('KeyR') && !this.flyMode) this.player.respawn();
     DEBUG_PRESETS.forEach((p, i) => {

@@ -37,6 +37,10 @@ const opts: GameOptions = {
   // Screenshots and test harnesses never touch the save unless they ask (&save=1).
   save: q.get('shot') !== '1' || q.get('save') === '1',
   fresh: q.get('fresh') === '1',
+  audio: q.get('shot') !== '1' || q.get('audio') === '1',
+  title: q.get('shot') !== '1' || q.get('title') === '1',
+  debugHud: q.get('shot') === '1' ? q.get('hud') === '1' : undefined,
+  pointerLock: q.get('shot') !== '1',
 };
 const shot = q.get('shot') === '1';
 
@@ -50,20 +54,18 @@ try {
   window.__three = THREE;
   game.start();
 
+  // The title screen (Game.menu) replaces the loading splash once the game exists.
+  splash.style.display = 'none';
   if (shot) {
-    splash.style.display = 'none';
-    if (q.get('hud') !== '1') hud.style.display = 'none';
     if (q.get('gamehud') === '0') gameHud.style.display = 'none';
     const target = Number(q.get('frames') ?? 4);
     const waitFrames = () => (game.frames >= target ? (window.__ready = true) : requestAnimationFrame(waitFrames));
     game.assetsReady.then(() => requestAnimationFrame(waitFrames));
   } else {
-    const begin = () => {
-      splash.classList.add('hidden');
-      game.input.requestLock();
-    };
-    splash.addEventListener('click', begin);
-    game.pixel.renderer.domElement.addEventListener('click', () => game.input.requestLock());
+    game.pixel.renderer.domElement.addEventListener('click', () => {
+      game.audio.start();
+      if (!game.menuOpen) game.input.requestLock();
+    });
   }
 } catch (err) {
   window.__error = String(err instanceof Error ? err.stack : err);

@@ -58,6 +58,9 @@ export class Telegraphs {
   private readonly lines: LineMarker[] = [];
   private readonly lineStrikes: LineStrike[] = [];
 
+  /** Telegraphs shown so far (audio cues). */
+  shown = 0;
+
   constructor() {
     this.group.name = 'telegraphs';
     const ringGeo = new THREE.RingGeometry(0.9, 1, 40).rotateX(-Math.PI / 2);
@@ -99,6 +102,7 @@ export class Telegraphs {
 
   /** Shows a filling circle at `point` for `duration` seconds. */
   circle(point: THREE.Vector3, radius: number, duration: number, color: THREE.ColorRepresentation): void {
+    this.shown++;
     const m = this.markers.find(x => !x.active);
     if (!m) return;
     m.active = true;
@@ -116,6 +120,7 @@ export class Telegraphs {
 
   /** A column of light (the strike itself). */
   pillar(point: THREE.Vector3, radius: number, height: number, color: THREE.ColorRepresentation, duration = 0.45): void {
+    this.shown++;
     const p = this.pillars.find(x => x.life <= 0);
     if (!p) return;
     p.life = p.duration = duration;
@@ -141,6 +146,7 @@ export class Telegraphs {
 
   /** A glowing lane on the ground from `from` to `to` (charges, breath runs, spike lines). */
   lane(from: THREE.Vector3, to: THREE.Vector3, width: number, duration: number, color: THREE.ColorRepresentation): void {
+    this.shown++;
     const l = this.lines.find(x => !x.active);
     if (!l) return;
     l.active = true;

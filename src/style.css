@@ -216,7 +216,7 @@ body {
 .kinetic-hud span { margin-left: 7px; font-size: 10px; }
 .speed-track { width: 130px; height: 3px; background: #261731; margin: 6px auto; }
 .speed-track i { display: block; height: 100%; background: #8ae8ff; transform-origin: left; }
-.movement-hint { font-size: 10px; margin: 7px 0 0; max-width: 38ch; }
+.movement-hint { font-size: 10px; margin: 7px 0 0; max-width: 56ch; }
 .at-speed .kinetic-hud { color: #a3ffda; }
 .at-speed .speed-track i { background: #a3ffda; }
 @media (max-width: 1000px) {
@@ -229,7 +229,7 @@ body {
 #gamehud .announce.shown { opacity: 1; }
 #gamehud .announce strong { display: block; font-size: clamp(22px, 3.6vw, 40px); font-weight: normal; letter-spacing: 0.24em; color: #f4e2ff; text-shadow: 3px 3px 0 #2a0a3a, 0 0 18px rgba(176, 124, 255, 0.55); }
 #gamehud .announce span { display: block; margin-top: 6px; font-size: 13px; letter-spacing: 0.18em; color: #c7b3ff; text-shadow: 1px 1px 0 #100a1d; }
-.enemy-frame { position: absolute; top: 20px; left: 50%; width: min(420px, 70vw); transform: translateX(-50%); opacity: 0; transition: opacity 0.25s; text-shadow: 1px 1px 0 #100a1d; }
+.enemy-frame { position: absolute; top: 66px; left: 50%; width: min(420px, 70vw); transform: translateX(-50%); opacity: 0; transition: opacity 0.25s; text-shadow: 1px 1px 0 #100a1d; }
 .enemy-frame.shown { opacity: 1; }
 .enemy-name { font-size: 12px; letter-spacing: 0.22em; color: #f0e6ff; margin-bottom: 4px; text-align: center; }
 .enemy-bar { position: relative; height: 10px; background: #140c1e; border: 2px solid #3c2358; box-shadow: 0 0 0 2px #0a0414; }
@@ -263,3 +263,18 @@ body {
 .letterbox i:last-child { bottom: 0; }
 .letterbox.shown i { height: 11vh; }
 @media (max-width: 1000px) { .boss-hud { bottom: 190px; } }
+
+/* ---- Job 10: final HUD ---- */
+#gamehud .compass { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); text-align: center; text-shadow: 1px 1px 0 #100a1d; }
+#gamehud .compass[hidden] { display: none; }
+.compass-window { position: relative; width: 260px; height: 20px; overflow: hidden; border-bottom: 2px solid #3c2358; background: #0a061470; -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); }
+.compass-window::after { content: ''; position: absolute; left: 129px; bottom: 0; width: 2px; height: 6px; background: #ffd894; }
+.compass-strip { position: absolute; left: 0; top: 0; display: flex; white-space: nowrap; will-change: transform; }
+.compass-strip span { width: 22px; flex: none; font-size: 9px; line-height: 20px; color: #7f6e98; }
+.compass-strip span.card { font-size: 12px; color: #f4e8ff; }
+.compass-strip span.mid { font-size: 9px; color: #c7b3ff; }
+.compass-marker { position: absolute; left: 124px; top: 1px; font-style: normal; font-size: 12px; color: #ff9a4a; text-shadow: 0 0 6px #ff6a1a; }
+.compass-region { display: block; margin-top: 3px; font-size: 10px; letter-spacing: 0.2em; color: #c8b9d6; text-transform: uppercase; }
+#gamehud .save-indicator { position: absolute; left: 24px; top: 20px; display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; color: #ffcf8a; opacity: 0; transition: opacity 0.5s; text-shadow: 1px 1px 0 #100a1d; }
+#gamehud .save-indicator.shown { opacity: 1; }
+#gamehud .save-indicator i { width: 8px; height: 8px; background: #ff8a3a; box-shadow: 0 0 8px #ff6a1a; transform: rotate(45deg); }

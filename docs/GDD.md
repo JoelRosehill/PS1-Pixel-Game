@@ -196,7 +196,7 @@ mist after a short cinematic; dying resets the fight.
 
 Gloomhorn and Vermilion also hold the keys to their chapters' gates.
 
-## Pillar 6 — Story, Shrines & Saves (Job 9)
+## Story, Shrines & Saves (Job 9 · serves Pillar 4)
 The story is never narrated; it is found. **The Long Night:** the Sunkeepers kept the
 day, the Moon-kings the night. The last Moon-king, the **Pale Sovereign**, could not bear
 endings and chained the moon to the world. Night has lasted four hundred years and the
@@ -237,6 +237,34 @@ when the page closes.
 
 ---
 
+## Presentation: Sound, Menus & Polish (Job 10 · all pillars)
+**Chill-fi score.** Everything is synthesised live (WebAudio), no audio files. A lo-fi
+band plays in each chapter: FM electric piano, round bass, soft swung drums, a kalimba
+melody that answers the chords every other phrase, and pads where the land feels open.
+Each chapter has its own key, progression and tempo (the Reach is bright F major, the
+Bloodstone Wastes sit in a Phrygian C minor, the Last Garden in D minor with a minor-
+major tonic); beating the Sovereign turns the score to D major — the dawn. Fights make
+the drums tighter and busier; bosses push the tempo with a four-on-the-floor kick and a
+low drone. A tape wobble, a crackle bed and a speed-driven wind layer carry the
+"chill-fi" texture; opening a menu sinks the music under a low-pass.
+
+**Sound effects** are short and soft so they sit inside the mix: the parry is a bright
+metallic ring, perfect dodges chime, each spell type has its own voice, enemy telegraphs
+give a small two-note tell (audio support for readable attacks), bosses roar.
+
+**Menus.** A title screen over a slowly drifting view of the Threshold (Continue shows
+the shrine and play time), Esc pauses, and settings cover audio levels, pixel size,
+depth band count (a performance lever), pixel bloom, outlines, FOV, camera motion,
+compass, hints, sensitivity/invert and rebindable keys. The ending card shows the
+journey's stats.
+
+**HUD.** Vigour/Momentum/dash bottom-left, speed bottom-centre, spell bottom-right, and a
+compass at the top with the region name and an ember marker toward the nearest unlit
+shrine (quiet exploration guidance in the Elden Ring spirit).
+
+**Pixel bloom** glows in stepped, dithered rings on a quarter-size grid, so glow reads as
+pixel art rather than a smooth blur.
+
 ## Code map
 ```
 src/
@@ -256,6 +284,9 @@ src/
   ui/SpellbookUI.ts       reading screen, quick-wheel and spell HUD
   ui/EnemyHud.ts          target frame (enemy name, Vigour, poise, state cues)
   ui/StoryUI.ts           lore reader, shrine rest menu (fast travel), journal
+  ui/MenuUI.ts            title, pause, settings (rebinding), ending
+  audio/                  AudioEngine, Music (procedural score), Sfx, Synth, SoundDirector
+  core/Settings.ts        persisted preferences and rebindable actions
   story/Lore.ts           lore fragments, memorials, remembrances, arcs, Wanderer lines
   core/SaveGame.ts        localStorage save slot; core/Progress.ts shared progress
   world/                  World (streamed level), ProvingGrounds (the hub), prop builders,
@@ -274,4 +305,7 @@ tools/worldtest.mjs       world layout, streaming, biome and camp assertions
 tools/atlastest.mjs       atlas, landmarks, gates, map assertions
 tools/bosstest.mjs        boss framework and fight assertions
 tools/savetest.mjs        shrines, lore, journal, Wanderer and save/load assertions
+tools/uitest.mjs          audio, menus, settings, rebinding, HUD and bloom assertions
+tools/buildtest.mjs       production build smoke test
+tools/perf.mjs            CPU frame-cost profiler
 ```

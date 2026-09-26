@@ -23,8 +23,8 @@ that mention a chase camera or third person describe the state at the time.
 | 6 | World Engine & Biome Framework (5 archetypes) | 1, 4 | ✅ Done |
 | 7 | The 40-Biome Atlas & Chapter Structure | 4 | ✅ Done |
 | 8 | Colossal Bosses & Dragon-kin | 5 | ✅ Done |
-| 9 | Narrative, Rest Shrines & Save System | 4 | ⏳ Next |
-| 10 | Audio, UI, Bloom & Polish Pass | all | — |
+| 9 | Narrative, Rest Shrines & Save System | 4 | ✅ Done |
+| 10 | Audio, UI, Bloom & Polish Pass | all | ✅ Done |
 
 ---
 
@@ -375,7 +375,48 @@ hitboxes. The procedural player and its future book are unchanged.
 - The splash in `index.html` lists controls; F now covers shrines/lore/Wanderer and J is
   the journal.
 
-## Job 10 — Audio, UI & Polish
-- Procedural chill-fi ambient score + SFX (WebAudio)
-- Main menu, settings (pixel scale, band count, keybinds), final HUD
-- Pixel bloom/glow pass, performance pass, production build
+## Job 10 — Audio, UI & Polish ✅
+- [x] **Procedural chill-fi score** (`src/audio/Music.ts`): a lookahead 16th-note scheduler
+      plays four-chord, eight-bar loops — FM electric-piano comping (strum, re-voice,
+      loose stabs), round bass with approach notes, swung boom-bap drums, a sparse
+      kalimba melody in call-and-response, pads for airy moods. **Nine moods** (the
+      Threshold + one per chapter, each with its own key, progression, tempo and tone)
+      plus the dawn after the finale. **Intensity** follows the game — title, explore,
+      combat (tighter, busier drums), boss (faster, four-on-the-floor, low drone), rest,
+      finale — and changes land on the next bar line
+- [x] **Mix** (`AudioEngine`): music → tone filter → tape wobble (modulated delay);
+      effects; ambience (vinyl crackle loop + a wind bed that rises with speed and
+      altitude) → compressor. Menus sink the score under a low-pass. Starts on the first
+      gesture; squared volume curves
+- [x] **35 synthesised effects** (`Sfx.ts`): swings, heavy, hit/crit, parry clang, block,
+      hurt, perfect-dodge chime, death; jump, land, dash, slide, wall kick, slam, rebound;
+      one cast sound per spell type; resonance; enemy tells, orbs, shockwaves, deaths;
+      boss roar and victory; page chime, kindle, rest, travel, lore, gate, title cards; UI
+- [x] **SoundDirector**: reads movement events, attack phases and counters (casts, kills,
+      telegraphs, orbs, hazards, gates) so gameplay code has no audio calls; hits via
+      `CombatWorld.onHit`
+- [x] **Title screen** (Continue with shrine + play time / New journey with confirm /
+      Settings) over a drifting camera; **pause menu** on Esc (Resume, Journal, Map,
+      Settings, Save and return to title); **ending card** with journey stats
+- [x] **Settings** (persisted separately from the save): master/music/effects/ambience,
+      pixel size (270–720 lines), **depth bands (4/6/8)**, pixel bloom, outlines, FOV,
+      camera motion, compass, hints, debug overlay, mouse sensitivity, invert Y, and
+      **rebindable keys** (15 actions; conflicts swap; menus follow the bindings)
+- [x] **Final HUD:** compass with cardinal ticks, region name and an ember marker for the
+      nearest unlit shrine; "Journey saved" indicator; key-aware movement hints; debug
+      overlay off by default; HUD DOM writes only on change
+- [x] **Pixel bloom:** bright base pixels → quarter-size grid → separable blur → added at
+      blit time in dithered steps (screen blend, so it never darkens)
+- [x] **Performance pass:** band count setting (4 bands ≈ a third fewer scene passes),
+      quarter-res bloom, change-only HUD writes, `npm run perf` CPU frame profiler
+      (script ≈ 0.3–1.5 ms/frame; spikes are streaming builds and enemy spawns)
+- [x] **Production build:** relative `base`, three.js split into its own chunk, `npm run
+      buildtest` builds, serves and boots `dist/`
+- [x] `npm run uitest` (19 checks), `npm run buildtest` (8 checks)
+
+**Notes for future work:**
+- GPU frame time was never measured (no GPU in the build sessions). On real hardware run
+  `npm run shot -- --view=spawn --perf` and the in-game debug overlay (H) per band count.
+- The score is data (`MOODS` in `Music.ts`); new areas can add moods or intensities.
+- Possible next steps: controller support, positional (panned) enemy audio, more boss
+  music variety, localisation of the lore.

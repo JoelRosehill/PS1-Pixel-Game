@@ -7,6 +7,7 @@ export class FirstPersonCamera {
   yaw = 0;
   pitch = 0;
   sensitivity = 0.0022;
+  invertY = false;
   readonly bodyVisible = false;
   baseFov = 75;
   speedFov = 10;
@@ -25,7 +26,7 @@ export class FirstPersonCamera {
   readLook(): void {
     if (!this.input.locked || this.input.blocked) return;
     this.yaw -= this.input.mouseDX * this.sensitivity;
-    this.pitch = THREE.MathUtils.clamp(this.pitch - this.input.mouseDY * this.sensitivity, -1.48, 1.48);
+    this.pitch = THREE.MathUtils.clamp(this.pitch - this.input.mouseDY * this.sensitivity * (this.invertY ? -1 : 1), -1.48, 1.48);
   }
   aimDirection(out: THREE.Vector3): THREE.Vector3 {
     const cp = Math.cos(this.pitch);

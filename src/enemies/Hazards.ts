@@ -42,6 +42,9 @@ export class Hazards {
   hitsTaken = 0;
   private readonly up = new THREE.Vector3(0, 1, 0);
 
+  /** Hazards spawned so far (audio cues). */
+  spawned = 0;
+
   constructor() {
     this.group.name = 'hazards';
     const ringGeo = new THREE.RingGeometry(0.86, 1, 48).rotateX(-Math.PI / 2);
@@ -66,6 +69,7 @@ export class Hazards {
   }
 
   shockwave(center: THREE.Vector3, speed: number, max: number, damage: number, color: THREE.ColorRepresentation, owner?: Damageable): void {
+    this.spawned++;
     const w = this.waves.find(x => !x.active);
     if (!w) return;
     Object.assign(w, { radius: 0.5, speed, max, damage, hit: false, owner, active: true });
@@ -75,6 +79,7 @@ export class Hazards {
   }
 
   zone(center: THREE.Vector3, radius: number, duration: number, damage: number, color: THREE.ColorRepresentation): void {
+    this.spawned++;
     const z = this.zones.find(x => !x.active);
     if (!z) return;
     Object.assign(z, { radius, life: duration, duration, damage, tick: 0, active: true });
