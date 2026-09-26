@@ -1,17 +1,13 @@
 import type { ChapterDef } from '../engine/WorldAtlas';
-import { ATLAS } from './Atlas';
+import { CHAPTER_NAMES, JOURNEY } from './Journey';
 
 /**
- * The eight chapters, clockwise from due north (Pillar 4: 8 chapters × 5 biomes).
- * Chapters I–V are anchored by the five required archetypes; VI–VIII are expansions
- * that remix them (ash, frost, and the celestial finale). See `Atlas.ts`.
+ * The eight chapters of the Long Road (Job 15), five biomes each in the order the road
+ * passes through them. See `Journey.ts`.
  */
-const NAMES = [
-  'The Tranquil Reach', 'The Violet Fen', "The Sunkeepers' Coast", 'The Crystal Deep',
-  'The Bloodstone Wastes', 'The Ashen March', 'The Frozen Choir', 'The Last Garden',
-];
-
-export const CHAPTERS: ChapterDef[] = NAMES.map((name, i) => ({ index: i + 1, name, biomes: ATLAS[i] }));
+export const CHAPTERS: ChapterDef[] = CHAPTER_NAMES.map((name, i) => ({
+  index: i + 1, name, biomes: JOURNEY.filter(l => l.chapter === i + 1).map(l => l.biome),
+}));
 
 export function roman(n: number): string {
   return ['0', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n] ?? String(n);

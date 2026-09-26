@@ -30,7 +30,7 @@ try {
   await page.evaluate(() => {
     const g = window.__game;
     const T = window.__three;
-    const SITE = { x: 20, z: 60 };
+    const SITE = { x: g.level.testSite.x, z: g.level.testSite.z };
     window.__key = (code, type = 'keydown') => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
     window.__et = {
       g, T, SITE,
@@ -289,11 +289,29 @@ try {
   });
   await run('foes avoid deep water', () => {
     const { g, reset } = window.__et;
-    const p = reset(0, 30, -34);
-    const k = g.enemies.spawn('hollow', 30, -14, { rise: false, facing: 0 });
+    // Find a lake in Mirrorlake with dry ground on both sides.
+    const L = g.level, road = L.atlas.road, site = L.atlas.sites.find(s => s.id === 'c1-2');
+    let found = null;
+    for (let s = site.s0; s < site.s1 && !found; s += 10)
+      for (const lat of [-160, -120, -90, -60, -40, 40, 60, 90, 120, 160]) {
+        const w = road.offset(s, lat);
+        if (L.heightAt(w.x, w.z) > -1.5) continue;
+        for (let a = 0; a < 8 && !found; a++) {
+          const dx = Math.sin(a * 0.785), dz = Math.cos(a * 0.785);
+          for (const r of [14, 20, 28]) {
+            const ax = w.x + dx * r, az = w.z + dz * r, bx = w.x - dx * r, bz = w.z - dz * r;
+            if (L.heightAt(ax, az) > 1.2 && L.heightAt(bx, bz) > 1.2) { found = { ax, az, bx, bz }; break; }
+          }
+        }
+        if (found) break;
+      }
+    if (!found) return { ok: false, detail: 'no lake found' };
+    const p = reset(0, found.bx, found.bz);
+    const k = g.enemies.spawn('hollow', found.ax, found.az, { rise: false, facing: 0 });
     k.perception.alert(p.controller.position);
-    g.step(6);
-    return { ok: k.position.y > -0.4, detail: `y=${k.position.y.toFixed(2)}` };
+    let lowest = Infinity;
+    for (let i = 0; i < 360; i++) { g.step(1 / 60); lowest = Math.min(lowest, k.position.y); }
+    return { ok: lowest > -0.4, detail: `lowest y=${lowest.toFixed(2)}` };
   });
   await run('void maw pulls enemies inward', () => {
     const { g, T, reset, spawn, freeze } = window.__et;
@@ -344,32 +362,33 @@ try {
   // --- encounters -------------------------------------------------------------
   await run('encounter raises waves and pays out when cleared', () => {
     const { g, reset, hit } = window.__et;
-    const enc = g.enemies.encounters.find(e => e.def.id === 'graveyard-vigil');
+    const enc = g.enemies.encounters.find(e => e.def.id.startsWith('camp:') && e.def.waves.length >= 2);
     const p = reset(0, enc.def.trigger.x + 2, enc.def.trigger.z + 2);
     p.combat.health = 50;
     g.step(0.1);
     const first = enc.state === 'active' ? enc.living.length : -1;
     g.step(1.5);
-    for (const e of enc.living) hit(e, 999, 'heavy', [0, 0, -1]);
+    for (const e of enc.living) hit(e, 99999, 'heavy', [0, 0, -1]);
     g.step(4);
     const second = enc.wave === 1 ? enc.enemies.filter(e => e.alive).length : -1;
     g.step(1.2);
-    for (const e of enc.living) hit(e, 999, 'heavy', [0, 0, -1]);
+    p.combat.health = 50;
+    for (const e of enc.living) hit(e, 99999, 'heavy', [0, 0, -1]);
     g.step(4);
-    return { ok: first === 2 && second === 2 && enc.state === 'cleared' && p.combat.health > 50,
-      detail: `wave1=${first} wave2=${second} state=${enc.state} hp=${p.combat.health.toFixed(0)}` };
+    return { ok: first === enc.def.waves[0].length && second === enc.def.waves[1].length && enc.state === 'cleared' && p.combat.health > 50,
+      detail: `${enc.def.id} wave1=${first} wave2=${second} state=${enc.state} hp=${p.combat.health.toFixed(0)}` };
   });
   await run('dying resets an active encounter', () => {
-    const { g, reset, hit } = window.__et;
-    const enc = g.enemies.encounters.find(e => e.def.id === 'bridge-warden');
+    const { g, reset } = window.__et;
+    const enc = g.enemies.encounters.find(e => e.def.id.startsWith('camp:c1-') && e.state === 'dormant');
     const p = reset(0, enc.def.trigger.x, enc.def.trigger.z);
     g.step(0.2);
-    const active = enc.state === 'active' && enc.living.length === 1;
+    const active = enc.state === 'active' && enc.living.length === enc.def.waves[0].length;
     g.combatWorld.strike(p.combat, { damage: 999, direction: new window.__three.Vector3(0, 0, 1), point: p.controller.position.clone(),
       knockback: 0, stagger: 0, source: 'enemy', kind: 'enemy' });
     g.step(2.5);
     return { ok: active && p.combat.alive && enc.state === 'dormant' && g.enemies.enemies.length === 0,
-      detail: `active=${active} state=${enc.state} enemies=${g.enemies.enemies.length}` };
+      detail: `${enc.def.id} active=${active} state=${enc.state} enemies=${g.enemies.enemies.length}` };
   });
 
   // --- pause and HUD (real render loop) ---------------------------------------

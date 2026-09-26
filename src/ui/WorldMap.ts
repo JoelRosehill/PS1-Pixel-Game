@@ -5,17 +5,16 @@ import type { EnemyDirector } from '../enemies/EnemyDirector';
 import type { Player } from '../player/Player';
 import { getSkyPreset } from '../render/sky/SkyPresets';
 import { roman } from '../world/biomes/Chapters';
-import { SECTOR, WORLD } from '../world/engine/WorldAtlas';
 import type { World } from '../world/World';
 import './worldmap.css';
 
 const SIZE = 256;
-const EXTENT = 4800;
+const EXTENT = 4700;
 
 /**
- * The world map (Job 7), opened with M. Painted from the same analytic ground the game
- * renders (hill-shaded), with regions revealed as they are discovered. Shows chapters,
- * landmarks, camps, gates, the Spire Citadel and the player. Pauses the world like the
+ * The world map (Jobs 7, 15), opened with M. Painted from the same analytic ground the
+ * game renders (hill-shaded), with regions revealed as they are discovered. Shows the
+ * Long Road, chapters, named structures, camps, gates, the Dawnspire and the player. Pauses the world like the
  * spellbook and keeps keyboard focus inside its native dialog.
  */
 export class WorldMap {
@@ -113,7 +112,7 @@ export class WorldMap {
         const hz = heights[Math.min(SIZE - 1, j + 1) * SIZE + i] - heights[Math.max(0, j - 1) * SIZE + i];
         const slope = Math.min(1, Math.hypot(hx, hz) / (step * 2) * 0.6);
         const site = w.siteAt(x, z);
-        siteOf[k] = site ? sites.indexOf(site) : -1;
+        siteOf[k] = sites.indexOf(site);
         if (h < 0) {
           water.set(getSkyPreset(site?.biome.sky ?? 'cosmic-violet').water.shallow).lerp(new THREE.Color(0x0a1a2a), Math.min(0.6, -h * 0.12));
           c.copy(water);
@@ -162,31 +161,43 @@ export class WorldMap {
     ctx.font = '11px Consolas, monospace';
     ctx.textAlign = 'center';
 
-    // Chapter numerals.
+    // The road, where it has been discovered.
+    const road = w.atlas.road;
+    ctx.strokeStyle = '#e8d8b0';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    let drawing = false;
+    for (let t = 0; t <= road.length; t += 40) {
+      const site = w.atlas.siteAtS(t);
+      const p = road.pointAt(t);
+      const [mx, my] = this.toMap(p.x, p.z);
+      if (!known[site.index]) { drawing = false; continue; }
+      if (drawing) ctx.lineTo(mx, my); else { ctx.moveTo(mx, my); drawing = true; }
+    }
+    ctx.stroke();
+    // Chapter numerals beside the middle of each chapter's road.
     for (const chapter of w.atlas.chapters) {
-      const a = (chapter.index - 1) * SECTOR;
-      const [mx, my] = this.toMap(Math.sin(a) * 2600, -Math.cos(a) * 2600);
+      const mid = sites.filter(s => s.chapter === chapter.index)[2];
+      if (!mid) continue;
+      const [mx, my] = this.toMap(mid.x, mid.z);
       const seen = sites.some((s, i) => s.chapter === chapter.index && known[i]);
       ctx.font = 'bold 16px Consolas, monospace';
       ctx.fillStyle = seen ? '#f4e8ff' : '#6a5a80';
-      ctx.fillText(roman(chapter.index), mx, my);
+      ctx.fillText(roman(chapter.index), mx, my - 10);
     }
     ctx.font = '11px Consolas, monospace';
-    // Hub and citadel.
-    const [hx, hy] = this.toMap(0, 0);
-    ctx.strokeStyle = '#ffd070';
-    ctx.beginPath(); ctx.arc(hx, hy, (WORLD.hubOuter / (EXTENT * 2)) * SIZE * 2, 0, Math.PI * 2); ctx.stroke();
-    const c = w.hub.citadelAt;
-    const [cx, cy] = this.toMap(c.x, c.z);
-    ctx.fillStyle = '#ff5a7a';
-    ctx.fillRect(cx - 2, cy - 7, 4, 10);
-    // Landmarks and camps in discovered regions.
-    w.landmarks.forEach((lm, i) => {
-      if (!known[i]) return;
-      const [lx, ly] = this.toMap(lm.x, lm.z);
-      ctx.fillStyle = '#' + (sites[i].biome.landmark.color ?? 0xffd36a).toString(16).padStart(6, '0');
+    // The Dawnspire, always visible: the lodestar of the journey.
+    const [cx, cy] = this.toMap(0, 0);
+    ctx.fillStyle = '#fff0d0';
+    ctx.fillRect(cx - 2, cy - 9, 4, 14);
+    ctx.beginPath(); ctx.arc(cx, cy - 14, 4, 0, Math.PI * 2); ctx.fill();
+    // Named structures in discovered regions.
+    for (const st of w.structures.placed) {
+      if (!st.name || !known[st.site.index]) continue;
+      const [lx, ly] = this.toMap(st.x, st.z);
+      ctx.fillStyle = '#' + (st.site.biome.landmark.color ?? 0xffd36a).toString(16).padStart(6, '0');
       ctx.beginPath(); ctx.moveTo(lx, ly - 5); ctx.lineTo(lx + 4, ly); ctx.lineTo(lx, ly + 5); ctx.lineTo(lx - 4, ly); ctx.fill();
-    });
+    }
     for (const enc of this.enemies.encounters) {
       if (!enc.def.id.startsWith('camp:')) continue;
       const site = sites.findIndex(s => enc.def.id.startsWith(`camp:${s.id}:`));
@@ -225,7 +236,7 @@ export class WorldMap {
       const gateText = gate ? (gate.open ? 'Gate open' : `Gate sealed · camps ${done}/${need}`) : chapter.index === 8 ? 'The last chapter' : '';
       return `<li class="${seenSites.length ? 'seen' : ''}"><strong>${roman(chapter.index)} · ${seenSites.length ? chapter.name : '???'}</strong><span>${status}</span><small>${gateText}</small></li>`;
     }).join('');
-    this.panel.innerHTML = `<p class="map-here">You are in <strong>${here ? here.biome.name : 'The Threshold'}</strong>${here ? ` · Chapter ${roman(here.chapter)}` : ''}</p>
+    this.panel.innerHTML = `<p class="map-here">You are in <strong>${here.biome.name}</strong> · Chapter ${roman(here.chapter)}</p>
       <ol class="map-chapters">${rows}</ol>
       <p class="map-legend"><i class="lg-player"></i>You <i class="lg-landmark"></i>Landmark <i class="lg-camp"></i>Camp <i class="lg-cleared"></i>Cleared <i class="lg-gate"></i>Sealed gate <i class="lg-open"></i>Open gate</p>`;
   }

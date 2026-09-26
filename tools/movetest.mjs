@@ -34,6 +34,24 @@ const read = () =>
       ground: window.__game.level.heightAt(c.position.x, c.position.z),
     };
   });
+// Fixtures at the world's test site: a wall-jump shaft, a curb and a slide ramp
+// (collision only), plus the nearest deep water for swimming.
+const F = await page.evaluate(() => {
+  const g = window.__game, L = g.level, c = L.colliders, T = L.testSite;
+  c.addBox(T.x + 40, T.y + 6, T.z - 2.5, 6, 12, 0.6);
+  c.addBox(T.x + 40, T.y + 6, T.z + 2.5, 6, 12, 0.6);
+  c.addBox(T.x - 24, T.y + 0.15, T.z, 8, 0.3, 8);
+  c.addBox(T.x + 62, T.y + 3, T.z + 12, 14, 0.5, 6, 0, 0, 0.45);
+  const road = L.atlas.road, site = L.atlas.sites.find(s => s.id === 'c1-2');
+  let water = null;
+  for (let s = site.s0; s < site.s1 && !water; s += 8)
+    for (const lat of [-150, -110, -80, -55, -35, 35, 55, 80, 110, 150]) {
+      const w = road.offset(s, lat);
+      if (L.heightAt(w.x, w.z) < -2.8) { water = [w.x, w.z]; break; }
+    }
+  return { x: T.x, y: T.y, z: T.z, water };
+});
+/** Places the player relative to the test site (y above its ground). */
 const setup = (x, y, z, yawDeg) =>
   page.evaluate((x, y, z, yaw) => {
     const g = window.__game;
@@ -68,15 +86,18 @@ const check = (name, ok, detail) => {
   console.log(`${ok ? '✔ PASS' : '✘ FAIL'}  ${name.padEnd(22)} ${detail}`);
 };
 
+const at = (dx, dy, dz, yawDeg) => setup(F.x + dx, F.y + dy, F.z + dz, yawDeg);
+await page.evaluate(({ x, y, z }) => window.__game.level.setViewer(new window.__three.Vector3(x, y, z), true), F);
+
 // 1. Spawn settles on the ground
-await setup(6, 6, 11, 180);
+await at(6, 4, 11, 180);
 await wait(700);
 let s = await read();
 check('spawn settles', s.grounded && Math.abs(s.y - s.ground) < 0.15,
   `y=${s.y.toFixed(2)} ground=${s.ground.toFixed(2)} state=${s.state}`);
 
 // 2. Run speed on flat ground
-await setup(6, 3, 11, 180);
+await at(6, 1, 11, 180);
 await wait(300);
 const startRun = await read();
 await page.keyboard.down('w');
@@ -89,7 +110,7 @@ check('run speed', topRun > 8 && topRun < 10.5 && runDist > 9,
   `top=${topRun.toFixed(2)} m/s dist=${runDist.toFixed(1)} m`);
 
 // 3. Jump height and airtime
-await setup(6, 3, 11, 180);
+await at(6, 1, 11, 180);
 await wait(400);
 const beforeJump = await read();
 await page.keyboard.down(' ');
@@ -100,7 +121,7 @@ const airFrames = jumpSamples.filter((r) => !r.grounded).length;
 check('jump apex (held)', apex > 1.8 && apex < 2.8, `apex=${apex.toFixed(2)} m airborne≈${(airFrames / 60).toFixed(2)} s`);
 
 // 3b. Tapping gives a deliberately shorter hop
-await setup(6, 3, 11, 180);
+await at(6, 1, 11, 180);
 await wait(400);
 const beforeTap = await read();
 await page.keyboard.press(' ');
@@ -109,7 +130,7 @@ const tapApex = Math.max(...tapSamples.map((r) => r.y)) - beforeTap.y;
 check('jump apex (tapped)', tapApex > 0.8 && tapApex < apex - 0.4, `apex=${tapApex.toFixed(2)} m vs held ${apex.toFixed(2)} m`);
 
 // 4. Dash burst + charge spend
-await setup(6, 3, 11, 180);
+await at(6, 1, 11, 180);
 await wait(300);
 await page.keyboard.down('w');
 await wait(200);
@@ -122,7 +143,7 @@ const afterDash = await read();
 check('dash burst', dashPeak > 20 && afterDash.dash === 1, `peak=${dashPeak.toFixed(1)} m/s charges=${afterDash.dash}`);
 
 // 5. Slide boost from a run
-await setup(6, 3, 11, 180);
+await at(6, 1, 11, 180);
 await wait(300);
 await page.keyboard.down('w');
 await wait(900);
@@ -134,8 +155,8 @@ const slidePeak = Math.max(...slideSamples.map((r) => r.speed));
 const slid = slideSamples.some((r) => r.state === 'slide');
 check('slide boost', slid && slidePeak > 10.5, `peak=${slidePeak.toFixed(1)} m/s entered=${slid}`);
 
-// 6. Wall-jump inside the trial shaft (walls at x≈69, z=±2.5 of course centre 64,10)
-await setup(69, 6, 12.0, 180);
+// 6. Wall-jump inside the shaft (walls at z = ±2.5, 40 m east of the test site)
+await at(40, 4, 1.9, 180);
 await wait(400);
 await page.keyboard.down('w'); // push toward the +z wall
 await wait(250);
@@ -148,8 +169,8 @@ const wallGain = Math.max(...wallSamples.map((r) => r.y)) - wallState.y;
 const sawWall = wallState.state === 'wall' || wallSamples.some((r) => r.state === 'wall');
 check('wall jump', sawWall && wallGain > 1.2, `contact=${sawWall} rise=${wallGain.toFixed(2)} m`);
 
-// 7. Step up a curb (plaza edge) instead of stopping
-await setup(15.5, 3, 0, 270);
+// 7. Step up a curb instead of stopping (a 0.3 m platform west of the test site)
+await at(-33, 1, 0, 270);
 await wait(300);
 const beforeStep = await read();
 await page.keyboard.down('w');
@@ -159,8 +180,8 @@ const afterStep = await read();
 check('step up curb', Math.hypot(afterStep.x - beforeStep.x, afterStep.z - beforeStep.z) > 5,
   `moved=${Math.hypot(afterStep.x - beforeStep.x, afterStep.z - beforeStep.z).toFixed(1)} m y=${afterStep.y.toFixed(2)}`);
 
-// 8. Slide down the trial ramp gains speed (ramp runs from x≈52 down to x≈45)
-await setup(56, 12, 10, 90);
+// 8. Slide down a ramp gains speed (ramp rises toward +x, 62 m east of the test site)
+await at(66, 7, 12, 90);
 await wait(600);
 const rampTop = await read();
 await page.keyboard.down('w');
@@ -172,11 +193,11 @@ await page.keyboard.up('w');
 const rampPeak = Math.max(...rampSamples.map((r) => r.speed));
 check('ramp slide gains', rampPeak > 13, `peak=${rampPeak.toFixed(1)} m/s from y=${rampTop.y.toFixed(1)}`);
 
-// 9. Deep water switches to swimming and floats the player to the surface
-await setup(0, 4, -26, 0);
+// 9. Deep water switches to swimming and floats the player to the surface (a Mirrorlake lake)
+await setup(F.water[0], 4, F.water[1], 0);
 await wait(1600);
 const swimState = await read();
-check('swims in the canal', swimState.state === 'swim' && swimState.y > -1.6 && swimState.y < 0.4,
+check('swims in a lake', swimState.state === 'swim' && swimState.y > -1.6 && swimState.y < 0.4,
   `state=${swimState.state} y=${swimState.y.toFixed(2)}`);
 
 // 10. Nothing fell through the world or went NaN

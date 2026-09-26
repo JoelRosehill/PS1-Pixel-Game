@@ -4,28 +4,26 @@ A "Chill-Fi Dark Fantasy" Action-RPG built with Three.js. The game is built in j
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan and [docs/GDD.md](docs/GDD.md) for the design pillars.
 **Continuing in a new AI session?** Start with [docs/HANDOFF.md](docs/HANDOFF.md).
 The chat history that produced this project is archived in [docs/sessions/](docs/sessions/).
-Job 3.5 adds a [Blender asset pipeline](docs/assets/PIPELINE.md) and an optimized
-[40-pack GLB library](docs/assets/CONVERSION.md). The chapel and graveyard are west
-of spawn; the dragon display is north-west beyond the castle.
-Job 4 adds the physical Living Spellbook, seven discoverable pages and eight
-Momentum-powered spells. Find the first page beside the central Ember Shrine.
-Job 5 adds Shadow Knights and Sunkeeper Wizards. Cross the castle bridge, visit the
-graves by the western chapel, or climb the Sunkeeper ruin north of the castle.
-Job 6 opens the world: follow the northern valley past the ruin toward the Spire
-Citadel to leave The Threshold. Eight chapters of biomes surround it — Tranquil
-Wilderness, Violet Marshes, Sunkeeper's Terrace, Crystal Caverns and Bloodstone &
-Shadow among them — each with landmarks and enemy camps.
-Job 7 fills the atlas: 40 biomes in 8 chapters. Each chapter's pass is sealed by a
-veil of mist until you clear three of its camps; press M for the world map.
-Job 8 adds three bosses: Gloomhorn in the Violet Fen, the dragon Vermilion in the
-Bloodstone Wastes, and the Pale Sovereign waiting at the Heart of the Moon.
-Job 9 adds the story and saving: speak with the Wanderer beside the Threshold's shrine,
-kindle an Ember Shrine beside every landmark (rest, respawn, fast travel), read the lore
-tablets and memorials, and press J for the journal. Your journey saves automatically.
-Job 10 finishes the game: a procedural chill-fi score that follows each chapter and every
-fight, synthesised sound effects, a title screen, pause menu, settings (audio, pixel size,
-depth bands, bloom, FOV, rebindable keys), a compass HUD, pixel bloom and a production
-build. **All ten roadmap jobs are complete.**
+
+**The world is the Long Road** (Job 15): one journey of about 22 km, spiralling inward
+from Hollowmere on the western rim to the Dawnspire at the centre of the world, through
+40 biomes in 8 chapters. Colossal mountains wall every valley; chapters meet at gorges
+held shut by a gateway of mist until the chapter's camps are cleared and its boss is
+dead. The supplied structures stand, levelled and grounded, in the biomes they belong
+to: St Aldric's chapel and graveyard, the Highpine Wall, the Temple of the Sun under its
+kept sun, the Crimson Pavilion, the Red Keep, the Sword Graveyard, Caddoc's moat keep, the
+Obsolete Sea, the Bard's Rest and the Pale Cathedral. The chain from the spire to the
+moon is visible from everywhere. Press M for the map.
+
+**Enemies and bosses are the supplied PS1 creatures, rigged and animated in Blender**
+(Job 11): twelve Bestiary foes (Job 14) and eight hard bosses — Morrow, Gloomhorn,
+Solenne, the Glutton, the dragon Vermilion (ground and air), Sir Caddoc, the Hive Queen
+and Maelor, the Pale Sovereign.
+
+**Combat** (Jobs 12–13): view bob, a two-charge dash, Momentum you channel by holding
+Shift while standing still, a sword that throws crescents and waves, six Sword Arts, free
+Starbolts, Ember Flasks and a twelve-page Chromatic Codex. Ember Shrines along the road
+let you rest, respawn and fast travel; the journey saves automatically.
 
 ## Run it
 
@@ -47,8 +45,8 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run spelltest` | Spell effects, collisions, pickups, book growth and keyboard/menu checks |
 | `npm run kinetictest` | First-person camera and kinetic movement (wall-run, slam, rebound) |
 | `npm run enemytest` | Deterministic enemy AI, combat rules and encounter checks |
-| `npm run worldtest` | World layout, terrain/prop streaming, biome moods and camps |
-| `npm run atlastest` | The 40-biome atlas, landmarks, chapter gates and the world map |
+| `npm run worldtest` | The Long Road: layout, valleys and mountains, grounded structures, streaming, moods, camps |
+| `npm run atlastest` | The 40 biomes in order, structures in their biomes, the valley edge, gates and the map |
 | `npm run bosstest` | Boss arenas, intros, phases, movesets, parries, posture and victory |
 | `npm run savetest` | Ember Shrines, fast travel, lore, journal, the Wanderer and save/load |
 | `npm run uitest` | Score and effects (rendered offline), menus, settings, rebinding, HUD, bloom |

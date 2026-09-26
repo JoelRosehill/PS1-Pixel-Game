@@ -136,10 +136,10 @@ export class StoryUI {
     for (const s of kindled) byChapter.set(s.chapter, [...(byChapter.get(s.chapter) ?? []), s]);
     const groups = [...byChapter.keys()].sort((a, b) => a - b).map(ch => {
       const list = byChapter.get(ch)!.map(s => `<li><button type="button" data-action="travel" data-shrine="${s.id}" ${s === here ? 'disabled aria-current="true"' : ''}>${escape(s.name)}${s === here ? ' <small>you are here</small>' : ''}</button></li>`).join('');
-      return `<section><h2>${ch ? `Chapter ${roman(ch)}` : 'The Threshold'}</h2><ul>${list}</ul></section>`;
+      return `<section><h2>Chapter ${roman(ch)}</h2><ul>${list}</ul></section>`;
     }).join('');
     const reset = this.confirmReset
-      ? `<div class="story-reset" role="alert"><p>Forget everything and wake again at the Threshold? This cannot be undone.</p><button type="button" data-action="reset-confirm">Yes, begin anew</button><button type="button" data-action="reset-cancel">Keep my journey</button></div>`
+      ? `<div class="story-reset" role="alert"><p>Forget everything and wake again in Hollowmere? This cannot be undone.</p><button type="button" data-action="reset-confirm">Yes, begin anew</button><button type="button" data-action="reset-cancel">Keep my journey</button></div>`
       : `<button type="button" class="story-quiet" data-action="reset">Begin anew…</button>`;
     this.dialog.setAttribute('aria-label', `Ember Shrine: ${here.name}`);
     this.dialog.innerHTML = `<header class="story-header"><div><span>EMBER SHRINE</span><h1>${escape(here.name)}</h1><p>Wounds mended · Journey saved · You will wake here</p></div><button type="button" data-action="close">Rise <kbd>Esc</kbd></button></header>

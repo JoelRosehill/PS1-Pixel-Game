@@ -25,7 +25,7 @@ try {
   check('projectile follows vertical and horizontal aim', await page.evaluate(() => {
     const g = window.__game, p = g.player;
     p.combat.reset();
-    p.controller.teleport(400, 150, 400, 0.3); p.camera.setYaw(0.3, 0.6);
+    const t = g.level.testSite; p.controller.teleport(t.x, t.y + 150, t.z, 0.3); p.camera.setYaw(0.3, 0.6);
     p.spells.primary(true);
     const ray = p.shots.shots[0].vel.clone().normalize();
     const expected = p.camera.aimDirection(new window.__three.Vector3());

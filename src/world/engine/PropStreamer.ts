@@ -4,7 +4,7 @@ import { hash2, Random } from '../../core/Random';
 import type { ColliderWorld } from '../../physics/Colliders';
 import type { PropKind, PropSpec } from '../biomes/BiomeTypes';
 import type { PropLibrary } from './PropLibrary';
-import { type BiomeSite, WORLD, type WorldAtlas } from './WorldAtlas';
+import type { BiomeSite, WorldAtlas } from './WorldAtlas';
 
 /** Circles where nothing may be scattered (camps, landmarks, passes). Grid-bucketed. */
 export class ReservedMap {
@@ -201,10 +201,7 @@ export class PropStreamer {
       const n = this.atlas.weights(x0 + sx * size, z0 + sz * size, this.sites, this.w);
       for (let i = 0; i < n; i++) present.add(this.sites[i]);
     }
-    const inHub = (x: number, z: number) => Math.hypot(x, z) < (WORLD.hubInner + WORLD.hubOuter) / 2 + 20;
-    const cellInHub = Math.hypot(cell.cx, cell.cz) + size * 0.71 < (WORLD.hubInner + WORLD.hubOuter) / 2;
-
-    if (!cellInHub) for (const site of present) {
+    for (const site of present) {
       for (const spec of site.biome.props) {
         const model = this.library.get(spec.kind);
         if (tier === 'near' ? model.tier !== 'near' : model.tier !== 'mid') continue;
@@ -218,7 +215,6 @@ export class PropStreamer {
           const s = rng.range(spec.scale[0], spec.scale[1]);
           const rot = rng.next() * Math.PI * 2;
           const tintK = rng.next();
-          if (inHub(x, z)) continue;
           if (roll > this.siteWeight(site, x, z)) continue;
           if (!this.accept(spec, x, z)) continue;
           if (this.reserved.blocked(x, z, spec.kind === 'grass' || spec.kind === 'flowers' ? 0 : 2)) continue;

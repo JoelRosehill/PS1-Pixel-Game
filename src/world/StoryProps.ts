@@ -29,11 +29,14 @@ export interface LoreSpot {
 
 type Height = (x: number, z: number) => number;
 
+/** Id of the first shrine, at Hollowmere where the journey begins. */
+export const FIRST_SHRINE = 'hollowmere';
+
 /**
- * Story objects in the world (Job 9): an Ember Shrine beside every landmark (plus the
- * Threshold's own), a lore tablet near each, and one Emberwarden memorial per chapter.
- * They are shown only within a few hundred metres; kindled shrines borrow the world's
- * light pool.
+ * Story objects along the Long Road (Jobs 9, 15): an Ember Shrine beside the road where
+ * each biome begins (the first, at Hollowmere, always lit), a lore tablet further along,
+ * and one Emberwarden memorial per chapter. They are shown only within a few hundred
+ * metres; kindled shrines borrow the world's light pool.
  */
 export class StoryProps {
   readonly group = new THREE.Group();
@@ -42,67 +45,58 @@ export class StoryProps {
   private timer = 0;
   private readonly tabletMats = { stone: toon({ color: 0x6a6474 }), scroll: glow(0xffe0a0, 1.6) };
 
-  constructor(
-    atlas: WorldAtlas,
-    landmarks: { x: number; z: number; clearance: number; name: string }[],
-    hubShrine: EmberShrine,
-    private readonly m: WorldMaterials,
-    heightAt: Height,
-    reserved: ReservedMap,
-  ) {
+  constructor(atlas: WorldAtlas, private readonly m: WorldMaterials, heightAt: Height, reserved: ReservedMap) {
     this.group.name = 'story-props';
-    // The Threshold's shrine, at the plaza, already exists; its rest spot is the spawn.
-    this.shrines.push({
-      id: 'threshold', name: 'The Threshold', chapter: 0, prop: hubShrine,
-      position: new THREE.Vector3(0, 2, 0), rest: new THREE.Vector3(6, 2, 11), facing: Math.atan2(2, 71),
-    });
-    // Hub lore: shrine stones, castle gate, bridge.
-    this.addLore('hub-1', new THREE.Vector3(-2.6, heightAt(-2.6, 2.4), 2.4));
-    this.addLore('hub-2', new THREE.Vector3(-8.5, heightAt(-8.5, -40), -40));
-    this.addLore('hub-3', new THREE.Vector3(-15, heightAt(-15, -15), -15));
-
-    atlas.sites.forEach((site, i) => {
-      const lm = landmarks[i];
-      const spot = (dist: number, startAngle: number): THREE.Vector3 => {
-        // Dry, gentle, unreserved ground; relax the slope limit before giving up.
-        for (const maxSlope of [0.35, 0.7]) {
-          for (let k = 0; k < 24; k++) {
-            const a = startAngle + k * 0.27;
-            for (const d of [dist, dist + 6, dist + 12, dist + 20, dist + 30]) {
-              const x = lm.x + Math.sin(a) * d, z = lm.z + Math.cos(a) * d;
-              const h = heightAt(x, z);
-              if (h < 1 || reserved.blocked(x, z, 1.5)) continue;
-              const slope = Math.max(Math.abs(heightAt(x + 2, z) - h), Math.abs(heightAt(x, z + 2) - h)) / 2;
-              if (slope < maxSlope) return new THREE.Vector3(x, h, z);
-            }
+    const road = atlas.road;
+    /** Dry, gentle, unreserved ground near a point beside the road. */
+    const spot = (s: number, lateral: number): THREE.Vector3 => {
+      for (const maxSlope of [0.3, 0.7]) {
+        for (let k = 0; k < 16; k++) {
+          const ds = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 6;
+          for (const extra of [0, 5, 10]) {
+            const lat = Math.sign(lateral) * (Math.abs(lateral) + extra);
+            const { x, z } = road.offset(s + ds, lat);
+            const h = heightAt(x, z);
+            if (h < 1 || reserved.blocked(x, z, 1.5)) continue;
+            const slope = Math.max(Math.abs(heightAt(x + 2, z) - h), Math.abs(heightAt(x, z + 2) - h)) / 2;
+            if (slope < maxSlope) return new THREE.Vector3(x, h, z);
           }
         }
-        const x = lm.x + Math.sin(startAngle) * (dist + 8), z = lm.z + Math.cos(startAngle) * (dist + 8);
-        return new THREE.Vector3(x, heightAt(x, z), z);
-      };
-      const base = (i * 2.399) % (Math.PI * 2);
-      // Shrine.
-      const at = spot(lm.clearance + 7, base);
+      }
+      const { x, z } = road.offset(s, lateral);
+      return new THREE.Vector3(x, heightAt(x, z), z);
+    };
+
+    for (const site of atlas.sites) {
+      const first = site.index === 0;
+      const side = site.index % 2 ? -1 : 1;
+      // Shrine: where the biome begins (the first one a few steps behind the spawn).
+      const at = spot(first ? 30 : site.s0 + 45, side * 10);
       reserved.add(at.x, at.z, 5);
-      const prop = new EmberShrine(m, `shrine:${site.id}`, false);
+      const prop = new EmberShrine(m, `shrine:${site.id}`, first);
       prop.group.position.copy(at);
-      prop.setKindled(false);
+      prop.setKindled(first);
       this.group.add(prop.group);
-      const out = new THREE.Vector3(at.x - lm.x, 0, at.z - lm.z).normalize();
-      const rest = at.clone().addScaledVector(out, 2.6);
+      // Rest spot: toward the road, facing along it.
+      const hit = road.nearest(at.x, at.z);
+      const toward = new THREE.Vector3(hit.x - at.x, 0, hit.z - at.z).normalize();
+      const rest = at.clone().addScaledVector(toward, 2.6);
       rest.y = heightAt(rest.x, rest.z);
-      this.shrines.push({ id: site.id, name: site.biome.name, chapter: site.chapter, position: at, rest, facing: Math.atan2(out.x, out.z), prop });
-      // Lore tablet on the other side of the landmark.
-      const tablet = spot(lm.clearance + 4, base + Math.PI);
+      this.shrines.push({
+        id: first ? FIRST_SHRINE : site.id, name: site.biome.name, chapter: site.chapter,
+        position: at, rest, facing: Math.atan2(-hit.tx, -hit.tz), prop,
+      });
+      // Lore tablet on the other side of the road, further along.
+      const tablet = spot(site.s0 + (site.s1 - site.s0) * 0.45, -side * 12);
       reserved.add(tablet.x, tablet.z, 3);
       this.addLore(site.id, tablet);
-      // One Emberwarden memorial per chapter, beside the fourth site's landmark.
+      // One Emberwarden memorial per chapter, in its fourth biome.
       if (site.slot === 3) {
-        const mem = spot(lm.clearance + 10, base + Math.PI / 2);
+        const mem = spot(site.s0 + (site.s1 - site.s0) * 0.7, side * 16);
         reserved.add(mem.x, mem.z, 4);
         this.addMemorial(site.chapter, mem);
       }
-    });
+    }
   }
 
   private addLore(id: string, at: THREE.Vector3): void {
@@ -114,7 +108,7 @@ export class StoryProps {
     b.add(this.tabletMats.scroll, place(box(0.6, 0.03, 0.45, 1), 0, 1.16, 0.06, 0, -0.35));
     const object = b.build(new THREE.Group());
     object.position.copy(at);
-    object.rotation.y = Math.atan2(-at.x, -at.z);
+    object.rotation.y = Math.atan2(at.x, at.z);
     object.name = `lore:${id}`;
     this.group.add(object);
     this.lore.push({ id, fragment, position: at.clone().setY(at.y + 1), object, kind: 'tablet' });
@@ -153,7 +147,7 @@ export class StoryProps {
 
   /** Lit shrines near the viewer borrow the world's point lights. */
   lightAnchors(): LightAnchor[] {
-    return this.shrines.filter(s => s.id !== 'threshold' && s.prop.kindled)
+    return this.shrines.filter(s => s.prop.kindled && !s.prop.light)
       .map(s => ({ x: s.position.x, y: s.position.y + 1.2, z: s.position.z, color: 0xff8a3a, intensity: 22, distance: 16 }));
   }
 
@@ -162,10 +156,10 @@ export class StoryProps {
     const near = (p: THREE.Vector3) => Math.hypot(p.x - viewer.x, p.z - viewer.z) < 380;
     if (this.timer <= 0) {
       this.timer = 0.5;
-      for (const s of this.shrines) if (s.id !== 'threshold') s.prop.group.visible = near(s.position);
+      for (const s of this.shrines) s.prop.group.visible = near(s.position);
       for (const l of this.lore) l.object.visible = near(l.position);
     }
-    for (const s of this.shrines) if (s.id !== 'threshold' && s.prop.group.visible) s.prop.update(elapsed);
+    for (const s of this.shrines) if (s.prop.group.visible) s.prop.update(elapsed);
     void dt;
   }
 }

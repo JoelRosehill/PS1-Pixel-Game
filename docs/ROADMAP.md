@@ -448,7 +448,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ✅ |
 | 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ✅ |
 | 14 | Bestiary — model-based enemies and hard, animated bosses | ✅ |
-| 15 | The Long Road — one handcrafted 40-biome journey | ⏳ |
+| 15 | The Long Road — one handcrafted 40-biome journey | ✅ |
 | 16 | The Story — a specific storyline, characters and beats | ⏳ |
 | 17 | Integration — tests, performance, docs | ⏳ |
 
@@ -566,4 +566,53 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 - [x] Tests: `enemytest` rewritten for the Bestiary (27), `bosstest` for all eight bosses
       (22: arenas, animation, difficulty, whole movesets per phase, parry, knockdown,
       gates, finale); combat 11, ui 20, save 25, spell 50, kinetic 19, move 11 passing
+
+## Job 15 — The Long Road ✅
+
+- [x] **One road, not a scatter** (`route/Road.ts`): an Archimedean spiral turning
+      clockwise inward from Hollowmere (4 km out, due west) to the Dawnspire at the centre,
+      bent by meanders, ending in a curve onto the spire's plaza — **21.7 km** of road,
+      its turns ~2.4 km apart. A lookup grid answers "where along the road, how far from
+      it" for any point
+- [x] **The journey is data** (`biomes/Journey.ts`): 40 legs in road order, 8 chapters ×
+      5 — each with its length, valley width, level, Bestiary foes, structures, sea side
+      and boss arena. Chapters: The Hollow Reach, The Violet Fen, The Sunkeepers' Coast,
+      The Crystal Deep, The Bloodstone Wastes, The Knight's March, The Dreaming Wastes,
+      The Dawnspire
+- [x] **Valleys and colossal mountains** (`WorldTerrain`): each biome's relief rides the
+      road's smoothed height profile; the road bed is levelled and always dry; beyond the
+      valley edge the ground climbs 200–700 m into ridged massifs; the Sunkeepers' Coast
+      opens onto the sea instead. Chapters meet at 62 m gorges
+- [x] **The supplied structures, grounded, in their biomes** (`route/Structures.ts`):
+      each stands on a plateau levelled to its footprint's average height, kept clear of
+      the road, with collision baked from its geometry (2.5 m columns, arches left open)
+      or its bounds, registered only near the player. St Aldric's chapel and graveyards
+      (built from the graveyard kit), the Highpine Wall (castle kit), the forest dioramas,
+      the Temple of the Sun with the kept sun hovering above, the Crimson Pavilion, the Red
+      Keep (castle-xiii, 220 m on a crag), the Sword Graveyard (seven weapons planted tip
+      down, up to 150 m tall), Caddoc's moat keep, the Obsolete Sea (CRT, keyboard, mouse,
+      CPU), the Bard's Rest (a 110 m guitar) and the Pale Cathedral (the lost relic).
+      Procedural temples, obelisk rings and crystal halls are built to scale (collision
+      replayed at the same scale)
+- [x] **The Dawnspire and the Chain** (`route/Dawnspire.ts`): a 1.3 km tiered tower at the
+      centre and a chain of glowing links to the moon, which the sky now draws at that
+      world point (`Atmosphere.moonAnchor`) — the lodestar over every horizon. The chain
+      breaks when Maelor falls
+- [x] **Gates**: colossal gateways over each gorge hold the veil; the valley edge is an
+      analytic boundary in the collision world (distance to the road), so no curve leaves a
+      gap and nothing climbs across the mountains
+- [x] **Along the road**: an Ember Shrine where every biome begins (40), lore tablets,
+      a memorial per chapter, camps set beside the road with the leg's foes and level,
+      the Codex's lost pages where their hints say (Windstep on the fallen keyboard), the
+      eight boss arenas across the road before each gate, Oswin (the wanderer model)
+      beside the first fire
+- [x] **The hub is gone**: no Threshold, no training yard, parkour course, statue bosses
+      or frozen dragon at spawn. Tests use a quiet `testSite` on the plaza and raise the
+      training yard on demand (`World.trainingYard()`)
+- [x] Map draws the discovered road, chapters, named structures and the spire; the title
+      screen looks down Hollowmere's valley toward the spire
+- [x] Tests: `worldtest` (23) and `atlastest` (20) rewritten for the road; enemy 27,
+      boss 21, combat 11, move 11, kinetic 19, spell 54, save 25, ui 20, asset, build 9,
+      creature 63 passing; `tools/screenshot.mjs` views and `tools/perf.mjs` scenarios moved
+      onto the road
 

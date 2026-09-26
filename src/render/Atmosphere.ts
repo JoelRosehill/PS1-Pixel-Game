@@ -178,6 +178,14 @@ export class Atmosphere {
     this.focus.copy(p);
   }
 
+  /**
+   * A moon that hangs at a point in the world (Job 15: the moon chained above the
+   * Dawnspire). The sky draws it in the direction of that point from the viewer, so the
+   * chain rising from the spire always ends on the moon.
+   */
+  moonAnchor: THREE.Vector3 | null = null;
+  private readonly moonTmp = new THREE.Vector3();
+
   update(dt: number, elapsed: number): void {
     this.sky.uTime.value = elapsed;
     if (this.biomeDriven && this.target) {
@@ -201,6 +209,7 @@ export class Atmosphere {
       this.apply(c);
     }
     this.placeKeyLight();
+    if (this.moonAnchor) this.sky.uMoonDir.value.copy(this.moonTmp.subVectors(this.moonAnchor, this.focus).normalize());
   }
 
   private placeKeyLight(): void {

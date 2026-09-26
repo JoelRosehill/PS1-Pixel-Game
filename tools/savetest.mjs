@@ -64,36 +64,33 @@ try {
   // --- placement ------------------------------------------------------------------
   await load(page, '');
   await page.evaluate(key => localStorage.removeItem(key), SAVE_KEY);
-  await run('an Ember Shrine beside every landmark, plus the Threshold', () => {
+  await run('an Ember Shrine where every biome begins, beside the road', () => {
     const g = window.__game, S = g.level.story, A = g.level.atlas;
-    const ids = new Set(S.shrines.map(s => s.id));
-    const perSite = A.sites.every(s => ids.has(s.id));
     const far = [], wet = [];
     S.shrines.forEach(s => {
-      if (s.id === 'threshold') return;
-      const i = A.sites.findIndex(site => site.id === s.id);
-      const lm = g.level.landmarks[i];
-      const d = Math.hypot(s.position.x - lm.x, s.position.z - lm.z);
-      if (d > lm.clearance + 40) far.push(`${s.id}:${d.toFixed(0)}`);
+      const d = A.road.nearest(s.position.x, s.position.z).d;
+      if (d > 30) far.push(`${s.id}:${d.toFixed(0)}`);
       if (s.position.y < 1 || g.level.heightAt(s.rest.x, s.rest.z) < 0.5) wet.push(s.id);
     });
-    return { ok: S.shrines.length === 41 && ids.size === 41 && perSite && !far.length && !wet.length, detail: `shrines=${S.shrines.length} far=[${far}] wet=[${wet}]` };
+    const ids = new Set(S.shrines.map(s => s.id));
+    const perSite = A.sites.every(s => s.index === 0 ? ids.has('hollowmere') : ids.has(s.id));
+    return { ok: S.shrines.length === 40 && ids.size === 40 && perSite && !far.length && !wet.length, detail: `shrines=${S.shrines.length} far=[${far}] wet=[${wet}]` };
   });
-  await run('only the Threshold burns at the start', () => {
+  await run('only Hollowmere burns at the start', () => {
     const g = window.__game, S = g.level.story;
     const lit = S.shrines.filter(s => s.prop.kindled).map(s => s.id);
-    return { ok: lit.length === 1 && lit[0] === 'threshold' && g.progress.kindled.has('threshold') && !g.resumed, detail: `lit=${lit}` };
+    return { ok: lit.length === 1 && lit[0] === 'hollowmere' && g.progress.kindled.has('hollowmere') && !g.resumed, detail: `lit=${lit}` };
   });
   await run('a lore tablet for every fragment and a memorial per chapter', () => {
     const S = window.__game.level.story;
     const tablets = S.lore.filter(l => l.kind === 'tablet'), memorials = S.lore.filter(l => l.kind === 'memorial');
     const chapters = new Set(memorials.map(m => m.fragment.chapter));
     const ids = new Set(S.lore.map(l => l.id));
-    return { ok: tablets.length === 43 && memorials.length === 8 && chapters.size === 8 && ids.size === 51, detail: `tablets=${tablets.length} memorials=${memorials.length}` };
+    return { ok: tablets.length === 40 && memorials.length === 8 && chapters.size === 8 && ids.size === 48, detail: `tablets=${tablets.length} memorials=${memorials.length}` };
   });
   await run('story props keep clear of each other', () => {
     const S = window.__game.level.story;
-    const pts = [...S.shrines.filter(s => s.id !== 'threshold').map(s => ({ id: s.id, p: s.position })), ...S.lore.map(l => ({ id: l.id, p: l.position }))];
+    const pts = [...S.shrines.map(s => ({ id: s.id, p: s.position })), ...S.lore.map(l => ({ id: l.id, p: l.position }))];
     const close = [];
     for (let i = 0; i < pts.length; i++)
       for (let j = i + 1; j < pts.length; j++)
@@ -108,7 +105,7 @@ try {
 
   // --- shrines ----------------------------------------------------------------------
   await run('an unlit shrine offers to be kindled', () => {
-    const g = window.__game, s = window.__shrine('c1-0');
+    const g = window.__game, s = window.__shrine('c1-1');
     window.__at(s.rest.x, s.rest.z);
     const c = g.interactions.current;
     const prompt = document.querySelector('.page-prompt');
@@ -116,13 +113,13 @@ try {
     return { ok: c?.kind === 'shrine' && c.shrine === s && g.interactions.prompt() === 'F · Kindle the Ember Shrine', detail: `${c?.kind} "${g.interactions.prompt()}" hud="${prompt?.textContent}"` };
   });
   await run('F kindles the shrine, heals, sets the respawn point and opens the rest menu', () => {
-    const g = window.__game, s = window.__shrine('c1-0');
+    const g = window.__game, s = window.__shrine('c1-1');
     g.player.combat.health = 35;
     window.__press('KeyF');
-    const ok = s.prop.kindled && g.progress.kindled.has('c1-0') && g.player.combat.health === 100 && g.restShrine === 'c1-0'
+    const ok = s.prop.kindled && g.progress.kindled.has('c1-1') && g.player.combat.health === 100 && g.restShrine === 'c1-1'
       && g.storyUI.mode === 'rest' && g.menuOpen && g.level.story.lightAnchors().length === 1;
     const text = g.storyUI.dialog.textContent;
-    return { ok: ok && text.includes(s.name) && text.includes('The Threshold'), detail: `mode=${g.storyUI.mode} hp=${g.player.combat.health} lit=${s.prop.kindled}` };
+    return { ok: ok && text.includes(s.name) && text.includes('Hollowmere'), detail: `mode=${g.storyUI.mode} hp=${g.player.combat.health} lit=${s.prop.kindled}` };
   });
   await run('a lit shrine offers rest instead', () => {
     const g = window.__game;
@@ -131,18 +128,18 @@ try {
     return { ok: g.interactions.prompt().startsWith('F · Rest at the Ember Shrine'), detail: g.interactions.prompt() };
   });
   await run('fast travel to a kindled shrine', () => {
-    const g = window.__game, s = window.__shrine('c1-0');
-    window.__at(0, 30);
-    g.restAt(window.__shrine('threshold'));
-    const button = g.storyUI.dialog.querySelector('[data-shrine="c1-0"]');
-    const unlit = g.storyUI.dialog.querySelector('[data-shrine="c1-1"]');
+    const g = window.__game, s = window.__shrine('c1-1');
+    window.__at(g.level.testSite.x, g.level.testSite.z);
+    g.restAt(window.__shrine('hollowmere'));
+    const button = g.storyUI.dialog.querySelector('[data-shrine="c1-1"]');
+    const unlit = g.storyUI.dialog.querySelector('[data-shrine="c1-2"]');
     button?.click();
     const p = g.player.controller.position;
     const d = Math.hypot(p.x - s.rest.x, p.z - s.rest.z);
-    return { ok: !!button && !unlit && !g.storyUI.mode && d < 1 && g.restShrine === 'c1-0', detail: `d=${d.toFixed(2)} restShrine=${g.restShrine}` };
+    return { ok: !!button && !unlit && !g.storyUI.mode && d < 1 && g.restShrine === 'c1-1', detail: `d=${d.toFixed(2)} restShrine=${g.restShrine}` };
   });
   await run('death returns you to the last shrine', () => {
-    const g = window.__game, s = window.__shrine('c1-0');
+    const g = window.__game, s = window.__shrine('c1-1');
     window.__at(s.rest.x + 40, s.rest.z + 40);
     const before = g.deaths;
     const V = window.__three.Vector3;
@@ -154,7 +151,7 @@ try {
     return { ok: died && g.player.combat.alive && d < 1.5 && g.deaths === before + 1, detail: `died=${died} d=${d.toFixed(2)} deaths=${g.deaths}` };
   });
   await run('the ember will not answer mid-fight', () => {
-    const g = window.__game, s = window.__shrine('c1-0');
+    const g = window.__game, s = window.__shrine('c1-1');
     window.__closeAll();
     const enc = g.enemies.encounters[0];
     const was = enc.state;
@@ -193,7 +190,7 @@ try {
   });
   await run('the journal (J) gathers chapters, fragments and gaps', () => {
     const g = window.__game;
-    window.__at(0, 30);
+    window.__at(g.level.testSite.x, g.level.testSite.z);
     g.progress.discover('c1-0');
     window.__press('KeyJ');
     const d = g.storyUI.dialog;
@@ -208,7 +205,7 @@ try {
   // --- the Wanderer -------------------------------------------------------------------
   await run('the Wanderer speaks, and changes with the journey', () => {
     const g = window.__game;
-    const w = g.level.hub.wanderer.position;
+    const w = g.level.wanderer.position;
     window.__at(w.x + 1.6, w.z);
     const kind = g.interactions.current?.kind;
     const prompt = g.interactions.prompt();
@@ -244,7 +241,7 @@ try {
     g.player.spells.collect('comet-lance');
     g.player.spells.book.select('comet-lance');
     g.progress.clear('camp:c1-0:0');
-    g.progress.readLore('hub-1');
+    g.progress.readLore('c1-3');
     g.progress.fellBoss('gloomhorn');
     g.progress.remember('rem-gloomhorn');
     g.deaths = 3;
@@ -272,9 +269,9 @@ try {
     const d = Math.hypot(p.x - s.rest.x, p.z - s.rest.z);
     const camp = g.enemies.encounters.find(e => e.def.id === 'camp:c1-0:0');
     const arena = g.enemies.arenas.find(a => a.id === 'gloomhorn');
-    const ok = g.resumed && d < 1.5 && s.prop.kindled && window.__shrine('c1-0').prop.kindled === false
+    const ok = g.resumed && d < 1.5 && s.prop.kindled && window.__shrine('c1-1').prop.kindled === false
       && g.player.spells.book.has('comet-lance') && g.player.spells.book.selected === 'comet-lance'
-      && g.progress.lore.has('hub-1') && g.progress.remembrances.has('rem-gloomhorn') && g.progress.discovered.has('c3-2')
+      && g.progress.lore.has('c1-3') && g.progress.remembrances.has('rem-gloomhorn') && g.progress.discovered.has('c3-2')
       && (!camp || camp.state === 'cleared') && arena?.state === 'defeated' && g.deaths === 3 && g.playTime >= 754 && g.restShrine === 'c2-1';
     return { ok, detail: `resumed=${g.resumed} d=${d.toFixed(2)} camp=${camp?.state} arena=${arena?.state} deaths=${g.deaths}` };
   });
@@ -282,7 +279,7 @@ try {
     const g = window.__game;
     g.restAt(window.__shrine('c2-1'));
     const text = g.storyUI.dialog.querySelector('.story-summary')?.textContent ?? '';
-    return { ok: text.includes('12 min') && text.includes('3 deaths') && text.includes('1 / 3 great foes'), detail: text.replace(/\n/g, ' | ') };
+    return { ok: text.includes('12 min') && text.includes('3 deaths') && text.includes('1 / 8 great foes'), detail: text.replace(/\n/g, ' | ') };
   });
 
   await load(page, '&save=1&fresh=1');
@@ -296,13 +293,13 @@ try {
   await load(page, '&save=1');
   await run('a corrupt save is ignored safely', () => {
     const g = window.__game;
-    return { ok: !g.resumed && g.restShrine === 'threshold', detail: `resumed=${g.resumed}` };
+    return { ok: !g.resumed && g.restShrine === 'hollowmere', detail: `resumed=${g.resumed}` };
   });
 
   // Begin anew: a real save, then the confirm flow reloads into a fresh journey.
   await run('begin anew asks first', () => {
     const g = window.__game;
-    g.restAt(window.__shrine('threshold'));
+    g.restAt(window.__shrine('hollowmere'));
     g.storyUI.dialog.querySelector('[data-action="reset"]').click();
     const alert = g.storyUI.dialog.querySelector('.story-reset[role="alert"]');
     const saved = localStorage.getItem('chromatic-odyssey.save.v1') !== null;

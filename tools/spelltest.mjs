@@ -44,7 +44,8 @@ try {
       const g = window.__game, p = g.pages.pickups.find(p => p.id === id);
       g.player.combat.reset();
       const v = p.object.position;
-      g.player.controller.teleport(v.x, p.trial ? p.baseY - 1.65 : p.baseY - 1.3, v.z, 0);
+      g.player.controller.teleport(v.x, p.baseY - 1.3, v.z, 0);
+      g.level.setViewer(g.player.controller.position.clone(), true);
     }, id);
     await wait(200); await page.keyboard.press('f'); await wait(80);
     const state = await page.evaluate(id => ({ has: window.__game.player.spells.book.has(id) }), id);
@@ -60,7 +61,7 @@ try {
     for (const pg of ['starfall', 'comet-lance', 'chain-storm', 'glacial-rupture', 'void-maw', 'phoenix-flight', 'moon-aegis',
       'blood-bloom', 'prism-ray', 'wisp-choir', 'windstep', 'eclipse']) s.book.collect(pg);
     for (const a of ['art-crescents', 'art-skyfall', 'art-tempest', 'art-phantom', 'art-rend', 'art-sunder']) c.artsUnlocked.add(a);
-    const X = 1200, Z = 1200;
+    const X = g.level.testSite.x, Z = g.level.testSite.z;
     const ground = (x, z) => g.level.heightAt(x, z);
     const makeDummy = () => ({ team: 'enemy', position: new T.Vector3(), velocity: new T.Vector3(), bodyRadius: 0.6, bodyHeight: 2, alive: true,
       health: 1000, hits: [], applyHit(hit) { this.health -= hit.damage; this.hits.push(hit); return { hit: true, damage: hit.damage }; } });
@@ -87,7 +88,7 @@ try {
     check('Starbolts are free and hit at 30 m', dmg(dummies[0]) >= 56 && c.momentum.value === m0, [dmg(dummies[0]), c.momentum.value]);
 
     // --- the twelve pages ----------------------------------------------------------------------
-    setup('starfall', -0.35); place(dummies[0], 0, -8);
+    setup('starfall', -0.2); place(dummies[0], 0, -8);
     check('Starfall spends 30 Momentum', s.cast() && c.momentum.value === 70);
     advance(3);
     check('Starfall meteors land and burst', dmg(dummies[0]) >= 44, dmg(dummies[0]));

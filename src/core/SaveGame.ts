@@ -51,7 +51,7 @@ export class SaveGame {
         progress: data.progress as ProgressData,
         pages: data.pages.filter((p): p is string => typeof p === 'string'),
         selected: typeof data.selected === 'string' ? data.selected : 'rune-burst',
-        shrine: typeof data.shrine === 'string' ? data.shrine : 'threshold',
+        shrine: typeof data.shrine === 'string' ? data.shrine : 'hollowmere',
         playTime: Number(data.playTime) || 0,
         deaths: Number(data.deaths) || 0,
       };
