@@ -1,0 +1,1027 @@
+{
+  "version": 1,
+  "models": {
+    "a-forest-3-with-a-road-at-night-for-game": {
+      "url": "models/a-forest-3-with-a-road-at-night-for-game.glb",
+      "bytes": 1372676,
+      "triangles": 17172,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -14.47352862663446,
+          -0.311659843155503,
+          -4.536994940474129
+        ],
+        "max": [
+          5.053641025711795,
+          2.538604054290132,
+          5.823356210712811
+        ],
+        "size": [
+          19.527169652346256,
+          2.8502638974456347,
+          10.36035115118694
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "bingus": {
+      "url": "models/bingus.glb",
+      "bytes": 98124,
+      "triangles": 1100,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -47.4736213684082,
+          -68.68370972124913,
+          -157.1353300233988
+        ],
+        "max": [
+          47.4736213684082,
+          51.05726369028442,
+          56.273623582226534
+        ],
+        "size": [
+          94.9472427368164,
+          119.74097341153356,
+          213.40895360562536
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "castle-xiii": {
+      "url": "models/castle-xiii.glb",
+      "bytes": 5895504,
+      "triangles": 51038,
+      "drawCalls": 55,
+      "bounds": {
+        "min": [
+          -2.837169885635376,
+          -0.004000827788200275,
+          -1.6708602761736047
+        ],
+        "max": [
+          3.0877537727355957,
+          1.9488081377307962,
+          1.5557103356660835
+        ],
+        "size": [
+          5.924923658370972,
+          1.9528089655189964,
+          3.226570611839688
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "cavalo-no-estilo-de-ps1": {
+      "url": "models/cavalo-no-estilo-de-ps1.glb",
+      "bytes": 327328,
+      "triangles": 846,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -5.890004418703825,
+          -3.8206154113830166,
+          -6.756273054314249
+        ],
+        "max": [
+          5.894410856860617,
+          -2.489767125894023,
+          11.36842074043625
+        ],
+        "size": [
+          11.784415275564442,
+          1.3308482854889938,
+          18.1246937947505
+        ]
+      },
+      "animations": [
+        "metarig|metarig|Cube.001Action",
+        "metarig|metarig|metarigAction",
+        "metarig|metarig|metarigAction.001",
+        "metarig|metarig|metarigAction.002",
+        "metarig|metarig|metarigAction.003",
+        "metarig|metarig|metarigAction.004"
+      ],
+      "skins": 1
+    },
+    "church-psx": {
+      "url": "models/church-psx.glb",
+      "bytes": 130180,
+      "triangles": 211,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -4.298937797546387,
+          -1.0000004026824916,
+          -1.9970673773223842
+        ],
+        "max": [
+          1,
+          3.36704183170786,
+          1.997067695355321
+        ],
+        "size": [
+          5.298937797546387,
+          4.367042234390351,
+          3.994135072677705
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "classical-guitar-ps1-low-poly": {
+      "url": "models/classical-guitar-ps1-low-poly.glb",
+      "bytes": 42532,
+      "triangles": 268,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -3.057997425290637,
+          -6.136992599308545,
+          -8.823431361257345
+        ],
+        "max": [
+          3.249362089734518,
+          10.383893886143072,
+          7.156683536512462
+        ],
+        "size": [
+          6.307359515025155,
+          16.52088648545162,
+          15.980114897769807
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "free-modular-castle-kit": {
+      "url": "models/free-modular-castle-kit.glb",
+      "bytes": 964068,
+      "triangles": 21919,
+      "drawCalls": 11,
+      "bounds": {
+        "min": [
+          -58.39762811808694,
+          -0.3632793426513672,
+          -63.668730775854236
+        ],
+        "max": [
+          -4.897899627685547,
+          16.607555866241455,
+          77.42650157853029
+        ],
+        "size": [
+          53.499728490401395,
+          16.970835208892822,
+          141.09523235438454
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "grass": {
+      "url": "models/grass.glb",
+      "bytes": 58320,
+      "triangles": 8,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -4.000000238418579,
+          -0.30000030994415283,
+          -4
+        ],
+        "max": [
+          4.000000238418579,
+          1.700000286102295,
+          4
+        ],
+        "size": [
+          8.000000476837158,
+          2.0000005960464478,
+          8
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "leaf-tree-ps1-low-poly": {
+      "url": "models/leaf-tree-ps1-low-poly.glb",
+      "bytes": 173584,
+      "triangles": 1695,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -11.568335369711757,
+          -3.1462888505644813,
+          -12.300612603060552
+        ],
+        "max": [
+          12.958514271786997,
+          21.353900567100055,
+          10.411270596024618
+        ],
+        "size": [
+          24.526849641498757,
+          24.500189417664537,
+          22.71188319908517
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "lowpoly-castle": {
+      "url": "models/lowpoly-castle.glb",
+      "bytes": 206100,
+      "triangles": 3388,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -197.03387451171875,
+          -5.745400428771973,
+          -107.36965942382812
+        ],
+        "max": [
+          145.30169677734375,
+          39.20073699951172,
+          257.4017028808594
+        ],
+        "size": [
+          342.3355712890625,
+          44.94613742828369,
+          364.7713623046875
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "monster-ps1-style": {
+      "url": "models/monster-ps1-style.glb",
+      "bytes": 101064,
+      "triangles": 2022,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.013416566548871245,
+          -0.0018241756959217431,
+          -0.0002487259479992857
+        ],
+        "max": [
+          0.015004691742255716,
+          0.0016253060766989766,
+          0.0182970021991038
+        ],
+        "size": [
+          0.02842125829112696,
+          0.00344948177262072,
+          0.018545728147103084
+        ]
+      },
+      "animations": [],
+      "skins": 1
+    },
+    "nature-pack-ps1-half-life-style": {
+      "url": "models/nature-pack-ps1-half-life-style.glb",
+      "bytes": 462328,
+      "triangles": 478,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -54.1185245513916,
+          -0.10210635830858905,
+          -19.647197723388672
+        ],
+        "max": [
+          -4.250603014702946,
+          6.44717995327963,
+          13.261428833007812
+        ],
+        "size": [
+          49.867921536688655,
+          6.549286311588219,
+          32.908626556396484
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "pine-tree-ps1-low-poly": {
+      "url": "models/pine-tree-ps1-low-poly.glb",
+      "bytes": 119720,
+      "triangles": 1180,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -8.078437282119115,
+          -3.3278940040798783,
+          -4.6532687723585076
+        ],
+        "max": [
+          7.118456999449549,
+          12.371172014897828,
+          4.569279075886617
+        ],
+        "size": [
+          15.196894281568664,
+          15.699066018977707,
+          9.222547848245124
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "pine-trees-pack-ps1-low-poly": {
+      "url": "models/pine-trees-pack-ps1-low-poly.glb",
+      "bytes": 97888,
+      "triangles": 353,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -15.664024829864502,
+          0,
+          -5.982409477233887
+        ],
+        "max": [
+          15.076461791992188,
+          17.92314910888672,
+          5.185606002807617
+        ],
+        "size": [
+          30.74048662185669,
+          17.92314910888672,
+          11.168015480041504
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-bee": {
+      "url": "models/ps1-bee.glb",
+      "bytes": 23800,
+      "triangles": 92,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.8984808586488953,
+          3.077277467038968,
+          -0.4962740244553743
+        ],
+        "max": [
+          0.7160629760790584,
+          3.7138535753298356,
+          0.4962740244553743
+        ],
+        "size": [
+          1.6145438347279537,
+          0.6365761082908676,
+          0.9925480489107485
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-chicken": {
+      "url": "models/ps1-chicken.glb",
+      "bytes": 48808,
+      "triangles": 184,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.09579047560691833,
+          0.0005962790455669165,
+          -0.052170053124427795
+        ],
+        "max": [
+          0.11331197619438171,
+          0.21184735000133514,
+          0.05217008665204048
+        ],
+        "size": [
+          0.20910245180130005,
+          0.21125107095576823,
+          0.10434013977646828
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-game-character": {
+      "url": "models/ps1-game-character.glb",
+      "bytes": 98552,
+      "triangles": 355,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.6914846059819268,
+          -1.2902828305959702,
+          -0.9863157476015871
+        ],
+        "max": [
+          0.6011787196943175,
+          3.5149525609423904,
+          0.9162388001912802
+        ],
+        "size": [
+          1.2926633256762443,
+          4.8052353915383605,
+          1.9025545477928674
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-italian-broadsword": {
+      "url": "models/ps1-italian-broadsword.glb",
+      "bytes": 111572,
+      "triangles": 174,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.181574411672778,
+          -0.017779999482333664,
+          -0.2159841973485861
+        ],
+        "max": [
+          0.18157442064656681,
+          0.017780000996291623,
+          1.3754153031486567
+        ],
+        "size": [
+          0.3631488323193448,
+          0.03556000047862529,
+          1.5913995004972428
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-medieval-long-sword": {
+      "url": "models/ps1-medieval-long-sword.glb",
+      "bytes": 94348,
+      "triangles": 256,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.5261300007512553,
+          -0.03809999953955412,
+          -0.6318288184350997
+        ],
+        "max": [
+          0.5261299825646937,
+          0.03809999953955412,
+          4.422581451825977
+        ],
+        "size": [
+          1.052259983315949,
+          0.07619999907910824,
+          5.0544102702610765
+        ]
+      },
+      "animations": [
+        "med sword 1|Take 001|BaseLayer"
+      ],
+      "skins": 0
+    },
+    "ps1-nemesis": {
+      "url": "models/ps1-nemesis.glb",
+      "bytes": 154832,
+      "triangles": 842,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -0.49121472239494324,
+          -0.0394241027534008,
+          -0.19106972217559814
+        ],
+        "max": [
+          0.49050596356391907,
+          1.3808802366256714,
+          0.1269247829914093
+        ],
+        "size": [
+          0.9817206859588623,
+          1.4203043393790722,
+          0.31799450516700745
+        ]
+      },
+      "animations": [],
+      "skins": 1
+    },
+    "ps1-ottoman-war-axe": {
+      "url": "models/ps1-ottoman-war-axe.glb",
+      "bytes": 64448,
+      "triangles": 60,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -11.724836349487305,
+          -0.9510627139437706,
+          -24.124382470928474
+        ],
+        "max": [
+          1,
+          0.9510606389562706,
+          50.87562786155149
+        ],
+        "size": [
+          12.724836349487305,
+          1.9021233529000412,
+          75.00001033247997
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-scimitar": {
+      "url": "models/ps1-scimitar.glb",
+      "bytes": 32632,
+      "triangles": 110,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.24472542425685262,
+          -0.07587808735908697,
+          -0.7078780126131363
+        ],
+        "max": [
+          0.24724512186057623,
+          0.07587806686999032,
+          0.6984365181207721
+        ],
+        "size": [
+          0.49197054611742885,
+          0.1517561542290773,
+          1.4063145307339084
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-creepy-forest-environment": {
+      "url": "models/ps1-style-creepy-forest-environment.glb",
+      "bytes": 149700,
+      "triangles": 915,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -17.677341342110594,
+          -10.954157655520476,
+          -17.918779314812127
+        ],
+        "max": [
+          17.345743408328417,
+          10.898138845012681,
+          7.541169942300257
+        ],
+        "size": [
+          35.02308475043901,
+          21.852296500533157,
+          25.459949257112385
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-low-poly-cpu": {
+      "url": "models/ps1-style-low-poly-cpu.glb",
+      "bytes": 105916,
+      "triangles": 892,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.9999999776482582,
+          -2.5478397296908253,
+          -1.829925168871357
+        ],
+        "max": [
+          0.9999999776482582,
+          2.547839734123544,
+          1.7969335269924651
+        ],
+        "size": [
+          1.9999999552965164,
+          5.095679463814369,
+          3.626858695863822
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-low-poly-sun": {
+      "url": "models/ps1-style-low-poly-sun.glb",
+      "bytes": 174024,
+      "triangles": 960,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -24.380311965942383,
+          -24.415590286254883,
+          -24.380300521850586
+        ],
+        "max": [
+          24.380292892456055,
+          24.415586471557617,
+          24.38031578063965
+        ],
+        "size": [
+          48.76060485839844,
+          48.8311767578125,
+          48.760616302490234
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-machete": {
+      "url": "models/ps1-style-machete.glb",
+      "bytes": 117748,
+      "triangles": 102,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.12147794663906097,
+          -0.5173743404448032,
+          -6.159028649330139
+        ],
+        "max": [
+          0.12147794663906097,
+          0.7044424377381802,
+          6.36965537071228
+        ],
+        "size": [
+          0.24295589327812195,
+          1.2218167781829834,
+          12.52868402004242
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-old-keyboard": {
+      "url": "models/ps1-style-old-keyboard.glb",
+      "bytes": 144692,
+      "triangles": 1662,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -3.73283990611745,
+          -0.14654695513421748,
+          -3.000000637532652
+        ],
+        "max": [
+          1.000000483923637,
+          0.19685504679713134,
+          3.000000437968398
+        ],
+        "size": [
+          4.732840390041087,
+          0.34340200193134884,
+          6.00000107550105
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-style-old-mouse": {
+      "url": "models/ps1-style-old-mouse.glb",
+      "bytes": 169636,
+      "triangles": 2240,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -1.703335075452884,
+          -0.03175727193196554,
+          -0.21666838638438446
+        ],
+        "max": [
+          0.5814750159947195,
+          0.2749783924303722,
+          0.2089890320642297
+        ],
+        "size": [
+          2.2848100914476035,
+          0.30673566436233773,
+          0.42565741844861416
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "ps1-sword-b": {
+      "url": "models/ps1-sword-b.glb",
+      "bytes": 31520,
+      "triangles": 54,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -12.5,
+          -1.5,
+          -10
+        ],
+        "max": [
+          12.5,
+          1.5,
+          115
+        ],
+        "size": [
+          25,
+          3,
+          125
+        ]
+      },
+      "animations": [
+        "sword_normal_b|Take 001|BaseLayer"
+      ],
+      "skins": 0
+    },
+    "ps1lowpoly-gravestone": {
+      "url": "models/ps1lowpoly-gravestone.glb",
+      "bytes": 32748,
+      "triangles": 76,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.9297500252723694,
+          -0.9014191528139683,
+          -0.3554961582003209
+        ],
+        "max": [
+          0.9297500252723694,
+          1.4607201870712656,
+          0.35549623334735814
+        ],
+        "size": [
+          1.8595000505447388,
+          2.3621393398852337,
+          0.710992391547679
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "psx-graveyard-modular-ps1-style-free": {
+      "url": "models/psx-graveyard-modular-ps1-style-free.glb",
+      "bytes": 168120,
+      "triangles": 1456,
+      "drawCalls": 16,
+      "bounds": {
+        "min": [
+          -3.426449177167939,
+          0.6196883069224981,
+          -2.062210361329818
+        ],
+        "max": [
+          1.7755406080138652,
+          4.864009067958989,
+          18.35983358850325
+        ],
+        "size": [
+          5.201989785181804,
+          4.244320761036491,
+          20.422043949833068
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "psx-hema-practice-sword": {
+      "url": "models/psx-hema-practice-sword.glb",
+      "bytes": 80264,
+      "triangles": 274,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.14401793965211063,
+          -0.025400003418326378,
+          -0.8318500259993096
+        ],
+        "max": [
+          0.14401793962601417,
+          0.02539999596774578,
+          0.8400158434404901
+        ],
+        "size": [
+          0.2880358792781248,
+          0.05079999938607216,
+          1.6718658694397996
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "psx-sickle": {
+      "url": "models/psx-sickle.glb",
+      "bytes": 162384,
+      "triangles": 211,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -3.117794063133715,
+          -4.123735427856445,
+          -0.34116482734680176
+        ],
+        "max": [
+          1.7399067494787914,
+          3.4684932309683063,
+          0.34116482734680176
+        ],
+        "size": [
+          4.8577008126125065,
+          7.592228658824752,
+          0.6823296546936035
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "red-dragon": {
+      "url": "models/red-dragon.glb",
+      "bytes": 2211156,
+      "triangles": 11515,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -23.75853157043457,
+          -0.0317222885787487,
+          -8.559256553649902
+        ],
+        "max": [
+          23.760332107543945,
+          4.95695686340332,
+          24.097259521484375
+        ],
+        "size": [
+          47.518863677978516,
+          4.988679151982069,
+          32.65651607513428
+        ]
+      },
+      "animations": [
+        "RedDragon_Armature|RedDragon_Armature|angryFlightPose",
+        "RedDragon_Armature|RedDragon_Armature|aura",
+        "RedDragon_Armature|RedDragon_Armature|flight_fiire_render",
+        "RedDragon_Armature|RedDragon_Armature|flight_fire",
+        "RedDragon_Armature|RedDragon_Armature|flightTest",
+        "RedDragon_Armature|RedDragon_Armature|ref",
+        "RedDragon_Armature|RedDragon_Armature|ref_shieht",
+        "RedDragon_Armature|RedDragon_Armature|t-pose",
+        "RedDragon_Armature|RedDragon_Armature|test",
+        "RedDragon_Armature|RedDragon_Armature|weirdTest"
+      ],
+      "skins": 1
+    },
+    "retro-lowpoly-crt-tv": {
+      "url": "models/retro-lowpoly-crt-tv.glb",
+      "bytes": 45688,
+      "triangles": 108,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.1809413880109787,
+          -0.17198023200035095,
+          -0.1864626407623291
+        ],
+        "max": [
+          0.1809413880109787,
+          0.18920281529426575,
+          0.20513570308685303
+        ],
+        "size": [
+          0.3618827760219574,
+          0.3611830472946167,
+          0.39159834384918213
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "shadow-demon-creature-hitem3d-vs-supavoxel": {
+      "url": "models/shadow-demon-creature-hitem3d-vs-supavoxel.glb",
+      "bytes": 380120,
+      "triangles": 5761,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.7479935831916791,
+          -0.9511484164475661,
+          -0.7511687279422574
+        ],
+        "max": [
+          1.2674999237060547,
+          1.394536331295967,
+          0.8276733756065369
+        ],
+        "size": [
+          2.0154935068977338,
+          2.345684747743533,
+          1.5788421035487943
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "simple-rock-ps1-low-poly": {
+      "url": "models/simple-rock-ps1-low-poly.glb",
+      "bytes": 37732,
+      "triangles": 24,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -1,
+          -0.04732966423034668,
+          -1
+        ],
+        "max": [
+          1,
+          1.5859214067459106,
+          1
+        ],
+        "size": [
+          2,
+          1.6332510709762573,
+          2
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "the-landscape-is-a-forest-in-the-mountains": {
+      "url": "models/the-landscape-is-a-forest-in-the-mountains.glb",
+      "bytes": 1782216,
+      "triangles": 19419,
+      "drawCalls": 10,
+      "bounds": {
+        "min": [
+          -25.203347660573503,
+          -0.5897750646967355,
+          -14.071912537064069
+        ],
+        "max": [
+          22.10778535135653,
+          12.449381619895378,
+          31.867724359406047
+        ],
+        "size": [
+          47.31113301193003,
+          13.039156684592115,
+          45.93963689647012
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "the-lost-relic": {
+      "url": "models/the-lost-relic.glb",
+      "bytes": 4477348,
+      "triangles": 43107,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -8.993002891540527,
+          -0.8834911584854126,
+          -11.599769592285156
+        ],
+        "max": [
+          7.102509021759033,
+          11.802260398864746,
+          11.968046188354492
+        ],
+        "size": [
+          16.09551191329956,
+          12.685751557350159,
+          23.56781578063965
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    "wood-log-pile-ps1-low-poly": {
+      "url": "models/wood-log-pile-ps1-low-poly.glb",
+      "bytes": 39892,
+      "triangles": 84,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -2.188446654006839,
+          -0.008990004907109217,
+          -0.4740222090684941
+        ],
+        "max": [
+          2.204307423904538,
+          2.238261685017502,
+          0.38773726582031337
+        ],
+        "size": [
+          4.392754077911377,
+          2.247251689924611,
+          0.8617594748888076
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    }
+  }
+}

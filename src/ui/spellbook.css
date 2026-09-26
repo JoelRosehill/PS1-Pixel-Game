@@ -1,0 +1,94 @@
+.spell-hud { color: #eee5ff; font-size: 13px; }
+.spell-status { position: absolute; right: 24px; bottom: 24px; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-left: 3px solid #9ce9df; background: #100a1ded; }
+.spell-status strong, .spell-status span, .spell-status small { display: block; }
+.spell-status strong { font-size: 17px; margin-bottom: 5px; }
+.spell-status span { color: #cbbadc; }
+.spell-status small { color: #bbaacd; margin-top: 8px; font-size: 11px; }
+.spell-status .hud-glyph { font-size: 38px; min-width: 36px; text-align: center; }
+.spell-status.unaffordable { border-left-color: #74536f; }
+.spell-status .ward-status { color: #ffda86; margin-top: 8px; }
+.page-prompt, .spell-toast { position: absolute; left: 50%; transform: translateX(-50%); max-width: min(560px, 80vw); padding: 12px 20px; text-align: center; background: #140c23ed; border: 1px solid #aa8bbe; line-height: 1.5; }
+.page-prompt { bottom: 21%; color: #d2ffdc; border-color: #9ce9b5; }
+.spell-toast { top: 12%; color: #ffe0a0; }
+.spell-dialog { box-sizing: border-box; width: min(940px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); padding: 0; color: #f1e2cc; background: #291827; border: 3px solid #9a7547; box-shadow: 0 0 0 4px #100b17, 0 24px 70px #0009; overflow: auto; font: 14px/1.5 'Consolas', 'Courier New', monospace; }
+.spell-dialog::backdrop { background: #080510b8; }
+.spell-dialog button { font: inherit; color: inherit; background: transparent; border: 1px solid #9d8163; padding: 9px 16px; cursor: pointer; min-height: 42px; }
+.spell-dialog button:hover:not(:disabled) { background: #4b3043; }
+.spell-dialog button:focus-visible { outline: 3px solid #8ae8ff; outline-offset: 3px; }
+.spell-dialog button:disabled { cursor: default; color: #bda690; border-color: #705c4b; }
+.spell-dialog kbd { margin-left: 8px; font: inherit; border: 1px solid #987c61; padding: 1px 5px; }
+.book-header, .book-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 28px; }
+.book-header span { color: #ffd894; letter-spacing: 0.14em; font-size: 13px; }
+.book-header p { margin: 5px 0 0; color: #ccb7c5; font-size: 12px; }
+.book-spread { display: grid; grid-template-columns: 1fr 1fr; margin: 0 18px; color: #322437; background: #e5d6b9; box-shadow: 0 5px 0 #baa883, 0 8px 0 #715943; }
+.book-illustration, .book-page { padding: 30px 36px; min-height: 330px; }
+.book-illustration { position: relative; border-right: 2px solid #a58e6b; display: flex; flex-direction: column; align-items: center; box-shadow: inset -12px 0 18px -14px #45352b; }
+.folio { align-self: flex-start; color: #675046; letter-spacing: 0.14em; font-size: 11px; }
+.sigil-frame { width: 148px; height: 148px; display: grid; place-items: center; margin: 28px 0 18px; border: 1px solid #8b7056; outline: 1px solid #ae9472; outline-offset: 8px; transform: rotate(45deg); background: #39263e; color: var(--rune); }
+.sigil-frame span { transform: rotate(-45deg); font-size: 86px; line-height: 1; }
+.sigil-frame.unfound { background: transparent; color: #806b57; border-style: dashed; }
+.book-illustration blockquote { max-width: 27ch; margin: 20px 0 22px; font: italic 18px/1.5 Georgia, serif; text-align: center; color: #584034; }
+.binding-mark { margin-top: auto; letter-spacing: 0.18em; font-size: 9px; color: #73573f; }
+.page-school { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #725037; }
+.book-page { display: flex; flex-direction: column; }
+.book-page h1 { margin: 10px 0 15px; font: 36px/1.05 Georgia, serif; letter-spacing: -0.025em; text-wrap: balance; }
+.spell-description { font-size: 14px; line-height: 1.65; margin: 0 0 22px; }
+.spell-stats { display: flex; gap: 36px; margin: 0 0 20px; padding: 15px 0; border-top: 1px solid #b7a283; border-bottom: 1px solid #b7a283; }
+.spell-stats dt { font-size: 11px; color: #705037; }
+.spell-stats dd { margin: 4px 0 0; font-size: 23px; }
+.spell-stats dd small { font-size: 10px; }
+.page-location { margin-top: auto; }
+.page-location span { font-size: 11px; text-transform: uppercase; color: #705037; }
+.page-location p { margin: 5px 0 18px; font-size: 12px; }
+.book-page .bind-spell { background: #38253e; color: #ffedc6; border-color: #38253e; }
+.book-page .bind-spell:disabled { background: #d4c39e; color: #554334; border-color: #a08a68; }
+.book-footer { padding-top: 25px; }
+.book-footer small { color: #ccb7c5; font-size: 11px; }
+.wheel-mode { width: min(720px, calc(100vw - 24px)); background: #140d21f5; color: #eee5ff; border-color: #74558a; overflow: hidden; }
+.wheel-heading { padding: 20px 24px 0; font-size: 17px; }
+.wheel-heading span { float: right; font-size: 10px; color: #b8a6ce; padding-top: 5px; letter-spacing: 0.12em; }
+.spell-wheel { --radius: 190px; height: 490px; position: relative; }
+.spell-wheel button { position: absolute; width: 126px; min-height: 85px; left: calc(50% - 63px); top: calc(50% - 42px); padding: 7px 5px; background: #21172e; border-color: #594367; transform: rotate(calc(var(--slot) * 45deg)) translateY(calc(-1 * var(--radius))) rotate(calc(var(--slot) * -45deg)); font-size: 11px; }
+.spell-wheel button span, .spell-wheel button small { display: block; }
+.spell-wheel button small { font-size: 9px; margin-top: 2px; color: #c8b9d6; }
+.spell-wheel button .slot-number { position: absolute; top: 5px; left: 7px; font-size: 10px; color: #b8a6ce; }
+.spell-wheel button .wheel-glyph { font-size: 26px; line-height: 1.2; color: var(--rune); }
+.spell-wheel button:disabled { color: #ac9eb7; background: #181020; border-style: dashed; border-color: #51415e; }
+.spell-wheel button[aria-pressed="true"] { border: 2px solid var(--rune); background: #3a2948; box-shadow: 0 0 0 2px #100a18; }
+.wheel-centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 170px; text-align: center; pointer-events: none; }
+.wheel-centre span { font-size: 9px; letter-spacing: 0.12em; color: #b8a6ce; }
+.wheel-centre strong { display: block; margin: 8px 0; font-size: 18px; }
+.wheel-centre small { font-size: 10px; color: #c8b9d6; }
+.wheel-help { text-align: center; font-size: 11px; color: #c8b9d6; margin: 0 12px 20px; }
+@media (max-width: 650px) {
+  .spell-status { right: 12px; bottom: 18px; padding: 8px; max-width: 49vw; font-size: 11px; gap: 7px; }
+  .spell-status strong { font-size: 13px; }
+  .spell-status .hud-glyph { font-size: 26px; min-width: 25px; }
+  .spell-status small { font-size: 9px; max-width: 22ch; }
+  .spell-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); }
+  .book-header, .book-footer { padding: 14px; }
+  .book-header span { letter-spacing: 0.03em; font-size: 11px; }
+  .book-header p { font-size: 10px; }
+  .book-spread { grid-template-columns: 1fr; margin: 0 10px; }
+  .book-illustration { display: none; }
+  .book-page { padding: 24px; min-height: 290px; }
+  .book-footer small { display: none; }
+  .spell-wheel { --radius: 128px; height: 350px; }
+  .spell-wheel button { width: 84px; left: calc(50% - 42px); min-height: 72px; top: calc(50% - 36px); font-size: 9px; }
+  .spell-wheel button small { font-size: 8px; }
+  .wheel-centre { width: 135px; }
+  .wheel-centre strong { font-size: 14px; }
+  .wheel-heading { font-size: 14px; }
+  .wheel-help { font-size: 10px; }
+}
+@media (max-height: 580px) and (min-width: 651px) {
+  .book-illustration, .book-page { min-height: 260px; padding: 18px 30px; }
+  .sigil-frame { width: 95px; height: 95px; margin: 24px 0 12px; }
+  .sigil-frame span { font-size: 60px; }
+  .spell-wheel { --radius: 132px; height: 360px; }
+  .spell-wheel button { width: 90px; left: calc(50% - 45px); font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #splash .hint, #gamehud.resonance .momentum { animation: none; }
+  #gamehud .bar .fill, #gamehud .bar .ghost, #gamehud .banner, #splash { transition: none; }
+}

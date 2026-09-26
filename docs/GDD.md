@@ -1,0 +1,147 @@
+# Project Chromatic Odyssey — Game Design Document
+
+**Genre:** "Chill-Fi Dark Fantasy" Action-RPG, third-person
+**Tone:** the world feels mesmerizing and peaceful, and the combat is violent,
+fast and heavy. That contrast is the whole identity of the game.
+**Visual references:** [`reference_img/`](../reference_img/). The key frame is the composite:
+a mossy castle, a glowing turquoise moat, a blood moon under purple cosmic clouds and a
+distant spire citadel.
+
+---
+
+## Pillar 1 — Smart-Pixel Visuals
+
+### Depth-banded pixel rendering (no global pixel filter)
+The camera frustum is cut into **depth bands**. Each band is rasterised into its own
+render target at its own resolution, then all bands are composited front-to-back:
+
+| Band | Distance | Pixel scale* | Reads as |
+|------|----------|--------------|----------|
+| 0 | 0 – 16 m | ×1 | Crisp HD pixel art (player, sword, ground) |
+| 1 | 16 – 40 m | ×2 | Detailed pixel art |
+| 2 | 40 – 100 m | ×3 | Chunky |
+| 3 | 100 – 240 m | ×5 | Blocky |
+| 4 | 240 – 650 m | ×8 | Abstract shapes |
+| 5 | 650 m – ∞ | ×12 | Blocks of colour (mountains, citadels) |
+| Sky | — | ×3 | Pixel sky, chunky stars |
+
+\*×1 = one "base pixel", about `screenHeight / 540` device pixels (2 px at 1080p).
+The table is `PIXEL_MODES` in `src/render/SmartPixelRenderer.ts`.
+
+- Geometry is rasterised *natively* at low resolution, so we get true pixel-art
+  aliasing, not a blurred downscale.
+- Neighbouring bands overlap by 22%. The seam is **ordered-dithered** on the coarser
+  band's pixel grid, so there are no hard lines.
+- Bands 0–1 get **pixel outlines** (a 1-pixel dark silhouette edge). A planarity test keeps
+  ground at grazing angles from being outlined.
+- **Colour quantisation + Bayer dithering** gives a limited-palette feel.
+- **Height fog sampled from the sky:** exponential fog is integrated along each ray and
+  coloured by the sky haze in that direction. Valleys fill with mist, spires stay
+  readable, and silhouettes stay darker than the moon behind them
+  (like `reference_img/48c9…png`).
+- **Performance:** the compositor runs on the base-pixel canvas, then does a
+  nearest-neighbour upscale. The nebula is baked into a cubemap once. The shadow map
+  renders once per frame, not once per band. Result: 60 fps at 1080p on an Intel UHD 770
+  (integrated GPU).
+
+### Atmospheric skies
+Sky presets drive the whole mood *and* the scene lighting:
+blood moon (huge, cratered, haloed), nebula dust in purple/pink/green, oversized
+4-point coloured stars, pixel clouds, sun for day biomes.
+
+### Environmental contrast
+Gothic, dark architecture set against saturated, calm nature (glowing water,
+flower meadows, pine lakes).
+
+---
+
+## Pillar 2 — Combat & Movement
+- **Movement verbs:** run, jump, physics slide, wall-slide, wall-jump, 8-way dash.
+  Momentum carries between verbs (slide → jump keeps speed, dash cancels recovery).
+
+- **Spellblade loop:** melee builds Momentum, spells spend it, evasion refunds it.
+- **Momentum Pool (no mana):** a 0–100 meter (implemented in Job 3).
+  - +8 per sword hit, +12 heavy, +15 per perfect dodge (dash i-frames), +25 per parry
+  - Drains 6/s after 2.5 s without aggression
+  - Spells cost 20–60. Filling it enters *Resonance* (spells −50%) until it drops below 35
+
+### Attack set (Job 3, `ATTACKS` in PlayerCombat.ts)
+| Input | Attack | Damage | Notes |
+|---|---|---|---|
+| LMB ×3 | slash → backhand → spin | 11 / 13 / 20 | chains through recovery; dash or jump cancels |
+| RMB (hold) | charged overhead | 26 → 44 | 0.85 s stagger, biggest hit-stop |
+| LMB while dashing | thrust | 16 | keeps dash speed |
+| LMB while sliding | low sweep | 15 | 0.6 s trip |
+| LMB airborne | plunge | 24 + 3.2 m shockwave | slams to the ground |
+| Q tap → LMB | parry → riposte | 34 | parry staggers the attacker for 1.3 s |
+| E | Equipped spell (Rune Burst initially) | spell-dependent | costs Momentum; half cost in Resonance |
+
+Hit detection sweeps an **analytic blade arc**, not the animated mesh, so hitboxes are
+identical at any framerate. Impacts apply hit-stop, screen shake, knockback and stagger.
+
+### Measured movement (Job 2, `npm run movetest`)
+| Action | Value |
+|---|---|
+| Run speed | 9.2 m/s |
+| Jump (held / tapped) | 2.26 m / 1.27 m apex, ~0.7 s airborne |
+| Dash | 26 m/s burst, 0.16 s, 3 charges, 1.05 s refill each |
+| Slide | boosts to 12.6 m/s, reaches 19.5 m/s down the trial ramp |
+| Wall-jump | ~2.0 m rise + 8.5 m/s away from the wall |
+| Gravity | 30 m/s² (×1.3 falling, ×1.85 on early jump release) |
+
+Physics is a **custom kinematic controller**, not a rigid-body engine: the capsule is a
+stack of spheres resolved against an analytic terrain height function plus primitive
+colliders. Acceleration is Quake-style, so speed gained from slides and dashes survives
+strafing instead of being clamped to the run speed.
+
+## Pillar 3 — The Living Spellbook
+- The spell inventory is a **physical book** worn at the hip. It floats open when casting.
+- Each **Lost Page** found in the world adds one unique spell.
+- The book mesh is rebuilt from game state: thickness = page count;
+  ornament tier (leather → brass corners → gilded clasp → runic glow) = milestones.
+- Implemented in Job 4: thickness updates on collection; ornaments appear at 3, 5
+  and 8 pages. F binds nearby pages; B reads the book; hold Tab selects a spell;
+  E casts. Both menus pause gameplay and keep keyboard focus inside the menu.
+- Eight spells: Rune Burst, Ember Lance, Frost Needle, Violet Well, Windstep,
+  Updraft, Ember Ward and Mend. See README for costs/effects and the book for clues.
+- Pages persist through death within the current session. Persistent saves are Job 9.
+
+## Pillar 4 — World Structure
+- Elden Ring-style pacing: long walks, landmarks visible from far away (made readable by
+  Smart-Pixel), and a story found organically.
+- **40+ biomes in 8 chapters of 5.** Required archetypes are anchored as:
+  - Ch.1 *Tranquil Wilderness* (pine lakes, sunlit)
+  - Ch.2 *Violet Marshes* (bioluminescent wetlands)
+  - Ch.3 *Sunkeeper's Terrace* (classical ruins over colourful water)
+  - Ch.4 *Crystal Caverns* (ice + pink/blue crystal)
+  - Ch.5 *Bloodstone & Shadow* (red canyons, gothic citadels, portals)
+  - Ch.6–8: expansion variants (see Job 7)
+
+## Pillar 5 — Enemy Ecology
+- **Shadow Knights:** armoured, methodical, glowing seams; test parry + heavy sword.
+- **Sunkeeper Wizards:** evasive, blinding light, long-range AoE; test movement.
+- **Dark Fauna:** colossal beasts and dragon-kin as regional bosses.
+
+---
+
+## Code map
+```
+src/
+  main.ts                 entry point
+  core/                   Game loop, Input, TimeControl (hit-stop), seeded RNG, noise
+  render/                 SmartPixelRenderer, compositor shader, sky, pixel textures, materials
+  render/effects/         combat VFX pools (trails, sparks, rings, damage numbers)
+  physics/Colliders.ts    static collision world (terrain + primitives, grid broadphase)
+  combat/                 CombatWorld registry, Momentum pool, shared hit types
+  spells/                 SpellBook data/progression, SpellCasting, PagePickups
+  player/                 PlayerController (tuning), PlayerCombat (attacks), PlayerModel,
+                          ThirdPersonCamera, Player
+  ui/GameHud.ts           health / Momentum / dash HUD
+  ui/SpellbookUI.ts       reading screen, quick-wheel and spell HUD
+  world/                  levels + prop builders (terrain, castle, trial course, constructs…)
+  debug/                  fly camera, debug HUD
+tools/screenshot.mjs      headless Chrome screenshots for visual verification
+tools/movetest.mjs        headless movement assertions
+tools/combattest.mjs      headless combat assertions
+tools/spelltest.mjs       spell behavior, pickups, progression and menu assertions
+```

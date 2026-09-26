@@ -1,0 +1,20 @@
+import type * as THREE from 'three';
+import type { ModelLibrary } from '../assets/ModelLibrary';
+import type { CombatEntity } from '../combat/types';
+import type { ColliderWorld } from '../physics/Colliders';
+
+/** A playable space. Job 6 turns this into a streamed, biome-driven world. */
+export interface Level {
+  readonly name: string;
+  readonly root: THREE.Object3D;
+  readonly skyPreset: string;
+  readonly spawn: { position: THREE.Vector3; lookAt: THREE.Vector3 };
+  /** Static collision for the character controller. */
+  readonly colliders: ColliderWorld;
+  /** Fightable entities (Job 3+). */
+  readonly enemies: CombatEntity[];
+  readonly lostPage: THREE.Object3D;
+  loadAssets?(library: ModelLibrary): Promise<string[]>;
+  heightAt(x: number, z: number): number;
+  update(dt: number, elapsed: number): void;
+}

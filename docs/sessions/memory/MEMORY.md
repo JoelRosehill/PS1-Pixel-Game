@@ -1,0 +1,2 @@
+- [Chromatic Odyssey jobs](chromatic-odyssey-jobs.md) — game built job-by-job from docs/ROADMAP.md; Job 1 done, Job 2 (movement) next
+- [Chromatic Odyssey workflow](chromatic-odyssey-workflow.md) — `npm run shot` headless screenshots on real iGPU; bash backtick pitfall

@@ -1,0 +1,3973 @@
+{
+  "format": "glTF 2.0 binary",
+  "reports": [
+    {
+      "id": "a-forest-3-with-a-road-at-night-for-game",
+      "status": "ok",
+      "version": 5,
+      "sha256": "02c837d642e5d35770ec54aa42343d94c84ab84192151972e65a034957e2564c",
+      "source": "assets/.work/a-forest-3-with-a-road-at-night-for-game/source/лес3 crtn vjlba.fbx",
+      "alternateSources": [],
+      "url": "models/a-forest-3-with-a-road-at-night-for-game.glb",
+      "bytes": 1372676,
+      "sourceTriangles": 151954,
+      "optimizedTriangles": 23039,
+      "triangleBudget": 24000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Без названия113_20260812112021.png",
+          "before": [
+            2048,
+            2048
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "bca9eaed0a17233bdf19af2dec67c1e5.jpg",
+          "before": [
+            622,
+            960
+          ],
+          "after": [
+            166,
+            256
+          ]
+        },
+        {
+          "name": "загруженное.png",
+          "before": [
+            2400,
+            2400
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Merged static environment objects to reduce draw calls"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 166x256.",
+            "severity": 2,
+            "pointer": "/images/1"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 17172,
+      "drawCalls": 3,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "1",
+          "width": 166,
+          "height": 256
+        },
+        {
+          "name": "2",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -14.47352862663446,
+          -0.311659843155503,
+          -4.536994940474129
+        ],
+        "max": [
+          5.053641025711795,
+          2.538604054290132,
+          5.823356210712811
+        ],
+        "size": [
+          19.527169652346256,
+          2.8502638974456347,
+          10.36035115118694
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "bingus",
+      "status": "ok",
+      "version": 5,
+      "sha256": "98ec608f7d507ebf64ef87d02795d7910d14b3456b996e45b448f5ab78a225f9",
+      "source": "assets/.work/bingus/source/Bingus.zip.unpacked/Bingus.obj",
+      "alternateSources": [],
+      "url": "models/bingus.glb",
+      "bytes": 98124,
+      "sourceTriangles": 1100,
+      "optimizedTriangles": 1100,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "bingus.png",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 1100,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -47.4736213684082,
+          -68.68370972124913,
+          -157.1353300233988
+        ],
+        "max": [
+          47.4736213684082,
+          51.05726369028442,
+          56.273623582226534
+        ],
+        "size": [
+          94.9472427368164,
+          119.74097341153356,
+          213.40895360562536
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "castle-xiii",
+      "status": "ok",
+      "version": 5,
+      "sha256": "22b7df8afa60565aa315e91c3effba19da47465a8ba9a47895111b533f80d08c",
+      "source": "assets/.work/castle-xiii/source/Castle XIII.zip.unpacked/Castle XIII/Castle XIII.obj",
+      "alternateSources": [
+        "assets/.work/castle-xiii/source/Castle XIII.zip.unpacked/Castle XIII/Castle XIII.dae"
+      ],
+      "url": "models/castle-xiii.glb",
+      "bytes": 5895504,
+      "sourceTriangles": 262700,
+      "optimizedTriangles": 51039,
+      "triangleBudget": 24000,
+      "meshes": 55,
+      "textures": [
+        {
+          "name": "tex14.png",
+          "before": [
+            256,
+            253
+          ],
+          "after": [
+            256,
+            253
+          ]
+        },
+        {
+          "name": "2023-08-05_005419.jpg",
+          "before": [
+            1030,
+            683
+          ],
+          "after": [
+            256,
+            170
+          ]
+        },
+        {
+          "name": "tex15.png",
+          "before": [
+            346,
+            750
+          ],
+          "after": [
+            118,
+            256
+          ]
+        },
+        {
+          "name": "tex18.png",
+          "before": [
+            346,
+            750
+          ],
+          "after": [
+            118,
+            256
+          ]
+        },
+        {
+          "name": "2023-08-05_005641.jpg",
+          "before": [
+            1034,
+            688
+          ],
+          "after": [
+            256,
+            170
+          ]
+        },
+        {
+          "name": "concrete09.jpg",
+          "before": [
+            512,
+            512
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "MS_wall_12.bmp09b32b37-2f8e-4f71-9d3e-11130529660fLarger.jpg",
+          "before": [
+            512,
+            512
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "tex12.png",
+          "before": [
+            346,
+            750
+          ],
+          "after": [
+            118,
+            256
+          ]
+        },
+        {
+          "name": "medstreetWallStone03.jpg",
+          "before": [
+            2048,
+            2048
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "free-photo-of-old-wooden-arch-doors-in-a-stone-wall.jpeg",
+          "before": [
+            1125,
+            1500
+          ],
+          "after": [
+            192,
+            256
+          ]
+        },
+        {
+          "name": "tex20.png",
+          "before": [
+            346,
+            750
+          ],
+          "after": [
+            118,
+            256
+          ]
+        },
+        {
+          "name": "tex7.png",
+          "before": [
+            256,
+            253
+          ],
+          "after": [
+            256,
+            253
+          ]
+        },
+        {
+          "name": "baseColor_substance2 Kopie.jpg",
+          "before": [
+            512,
+            512
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "tex17.png",
+          "before": [
+            512,
+            512
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "SUELO.jpg",
+          "before": [
+            1024,
+            1024
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "tex21.png",
+          "before": [
+            346,
+            750
+          ],
+          "after": [
+            118,
+            256
+          ]
+        },
+        {
+          "name": "2024-08-10_231921.jpg",
+          "before": [
+            718,
+            721
+          ],
+          "after": [
+            255,
+            256
+          ]
+        },
+        {
+          "name": "SUELO.png",
+          "before": [
+            1024,
+            1024
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "tex11.png",
+          "before": [
+            256,
+            253
+          ],
+          "after": [
+            256,
+            253
+          ]
+        },
+        {
+          "name": "1000_F_111818884_HB0Jl16ZG6avyTOymQ4vPGhOEweMWJEd Kopie.jpg",
+          "before": [
+            964,
+            667
+          ],
+          "after": [
+            256,
+            177
+          ]
+        },
+        {
+          "name": "112bacc0-312d-4b9f-a55f-68372ed5c929.jpg",
+          "before": [
+            4096,
+            4096
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "2022-10-03_235332c.jpg",
+          "before": [
+            1162,
+            773
+          ],
+          "after": [
+            256,
+            170
+          ]
+        }
+      ],
+      "warnings": [
+        "Topology limits simplification without removing disconnected details",
+        "Triangle budget exceeded to retain source details: 51039 > 24000"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 18,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/37/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/38/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/39/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/40/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x177.",
+            "severity": 2,
+            "pointer": "/images/1"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 192x256.",
+            "severity": 2,
+            "pointer": "/images/2"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x170.",
+            "severity": 2,
+            "pointer": "/images/5"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x170.",
+            "severity": 2,
+            "pointer": "/images/6"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x170.",
+            "severity": 2,
+            "pointer": "/images/7"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 255x256.",
+            "severity": 2,
+            "pointer": "/images/8"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x253.",
+            "severity": 2,
+            "pointer": "/images/10"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x253.",
+            "severity": 2,
+            "pointer": "/images/13"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 118x256.",
+            "severity": 2,
+            "pointer": "/images/14"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x253.",
+            "severity": 2,
+            "pointer": "/images/15"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 118x256.",
+            "severity": 2,
+            "pointer": "/images/16"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 118x256.",
+            "severity": 2,
+            "pointer": "/images/18"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 118x256.",
+            "severity": 2,
+            "pointer": "/images/19"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 118x256.",
+            "severity": 2,
+            "pointer": "/images/20"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 51038,
+      "drawCalls": 55,
+      "embeddedImages": [
+        {
+          "name": "6",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "19",
+          "width": 256,
+          "height": 177
+        },
+        {
+          "name": "9",
+          "width": 192,
+          "height": 256
+        },
+        {
+          "name": "8",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "12",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "21",
+          "width": 256,
+          "height": 170
+        },
+        {
+          "name": "1",
+          "width": 256,
+          "height": 170
+        },
+        {
+          "name": "4",
+          "width": 256,
+          "height": 170
+        },
+        {
+          "name": "16",
+          "width": 255,
+          "height": 256
+        },
+        {
+          "name": "5",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "11",
+          "width": 256,
+          "height": 253
+        },
+        {
+          "name": "14",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "20",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "18",
+          "width": 256,
+          "height": 253
+        },
+        {
+          "name": "7",
+          "width": 118,
+          "height": 256
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 253
+        },
+        {
+          "name": "2",
+          "width": 118,
+          "height": 256
+        },
+        {
+          "name": "13",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "3",
+          "width": 118,
+          "height": 256
+        },
+        {
+          "name": "10",
+          "width": 118,
+          "height": 256
+        },
+        {
+          "name": "15",
+          "width": 118,
+          "height": 256
+        },
+        {
+          "name": "17",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -2.837169885635376,
+          -0.004000827788200275,
+          -1.6708602761736047
+        ],
+        "max": [
+          3.0877537727355957,
+          1.9488081377307962,
+          1.5557103356660835
+        ],
+        "size": [
+          5.924923658370972,
+          1.9528089655189964,
+          3.226570611839688
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "cavalo-no-estilo-de-ps1",
+      "status": "ok",
+      "version": 5,
+      "sha256": "cc9626a1177b10331f62f1f751367d4c504e91a6611872e67e1a532eca88299b",
+      "source": "assets/.work/cavalo-no-estilo-de-ps1/source/cavalo.fbx",
+      "alternateSources": [],
+      "url": "models/cavalo-no-estilo-de-ps1.glb",
+      "bytes": 327328,
+      "sourceTriangles": 846,
+      "optimizedTriangles": 846,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "cavaloCor.png",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Recovered colour texture from pack: Material.001"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 1,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/60"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 846,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -5.890004418703825,
+          -3.8206154113830166,
+          -6.756273054314249
+        ],
+        "max": [
+          5.894410856860617,
+          -2.489767125894023,
+          11.36842074043625
+        ],
+        "size": [
+          11.784415275564442,
+          1.3308482854889938,
+          18.1246937947505
+        ]
+      },
+      "animations": [
+        "metarig|metarig|Cube.001Action",
+        "metarig|metarig|metarigAction",
+        "metarig|metarig|metarigAction.001",
+        "metarig|metarig|metarigAction.002",
+        "metarig|metarig|metarigAction.003",
+        "metarig|metarig|metarigAction.004"
+      ],
+      "skins": 1
+    },
+    {
+      "id": "church-psx",
+      "status": "ok",
+      "version": 5,
+      "sha256": "9786a67422d60e29c824ca72f89eb581d2523f4780c9da5e40883a4b5ee58f54",
+      "source": "assets/.work/church-psx/source/ChurchPSX.zip.unpacked/ChurchPSX/Church.obj",
+      "alternateSources": [],
+      "url": "models/church-psx.glb",
+      "bytes": 130180,
+      "sourceTriangles": 211,
+      "optimizedTriangles": 211,
+      "triangleBudget": 24000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Church_Material_AlbedoTransparency.1001.png",
+          "before": [
+            1024,
+            1024
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Recovered colour texture from pack: Material"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 211,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -4.298937797546387,
+          -1.0000004026824916,
+          -1.9970673773223842
+        ],
+        "max": [
+          1,
+          3.36704183170786,
+          1.997067695355321
+        ],
+        "size": [
+          5.298937797546387,
+          4.367042234390351,
+          3.994135072677705
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "classical-guitar-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "a41bb429dcfd6ab36bc5aac11c36d40d92c47b85faa7df570b5ad219554d2a9e",
+      "source": "assets/.work/classical-guitar-ps1-low-poly/source/guitar.fbx",
+      "alternateSources": [],
+      "url": "models/classical-guitar-ps1-low-poly.glb",
+      "bytes": 42532,
+      "sourceTriangles": 268,
+      "optimizedTriangles": 268,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "guitar.jpg",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Missing image: Nowy projekt (9).jpg",
+        "Recovered colour texture from pack: Guitar"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 268,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -3.057997425290637,
+          -6.136992599308545,
+          -8.823431361257345
+        ],
+        "max": [
+          3.249362089734518,
+          10.383893886143072,
+          7.156683536512462
+        ],
+        "size": [
+          6.307359515025155,
+          16.52088648545162,
+          15.980114897769807
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "free-modular-castle-kit",
+      "status": "ok",
+      "version": 5,
+      "sha256": "2df4f07e84c4ef4b7363013d592fb5c682f6259408788caa14131a5161d53e57",
+      "source": "assets/.work/free-modular-castle-kit/source/SimplePolygon_CastleKit.fbx",
+      "alternateSources": [],
+      "url": "models/free-modular-castle-kit.glb",
+      "bytes": 964068,
+      "sourceTriangles": 63569,
+      "optimizedTriangles": 23029,
+      "triangleBudget": 24000,
+      "meshes": 11,
+      "textures": [
+        {
+          "name": "SimplePolygon_MultiColorPalette.png",
+          "before": [
+            2048,
+            2048
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 21919,
+      "drawCalls": 11,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -58.39762811808694,
+          -0.3632793426513672,
+          -63.668730775854236
+        ],
+        "max": [
+          -4.897899627685547,
+          16.607555866241455,
+          77.42650157853029
+        ],
+        "size": [
+          53.499728490401395,
+          16.970835208892822,
+          141.09523235438454
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "grass",
+      "status": "ok",
+      "version": 5,
+      "sha256": "78d285d3319fe88ea7b0d462f7f3662f003f57dded0a362486b6c82224d44123",
+      "source": "assets/.work/grass/source/Grass.fbx",
+      "alternateSources": [],
+      "url": "models/grass.glb",
+      "bytes": 58320,
+      "sourceTriangles": 8,
+      "optimizedTriangles": 8,
+      "triangleBudget": 2400,
+      "meshes": 4,
+      "textures": [
+        {
+          "name": "TexturesCom_PlantsSingle0058_1_masked_S.png",
+          "before": [
+            256,
+            100
+          ],
+          "after": [
+            256,
+            100
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x100.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 8,
+      "drawCalls": 4,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 100
+        }
+      ],
+      "bounds": {
+        "min": [
+          -4.000000238418579,
+          -0.30000030994415283,
+          -4
+        ],
+        "max": [
+          4.000000238418579,
+          1.700000286102295,
+          4
+        ],
+        "size": [
+          8.000000476837158,
+          2.0000005960464478,
+          8
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "leaf-tree-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "9151dc45fe29e4dc2e41203a7a9a40a9219db8f5bb488a9551ab9060b853c452",
+      "source": "assets/.work/leaf-tree-ps1-low-poly/source/tree_leaf.fbx",
+      "alternateSources": [],
+      "url": "models/leaf-tree-ps1-low-poly.glb",
+      "bytes": 173584,
+      "sourceTriangles": 1695,
+      "optimizedTriangles": 1695,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "tree2_tex.png",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 1695,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -11.568335369711757,
+          -3.1462888505644813,
+          -12.300612603060552
+        ],
+        "max": [
+          12.958514271786997,
+          21.353900567100055,
+          10.411270596024618
+        ],
+        "size": [
+          24.526849641498757,
+          24.500189417664537,
+          22.71188319908517
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "lowpoly-castle",
+      "status": "ok",
+      "version": 5,
+      "sha256": "5a269fffa201e7bb19ca5bd17d39d8c65ab77703da98b1a2d086ae6c0ca69b7a",
+      "source": "assets/.work/lowpoly-castle/source/castle.blend",
+      "alternateSources": [],
+      "url": "models/lowpoly-castle.glb",
+      "bytes": 206100,
+      "sourceTriangles": 3388,
+      "optimizedTriangles": 3388,
+      "triangleBudget": 24000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Atlas.png",
+          "before": [
+            1024,
+            1024
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Merged static environment objects to reduce draw calls",
+        "Omitted source presentation backdrop: Plane.131",
+        "Omitted source presentation backdrop: Plane.132",
+        "Omitted source presentation backdrop: Sphere",
+        "Omitted source presentation backdrop: Sphere.001",
+        "Omitted source presentation backdrop: Sphere.002",
+        "Omitted source presentation backdrop: Sphere.003"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 3388,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -197.03387451171875,
+          -5.745400428771973,
+          -107.36965942382812
+        ],
+        "max": [
+          145.30169677734375,
+          39.20073699951172,
+          257.4017028808594
+        ],
+        "size": [
+          342.3355712890625,
+          44.94613742828369,
+          364.7713623046875
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "monster-ps1-style",
+      "status": "ok",
+      "version": 5,
+      "sha256": "97330356e577fe4cd8a988b9e487e0f4bcb147b7997ee4c2fc052e5e76abb194",
+      "source": "assets/.work/monster-ps1-style/source/prueba.fbx",
+      "alternateSources": [],
+      "url": "models/monster-ps1-style.glb",
+      "bytes": 101064,
+      "sourceTriangles": 2022,
+      "optimizedTriangles": 2022,
+      "triangleBudget": 6000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Textura del mounstro128.png",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 1,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/0"
+          },
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/28"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 2022,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.013416566548871245,
+          -0.0018241756959217431,
+          -0.0002487259479992857
+        ],
+        "max": [
+          0.015004691742255716,
+          0.0016253060766989766,
+          0.0182970021991038
+        ],
+        "size": [
+          0.02842125829112696,
+          0.00344948177262072,
+          0.018545728147103084
+        ]
+      },
+      "animations": [],
+      "skins": 1
+    },
+    {
+      "id": "nature-pack-ps1-half-life-style",
+      "status": "ok",
+      "version": 5,
+      "sha256": "61e66fac9868603f928d90d142df2b157ba7bd9be0aea7ad95bca762cbc4e4a3",
+      "source": "assets/.work/nature-pack-ps1-half-life-style/source/nature.blend",
+      "alternateSources": [],
+      "url": "models/nature-pack-ps1-half-life-style.glb",
+      "bytes": 462328,
+      "sourceTriangles": 478,
+      "optimizedTriangles": 478,
+      "triangleBudget": 8000,
+      "meshes": 7,
+      "textures": [
+        {
+          "name": "Screenshot_433.png.002",
+          "before": [
+            278,
+            276
+          ],
+          "after": [
+            256,
+            254
+          ]
+        },
+        {
+          "name": "Screenshot_9222.png",
+          "before": [
+            104,
+            80
+          ],
+          "after": [
+            104,
+            80
+          ]
+        },
+        {
+          "name": "Без имени-1.png",
+          "before": [
+            173,
+            116
+          ],
+          "after": [
+            173,
+            116
+          ]
+        },
+        {
+          "name": "Screenshot_433.png.001",
+          "before": [
+            278,
+            276
+          ],
+          "after": [
+            256,
+            254
+          ]
+        },
+        {
+          "name": "grasstext.png",
+          "before": [
+            400,
+            300
+          ],
+          "after": [
+            256,
+            192
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 5,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x254.",
+            "severity": 2,
+            "pointer": "/images/0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x192.",
+            "severity": 2,
+            "pointer": "/images/1"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 173x116.",
+            "severity": 2,
+            "pointer": "/images/2"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 104x80.",
+            "severity": 2,
+            "pointer": "/images/3"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x254.",
+            "severity": 2,
+            "pointer": "/images/4"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 478,
+      "drawCalls": 7,
+      "embeddedImages": [
+        {
+          "name": "3",
+          "width": 256,
+          "height": 254
+        },
+        {
+          "name": "4",
+          "width": 256,
+          "height": 192
+        },
+        {
+          "name": "2",
+          "width": 173,
+          "height": 116
+        },
+        {
+          "name": "1",
+          "width": 104,
+          "height": 80
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 254
+        }
+      ],
+      "bounds": {
+        "min": [
+          -54.1185245513916,
+          -0.10210635830858905,
+          -19.647197723388672
+        ],
+        "max": [
+          -4.250603014702946,
+          6.44717995327963,
+          13.261428833007812
+        ],
+        "size": [
+          49.867921536688655,
+          6.549286311588219,
+          32.908626556396484
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "pine-tree-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "1f4ccb47beb8f5002c752e009adfe8882c61648100969c1da146e3a9b381f70f",
+      "source": "assets/.work/pine-tree-ps1-low-poly/source/pine_tree.fbx",
+      "alternateSources": [],
+      "url": "models/pine-tree-ps1-low-poly.glb",
+      "bytes": 119720,
+      "sourceTriangles": 1180,
+      "optimizedTriangles": 1180,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "pinetree.png",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Missing image: Nowy projekt.png",
+        "Recovered colour texture from pack: Tree_tex"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 1180,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -8.078437282119115,
+          -3.3278940040798783,
+          -4.6532687723585076
+        ],
+        "max": [
+          7.118456999449549,
+          12.371172014897828,
+          4.569279075886617
+        ],
+        "size": [
+          15.196894281568664,
+          15.699066018977707,
+          9.222547848245124
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "pine-trees-pack-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "c244daf5ffe213c48016389aa56f3711a10a08ce1d33efa43bf35d3c8f0316e7",
+      "source": "assets/.work/pine-trees-pack-ps1-low-poly/source/Trees_Pine.fbx",
+      "alternateSources": [],
+      "url": "models/pine-trees-pack-ps1-low-poly.glb",
+      "bytes": 97888,
+      "sourceTriangles": 353,
+      "optimizedTriangles": 353,
+      "triangleBudget": 8000,
+      "meshes": 3,
+      "textures": [
+        {
+          "name": "Tree_Pine.png",
+          "before": [
+            512,
+            256
+          ],
+          "after": [
+            256,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Recovered colour texture from pack: Tree_Pine"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 353,
+      "drawCalls": 3,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -15.664024829864502,
+          0,
+          -5.982409477233887
+        ],
+        "max": [
+          15.076461791992188,
+          17.92314910888672,
+          5.185606002807617
+        ],
+        "size": [
+          30.74048662185669,
+          17.92314910888672,
+          11.168015480041504
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-bee",
+      "status": "ok",
+      "version": 5,
+      "sha256": "3871b1372f2e661769b592194e8e686aad00063591e475e2279e65610228d482",
+      "source": "assets/.work/ps1-bee/source/ps1 bee.glb",
+      "alternateSources": [],
+      "url": "models/ps1-bee.glb",
+      "bytes": 23800,
+      "sourceTriangles": 92,
+      "optimizedTriangles": 92,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Untitled",
+          "before": [
+            100,
+            100
+          ],
+          "after": [
+            100,
+            100
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 100x100.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 92,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 100,
+          "height": 100
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.8984808586488953,
+          3.077277467038968,
+          -0.4962740244553743
+        ],
+        "max": [
+          0.7160629760790584,
+          3.7138535753298356,
+          0.4962740244553743
+        ],
+        "size": [
+          1.6145438347279537,
+          0.6365761082908676,
+          0.9925480489107485
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-chicken",
+      "status": "ok",
+      "version": 5,
+      "sha256": "448a2bcc40ff1d881ce3528138274264e0dc8e969a6842087ffc27abe79aeb03",
+      "source": "assets/.work/ps1-chicken/source/TheChicken.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-chicken.glb",
+      "bytes": 48808,
+      "sourceTriangles": 184,
+      "optimizedTriangles": 184,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Chicken1.TGA.png",
+          "before": [
+            162,
+            162
+          ],
+          "after": [
+            162,
+            162
+          ]
+        }
+      ],
+      "warnings": [
+        "Missing image: EnvSamplerTex",
+        "Recovered colour texture from pack: Chicken1_Mat"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 162x162.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 184,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 162,
+          "height": 162
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.09579047560691833,
+          0.0005962790455669165,
+          -0.052170053124427795
+        ],
+        "max": [
+          0.11331197619438171,
+          0.21184735000133514,
+          0.05217008665204048
+        ],
+        "size": [
+          0.20910245180130005,
+          0.21125107095576823,
+          0.10434013977646828
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-game-character",
+      "status": "ok",
+      "version": 5,
+      "sha256": "171bbefdac7f2a781ac846e24ec22e922df2b625a95cd65d79e062c303141b8d",
+      "source": "assets/.work/ps1-game-character/source/+fash.blend",
+      "alternateSources": [],
+      "url": "models/ps1-game-character.glb",
+      "bytes": 98552,
+      "sourceTriangles": 355,
+      "optimizedTriangles": 355,
+      "triangleBudget": 6000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "фаш.jpg",
+          "before": [
+            255,
+            255
+          ],
+          "after": [
+            255,
+            255
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 255x255.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 355,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 255,
+          "height": 255
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.6914846059819268,
+          -1.2902828305959702,
+          -0.9863157476015871
+        ],
+        "max": [
+          0.6011787196943175,
+          3.5149525609423904,
+          0.9162388001912802
+        ],
+        "size": [
+          1.2926633256762443,
+          4.8052353915383605,
+          1.9025545477928674
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-italian-broadsword",
+      "status": "ok",
+      "version": 5,
+      "sha256": "f88f62d04beea64e77a283d527e5af2f6298b63f9db1bc04b4c63f4caa2ae779",
+      "source": "assets/.work/ps1-italian-broadsword/source/sword med 1.rar.unpacked/italian broadsword.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-italian-broadsword.glb",
+      "bytes": 111572,
+      "sourceTriangles": 174,
+      "optimizedTriangles": 174,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #4",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 174,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.181574411672778,
+          -0.017779999482333664,
+          -0.2159841973485861
+        ],
+        "max": [
+          0.18157442064656681,
+          0.017780000996291623,
+          1.3754153031486567
+        ],
+        "size": [
+          0.3631488323193448,
+          0.03556000047862529,
+          1.5913995004972428
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-medieval-long-sword",
+      "status": "ok",
+      "version": 5,
+      "sha256": "994b968c567a66d77930b0816fbe282dd5564dc132cdd1f97e92035334fafce6",
+      "source": "assets/.work/ps1-medieval-long-sword/source/sword med 1.rar.unpacked/sword med 1.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-medieval-long-sword.glb",
+      "bytes": 94348,
+      "sourceTriangles": 256,
+      "optimizedTriangles": 256,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #3",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 256,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.5261300007512553,
+          -0.03809999953955412,
+          -0.6318288184350997
+        ],
+        "max": [
+          0.5261299825646937,
+          0.03809999953955412,
+          4.422581451825977
+        ],
+        "size": [
+          1.052259983315949,
+          0.07619999907910824,
+          5.0544102702610765
+        ]
+      },
+      "animations": [
+        "med sword 1|Take 001|BaseLayer"
+      ],
+      "skins": 0
+    },
+    {
+      "id": "ps1-nemesis",
+      "status": "ok",
+      "version": 5,
+      "sha256": "26c893e50c81bf023d3041f12493316a662ccb8012cc4e35019b7fa40073e9dc",
+      "source": "assets/.work/ps1-nemesis/source/2023.glb",
+      "alternateSources": [],
+      "url": "models/ps1-nemesis.glb",
+      "bytes": 154832,
+      "sourceTriangles": 922,
+      "optimizedTriangles": 922,
+      "triangleBudget": 6000,
+      "meshes": 2,
+      "textures": [
+        {
+          "name": "nem1",
+          "before": [
+            512,
+            256
+          ],
+          "after": [
+            256,
+            128
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 1,
+        "numInfos": 7,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/0"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/1"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/2"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/3"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/4"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/5"
+          },
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/6"
+          },
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/75"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 842,
+      "drawCalls": 4,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.49121472239494324,
+          -0.0394241027534008,
+          -0.19106972217559814
+        ],
+        "max": [
+          0.49050596356391907,
+          1.3808802366256714,
+          0.1269247829914093
+        ],
+        "size": [
+          0.9817206859588623,
+          1.4203043393790722,
+          0.31799450516700745
+        ]
+      },
+      "animations": [],
+      "skins": 1
+    },
+    {
+      "id": "ps1-ottoman-war-axe",
+      "status": "ok",
+      "version": 5,
+      "sha256": "1a84911c97b1cd6e6b2f3aa2d8e21a4cc46c21c3be541a522ac2f0bd046f29d5",
+      "source": "assets/.work/ps1-ottoman-war-axe/source/1 ck game.rar.unpacked/Ottoman_War_Axe.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-ottoman-war-axe.glb",
+      "bytes": 64448,
+      "sourceTriangles": 60,
+      "optimizedTriangles": 60,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #1",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 60,
+      "drawCalls": 2,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -11.724836349487305,
+          -0.9510627139437706,
+          -24.124382470928474
+        ],
+        "max": [
+          1,
+          0.9510606389562706,
+          50.87562786155149
+        ],
+        "size": [
+          12.724836349487305,
+          1.9021233529000412,
+          75.00001033247997
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-scimitar",
+      "status": "ok",
+      "version": 5,
+      "sha256": "3516825fdc86f0b5ee0980d0f98e7b4b1a0d630c34b34a02b182b3b67c5a52df",
+      "source": "assets/.work/ps1-scimitar/source/1 ck game.rar.unpacked/scimitar-sk.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-scimitar.glb",
+      "bytes": 32632,
+      "sourceTriangles": 110,
+      "optimizedTriangles": 110,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #2",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 110,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.24472542425685262,
+          -0.07587808735908697,
+          -0.7078780126131363
+        ],
+        "max": [
+          0.24724512186057623,
+          0.07587806686999032,
+          0.6984365181207721
+        ],
+        "size": [
+          0.49197054611742885,
+          0.1517561542290773,
+          1.4063145307339084
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-creepy-forest-environment",
+      "status": "ok",
+      "version": 5,
+      "sha256": "58f006b590d79d1ec741b5b4ba1fb14bca3c11beb94ce60e8d04d0b5290145f5",
+      "source": "assets/.work/ps1-style-creepy-forest-environment/source/creepy forest 1.glb",
+      "alternateSources": [],
+      "url": "models/ps1-style-creepy-forest-environment.glb",
+      "bytes": 149700,
+      "sourceTriangles": 915,
+      "optimizedTriangles": 915,
+      "triangleBudget": 24000,
+      "meshes": 6,
+      "textures": [
+        {
+          "name": "parallax-forest-front-trees",
+          "before": [
+            272,
+            160
+          ],
+          "after": [
+            256,
+            151
+          ]
+        },
+        {
+          "name": "parallax-forest-middle-trees",
+          "before": [
+            272,
+            160
+          ],
+          "after": [
+            256,
+            151
+          ]
+        },
+        {
+          "name": "parallax-forest-middle-trees.png",
+          "before": [
+            272,
+            160
+          ],
+          "after": [
+            256,
+            151
+          ]
+        },
+        {
+          "name": "parallax-forest-back-trees",
+          "before": [
+            272,
+            160
+          ],
+          "after": [
+            256,
+            151
+          ]
+        },
+        {
+          "name": "parallax-forest-front-trees.png",
+          "before": [
+            272,
+            160
+          ],
+          "after": [
+            256,
+            151
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 7,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x151.",
+            "severity": 2,
+            "pointer": "/images/0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x151.",
+            "severity": 2,
+            "pointer": "/images/1"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x151.",
+            "severity": 2,
+            "pointer": "/images/2"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x151.",
+            "severity": 2,
+            "pointer": "/images/3"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x151.",
+            "severity": 2,
+            "pointer": "/images/4"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 915,
+      "drawCalls": 7,
+      "embeddedImages": [
+        {
+          "name": "4",
+          "width": 256,
+          "height": 151
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 151
+        },
+        {
+          "name": "1",
+          "width": 256,
+          "height": 151
+        },
+        {
+          "name": "2",
+          "width": 256,
+          "height": 151
+        },
+        {
+          "name": "3",
+          "width": 256,
+          "height": 151
+        }
+      ],
+      "bounds": {
+        "min": [
+          -17.677341342110594,
+          -10.954157655520476,
+          -17.918779314812127
+        ],
+        "max": [
+          17.345743408328417,
+          10.898138845012681,
+          7.541169942300257
+        ],
+        "size": [
+          35.02308475043901,
+          21.852296500533157,
+          25.459949257112385
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-low-poly-cpu",
+      "status": "ok",
+      "version": 5,
+      "sha256": "e23038d9cbbec55ddf10e5f5843430ea3855f45aad61cc249bc88c19c3646087",
+      "source": "assets/.work/ps1-style-low-poly-cpu/source/Ps1 Cpu.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-style-low-poly-cpu.glb",
+      "bytes": 105916,
+      "sourceTriangles": 892,
+      "optimizedTriangles": 892,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Results 1770399160401.png",
+          "before": [
+            645,
+            792
+          ],
+          "after": [
+            208,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 208x256.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 892,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 208,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.9999999776482582,
+          -2.5478397296908253,
+          -1.829925168871357
+        ],
+        "max": [
+          0.9999999776482582,
+          2.547839734123544,
+          1.7969335269924651
+        ],
+        "size": [
+          1.9999999552965164,
+          5.095679463814369,
+          3.626858695863822
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-low-poly-sun",
+      "status": "ok",
+      "version": 5,
+      "sha256": "ec1fe4b63f5c6175651c712782a9e3dc8c5d852aa8c7da67892dcc24a65f5d89",
+      "source": "assets/.work/ps1-style-low-poly-sun/source/PS1_Low Poly Sun.zip.unpacked/PS1_Low Poly Sun/PS1_Low Poly Sun.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-style-low-poly-sun.glb",
+      "bytes": 174024,
+      "sourceTriangles": 960,
+      "optimizedTriangles": 960,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Texture_Sun_512x256.jpg",
+          "before": [
+            512,
+            256
+          ],
+          "after": [
+            256,
+            128
+          ]
+        },
+        {
+          "name": "Sun_Emission",
+          "before": [
+            512,
+            256
+          ],
+          "after": [
+            256,
+            128
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 960,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "1",
+          "width": 256,
+          "height": 128
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -24.380311965942383,
+          -24.415590286254883,
+          -24.380300521850586
+        ],
+        "max": [
+          24.380292892456055,
+          24.415586471557617,
+          24.38031578063965
+        ],
+        "size": [
+          48.76060485839844,
+          48.8311767578125,
+          48.760616302490234
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-machete",
+      "status": "ok",
+      "version": 5,
+      "sha256": "5e5c053db048008b0d6132a42fcf0e75120c0d28dae29e32e38f1241601b6d85",
+      "source": "assets/.work/ps1-style-machete/source/Machette.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-style-machete.glb",
+      "bytes": 117748,
+      "sourceTriangles": 102,
+      "optimizedTriangles": 102,
+      "triangleBudget": 1200,
+      "meshes": 2,
+      "textures": [
+        {
+          "name": "MachetteTextureMap.png",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "NODE_EMPTY",
+            "message": "Empty node encountered.",
+            "severity": 2,
+            "pointer": "/nodes/2"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 102,
+      "drawCalls": 2,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.12147794663906097,
+          -0.5173743404448032,
+          -6.159028649330139
+        ],
+        "max": [
+          0.12147794663906097,
+          0.7044424377381802,
+          6.36965537071228
+        ],
+        "size": [
+          0.24295589327812195,
+          1.2218167781829834,
+          12.52868402004242
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-old-keyboard",
+      "status": "ok",
+      "version": 5,
+      "sha256": "168a139840f893a7a2a77fbb468ced817d3408ad81826392c1c281ca8bd8ee27",
+      "source": "assets/.work/ps1-style-old-keyboard/source/Keyboard.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-style-old-keyboard.glb",
+      "bytes": 144692,
+      "sourceTriangles": 1662,
+      "optimizedTriangles": 1662,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Results 1770315190478.png",
+          "before": [
+            601,
+            256
+          ],
+          "after": [
+            256,
+            109
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x109.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 1662,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 109
+        }
+      ],
+      "bounds": {
+        "min": [
+          -3.73283990611745,
+          -0.14654695513421748,
+          -3.000000637532652
+        ],
+        "max": [
+          1.000000483923637,
+          0.19685504679713134,
+          3.000000437968398
+        ],
+        "size": [
+          4.732840390041087,
+          0.34340200193134884,
+          6.00000107550105
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-style-old-mouse",
+      "status": "ok",
+      "version": 5,
+      "sha256": "d3e6ca520005497c8be1a9c477fd1eeefe4b4b266558b62112ca880be86e0879",
+      "source": "assets/.work/ps1-style-old-mouse/source/Mouse.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-style-old-mouse.glb",
+      "bytes": 169636,
+      "sourceTriangles": 2240,
+      "optimizedTriangles": 2240,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Results 1770381755112.png",
+          "before": [
+            362,
+            270
+          ],
+          "after": [
+            256,
+            191
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x191.",
+            "severity": 2,
+            "pointer": "/images/0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 2240,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 191
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.703335075452884,
+          -0.03175727193196554,
+          -0.21666838638438446
+        ],
+        "max": [
+          0.5814750159947195,
+          0.2749783924303722,
+          0.2089890320642297
+        ],
+        "size": [
+          2.2848100914476035,
+          0.30673566436233773,
+          0.42565741844861416
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "ps1-sword-b",
+      "status": "ok",
+      "version": 5,
+      "sha256": "c6da56c260ad81b7e3cf9b65eb0b5eda15128a33c6ea543979e995d33f968742",
+      "source": "assets/.work/ps1-sword-b/source/sword_normal_b.rar.unpacked/sword_normal_b.fbx",
+      "alternateSources": [],
+      "url": "models/ps1-sword-b.glb",
+      "bytes": 31520,
+      "sourceTriangles": 54,
+      "optimizedTriangles": 54,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #0",
+          "before": [
+            32,
+            64
+          ],
+          "after": [
+            32,
+            64
+          ]
+        },
+        {
+          "name": "Map #2",
+          "before": [
+            32,
+            256
+          ],
+          "after": [
+            32,
+            256
+          ]
+        },
+        {
+          "name": "Map #1",
+          "before": [
+            64,
+            32
+          ],
+          "after": [
+            64,
+            32
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 54,
+      "drawCalls": 3,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 32,
+          "height": 64
+        },
+        {
+          "name": "2",
+          "width": 64,
+          "height": 32
+        },
+        {
+          "name": "1",
+          "width": 32,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -12.5,
+          -1.5,
+          -10
+        ],
+        "max": [
+          12.5,
+          1.5,
+          115
+        ],
+        "size": [
+          25,
+          3,
+          125
+        ]
+      },
+      "animations": [
+        "sword_normal_b|Take 001|BaseLayer"
+      ],
+      "skins": 0
+    },
+    {
+      "id": "ps1lowpoly-gravestone",
+      "status": "ok",
+      "version": 5,
+      "sha256": "55efcbb87bab042c558809fe7b3b6911bd878fe97274c7028f92be3d25d73ef9",
+      "source": "assets/.work/ps1lowpoly-gravestone/source/gravestone.obj",
+      "alternateSources": [],
+      "url": "models/ps1lowpoly-gravestone.glb",
+      "bytes": 32748,
+      "sourceTriangles": 76,
+      "optimizedTriangles": 76,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "gravestone.png",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Recovered colour texture from pack: Material.001"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 76,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.9297500252723694,
+          -0.9014191528139683,
+          -0.3554961582003209
+        ],
+        "max": [
+          0.9297500252723694,
+          1.4607201870712656,
+          0.35549623334735814
+        ],
+        "size": [
+          1.8595000505447388,
+          2.3621393398852337,
+          0.710992391547679
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "psx-graveyard-modular-ps1-style-free",
+      "status": "ok",
+      "version": 5,
+      "sha256": "3c856ed3eebf73152f6392705c52469f15fd763c33bd8f68980b5857dfbe7e9a",
+      "source": "assets/.work/psx-graveyard-modular-ps1-style-free/source/graveyard.fbx",
+      "alternateSources": [],
+      "url": "models/psx-graveyard-modular-ps1-style-free.glb",
+      "bytes": 168120,
+      "sourceTriangles": 1456,
+      "optimizedTriangles": 1456,
+      "triangleBudget": 8000,
+      "meshes": 16,
+      "textures": [
+        {
+          "name": "graveyard.png",
+          "before": [
+            1080,
+            1080
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Recovered colour texture from pack: graveyard"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 1456,
+      "drawCalls": 16,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -3.426449177167939,
+          0.6196883069224981,
+          -2.062210361329818
+        ],
+        "max": [
+          1.7755406080138652,
+          4.864009067958989,
+          18.35983358850325
+        ],
+        "size": [
+          5.201989785181804,
+          4.244320761036491,
+          20.422043949833068
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "psx-hema-practice-sword",
+      "status": "ok",
+      "version": 5,
+      "sha256": "b5f2cd47c9f5bcd0e0e029faf2f5a4ddabe3468c54215f3db307d428fbfee08b",
+      "source": "assets/.work/psx-hema-practice-sword/source/practise sword.rar.unpacked/practice sword.fbx",
+      "alternateSources": [],
+      "url": "models/psx-hema-practice-sword.glb",
+      "bytes": 80264,
+      "sourceTriangles": 274,
+      "optimizedTriangles": 274,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "Map #2",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 274,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.14401793965211063,
+          -0.025400003418326378,
+          -0.8318500259993096
+        ],
+        "max": [
+          0.14401793962601417,
+          0.02539999596774578,
+          0.8400158434404901
+        ],
+        "size": [
+          0.2880358792781248,
+          0.05079999938607216,
+          1.6718658694397996
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "psx-sickle",
+      "status": "ok",
+      "version": 5,
+      "sha256": "e0f0160a56edf7721aa82e4cd2f3033e8b59edce1ef490266011d5b7d4de153b",
+      "source": "assets/.work/psx-sickle/source/PSXSickle.glb",
+      "alternateSources": [],
+      "url": "models/psx-sickle.glb",
+      "bytes": 162384,
+      "sourceTriangles": 211,
+      "optimizedTriangles": 211,
+      "triangleBudget": 1200,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "image (1)",
+          "before": [
+            2000,
+            1490
+          ],
+          "after": [
+            256,
+            191
+          ]
+        },
+        {
+          "name": "image (2)",
+          "before": [
+            1307,
+            980
+          ],
+          "after": [
+            256,
+            192
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 2,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x191.",
+            "severity": 2,
+            "pointer": "/images/0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x192.",
+            "severity": 2,
+            "pointer": "/images/1"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 211,
+      "drawCalls": 2,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 191
+        },
+        {
+          "name": "1",
+          "width": 256,
+          "height": 192
+        }
+      ],
+      "bounds": {
+        "min": [
+          -3.117794063133715,
+          -4.123735427856445,
+          -0.34116482734680176
+        ],
+        "max": [
+          1.7399067494787914,
+          3.4684932309683063,
+          0.34116482734680176
+        ],
+        "size": [
+          4.8577008126125065,
+          7.592228658824752,
+          0.6823296546936035
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "red-dragon",
+      "status": "ok",
+      "version": 5,
+      "sha256": "d005ebe0dd9c82899ff8d403a1dbe8d12ee7d9be91d1b6eee0842c903401e968",
+      "source": "assets/.work/red-dragon/source/RedDragon.fbx",
+      "alternateSources": [],
+      "url": "models/red-dragon.glb",
+      "bytes": 2211156,
+      "sourceTriangles": 59692,
+      "optimizedTriangles": 11515,
+      "triangleBudget": 12000,
+      "meshes": 3,
+      "textures": [
+        {
+          "name": "redDragon_Base_color.png",
+          "before": [
+            4096,
+            4096
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "redDragon_Emission_color.png",
+          "before": [
+            4096,
+            4096
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 3,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/265"
+          },
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/266"
+          },
+          {
+            "code": "NODE_SKINNED_MESH_NON_ROOT",
+            "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+            "severity": 1,
+            "pointer": "/nodes/267"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 11515,
+      "drawCalls": 3,
+      "embeddedImages": [
+        {
+          "name": "1",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -23.75853157043457,
+          -0.0317222885787487,
+          -8.559256553649902
+        ],
+        "max": [
+          23.760332107543945,
+          4.95695686340332,
+          24.097259521484375
+        ],
+        "size": [
+          47.518863677978516,
+          4.988679151982069,
+          32.65651607513428
+        ]
+      },
+      "animations": [
+        "RedDragon_Armature|RedDragon_Armature|angryFlightPose",
+        "RedDragon_Armature|RedDragon_Armature|aura",
+        "RedDragon_Armature|RedDragon_Armature|flight_fiire_render",
+        "RedDragon_Armature|RedDragon_Armature|flight_fire",
+        "RedDragon_Armature|RedDragon_Armature|flightTest",
+        "RedDragon_Armature|RedDragon_Armature|ref",
+        "RedDragon_Armature|RedDragon_Armature|ref_shieht",
+        "RedDragon_Armature|RedDragon_Armature|t-pose",
+        "RedDragon_Armature|RedDragon_Armature|test",
+        "RedDragon_Armature|RedDragon_Armature|weirdTest"
+      ],
+      "skins": 1
+    },
+    {
+      "id": "retro-lowpoly-crt-tv",
+      "status": "ok",
+      "version": 5,
+      "sha256": "d7248dd5f567b5a2d544abfd590065edfb8c551e425d685334bc1ae0970d1f1e",
+      "source": "assets/.work/retro-lowpoly-crt-tv/source/tv.glb",
+      "alternateSources": [],
+      "url": "models/retro-lowpoly-crt-tv.glb",
+      "bytes": 45688,
+      "sourceTriangles": 108,
+      "optimizedTriangles": 108,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "texture",
+          "before": [
+            256,
+            256
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 108,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.1809413880109787,
+          -0.17198023200035095,
+          -0.1864626407623291
+        ],
+        "max": [
+          0.1809413880109787,
+          0.18920281529426575,
+          0.20513570308685303
+        ],
+        "size": [
+          0.3618827760219574,
+          0.3611830472946167,
+          0.39159834384918213
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "shadow-demon-creature-hitem3d-vs-supavoxel",
+      "status": "ok",
+      "version": 5,
+      "sha256": "abe91ad807ed4d456e7d4a356f3f5ebedd75d93440723f7d21ceab974fd3bb50",
+      "source": "assets/.work/shadow-demon-creature-hitem3d-vs-supavoxel/source/pool0327_wm.glb",
+      "alternateSources": [],
+      "url": "models/shadow-demon-creature-hitem3d-vs-supavoxel.glb",
+      "bytes": 380120,
+      "sourceTriangles": 447959,
+      "optimizedTriangles": 5761,
+      "triangleBudget": 6000,
+      "meshes": 2,
+      "textures": [
+        {
+          "name": "Image_0",
+          "before": [
+            2048,
+            2048
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "supavoxel-badge",
+          "before": [
+            1024,
+            288
+          ],
+          "after": [
+            256,
+            72
+          ]
+        }
+      ],
+      "warnings": [],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 1,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x72.",
+            "severity": 2,
+            "pointer": "/images/1"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 5761,
+      "drawCalls": 2,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "1",
+          "width": 256,
+          "height": 72
+        }
+      ],
+      "bounds": {
+        "min": [
+          -0.7479935831916791,
+          -0.9511484164475661,
+          -0.7511687279422574
+        ],
+        "max": [
+          1.2674999237060547,
+          1.394536331295967,
+          0.8276733756065369
+        ],
+        "size": [
+          2.0154935068977338,
+          2.345684747743533,
+          1.5788421035487943
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "simple-rock-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "336437614c7d474f066936c45f9a4155c8b3722539c2e1fb54fa33cf0158a207",
+      "source": "assets/.work/simple-rock-ps1-low-poly/source/stone1.fbx",
+      "alternateSources": [],
+      "url": "models/simple-rock-ps1-low-poly.glb",
+      "bytes": 37732,
+      "sourceTriangles": 24,
+      "optimizedTriangles": 24,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "stone_tex.jpg",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Missing image: Nowy projekt (7).jpg",
+        "Recovered colour texture from pack: Stonne"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 24,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          -0.04732966423034668,
+          -1
+        ],
+        "max": [
+          1,
+          1.5859214067459106,
+          1
+        ],
+        "size": [
+          2,
+          1.6332510709762573,
+          2
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "the-landscape-is-a-forest-in-the-mountains",
+      "status": "ok",
+      "version": 5,
+      "sha256": "7efbabf84bb21d8fcc79bda3d95fcfceab31b3c28bc91d77914cf1c9ba8b7ec9",
+      "source": "assets/.work/the-landscape-is-a-forest-in-the-mountains/source/лес пихты в горах на скетч.fbx",
+      "alternateSources": [],
+      "url": "models/the-landscape-is-a-forest-in-the-mountains.glb",
+      "bytes": 1782216,
+      "sourceTriangles": 19419,
+      "optimizedTriangles": 19419,
+      "triangleBudget": 24000,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "3f84aea6648aa6cc5af5f07ee43c6056-no-bg-preview (carve.p_ad4c7d0",
+          "before": [
+            867,
+            578
+          ],
+          "after": [
+            256,
+            171
+          ]
+        },
+        {
+          "name": "bca9eaed0a17233bdf19af2dec67c1e5.jpg",
+          "before": [
+            622,
+            960
+          ],
+          "after": [
+            166,
+            256
+          ]
+        },
+        {
+          "name": "Без названия47_20260709234345.png",
+          "before": [
+            1200,
+            1200
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "cc24eba76e0e306bc19df7b7a9208504-no-bg-preview (carve.p_3d96f79",
+          "before": [
+            736,
+            1090
+          ],
+          "after": [
+            173,
+            256
+          ]
+        },
+        {
+          "name": "Без названия45_20260708124111.png",
+          "before": [
+            1280,
+            1280
+          ],
+          "after": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "05ade0e713892be558511d706fa6c547-no-bg-preview (carve.p_95e427a",
+          "before": [
+            320,
+            500
+          ],
+          "after": [
+            164,
+            256
+          ]
+        },
+        {
+          "name": "5abdab9bf64818adacd4984d5925e5ca (1)-no-bg-preview (car_0b0362c",
+          "before": [
+            720,
+            1280
+          ],
+          "after": [
+            144,
+            256
+          ]
+        },
+        {
+          "name": "16dde607b055e65db6246963d6854987-no-bg-preview (carve.p_392ea96",
+          "before": [
+            400,
+            393
+          ],
+          "after": [
+            256,
+            252
+          ]
+        },
+        {
+          "name": "a37081a7611992c6f6d9dc1786dbc08d.jpg",
+          "before": [
+            1800,
+            2400
+          ],
+          "after": [
+            192,
+            256
+          ]
+        },
+        {
+          "name": "Без названия47_20260709231249.png",
+          "before": [
+            1200,
+            1200
+          ],
+          "after": [
+            256,
+            256
+          ]
+        }
+      ],
+      "warnings": [
+        "Merged static environment objects to reduce draw calls"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 7,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 164x256.",
+            "severity": 2,
+            "pointer": "/images/0"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x171.",
+            "severity": 2,
+            "pointer": "/images/2"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 166x256.",
+            "severity": 2,
+            "pointer": "/images/3"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 144x256.",
+            "severity": 2,
+            "pointer": "/images/4"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 256x252.",
+            "severity": 2,
+            "pointer": "/images/6"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 173x256.",
+            "severity": 2,
+            "pointer": "/images/7"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 192x256.",
+            "severity": 2,
+            "pointer": "/images/9"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 19419,
+      "drawCalls": 10,
+      "embeddedImages": [
+        {
+          "name": "5",
+          "width": 164,
+          "height": 256
+        },
+        {
+          "name": "2",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "0",
+          "width": 256,
+          "height": 171
+        },
+        {
+          "name": "1",
+          "width": 166,
+          "height": 256
+        },
+        {
+          "name": "6",
+          "width": 144,
+          "height": 256
+        },
+        {
+          "name": "9",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "7",
+          "width": 256,
+          "height": 252
+        },
+        {
+          "name": "3",
+          "width": 173,
+          "height": 256
+        },
+        {
+          "name": "4",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "8",
+          "width": 192,
+          "height": 256
+        }
+      ],
+      "bounds": {
+        "min": [
+          -25.203347660573503,
+          -0.5897750646967355,
+          -14.071912537064069
+        ],
+        "max": [
+          22.10778535135653,
+          12.449381619895378,
+          31.867724359406047
+        ],
+        "size": [
+          47.31113301193003,
+          13.039156684592115,
+          45.93963689647012
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "the-lost-relic",
+      "status": "ok",
+      "version": 5,
+      "sha256": "c62bb41c890a9956474dbd998cbd0bdb71133b1ee83f818807a9c7e6bb840958",
+      "source": "assets/.work/the-lost-relic/source/underWaterChurchSketchfab.fbx",
+      "alternateSources": [],
+      "url": "models/the-lost-relic.glb",
+      "bytes": 4477348,
+      "sourceTriangles": 626202,
+      "optimizedTriangles": 43107,
+      "triangleBudget": 24000,
+      "meshes": 3,
+      "textures": [],
+      "warnings": [
+        "Topology limits simplification without removing disconnected details",
+        "Triangle budget exceeded to retain source details: 43107 > 24000"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 3,
+        "numHints": 0,
+        "messages": [
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+          }
+        ],
+        "truncated": false
+      },
+      "exportedTriangles": 43107,
+      "drawCalls": 3,
+      "embeddedImages": [],
+      "bounds": {
+        "min": [
+          -8.993002891540527,
+          -0.8834911584854126,
+          -11.599769592285156
+        ],
+        "max": [
+          7.102509021759033,
+          11.802260398864746,
+          11.968046188354492
+        ],
+        "size": [
+          16.09551191329956,
+          12.685751557350159,
+          23.56781578063965
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    },
+    {
+      "id": "wood-log-pile-ps1-low-poly",
+      "status": "ok",
+      "version": 5,
+      "sha256": "268956622766e74be14a97fe6ff76fcfff3040d8c4c16dc90b3442d1df81f4f0",
+      "source": "assets/.work/wood-log-pile-ps1-low-poly/source/woodlogs.fbx",
+      "alternateSources": [],
+      "url": "models/wood-log-pile-ps1-low-poly.glb",
+      "bytes": 39892,
+      "sourceTriangles": 84,
+      "optimizedTriangles": 84,
+      "triangleBudget": 2400,
+      "meshes": 1,
+      "textures": [
+        {
+          "name": "woodlogs_tex.png",
+          "before": [
+            128,
+            128
+          ],
+          "after": [
+            128,
+            128
+          ]
+        }
+      ],
+      "warnings": [
+        "Missing image: Nowy projekt.png",
+        "Recovered colour texture from pack: Material.001"
+      ],
+      "license": {
+        "status": "unverified",
+        "notices": []
+      },
+      "blender": "5.2.1 LTS",
+      "validation": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+      },
+      "exportedTriangles": 84,
+      "drawCalls": 1,
+      "embeddedImages": [
+        {
+          "name": "0",
+          "width": 128,
+          "height": 128
+        }
+      ],
+      "bounds": {
+        "min": [
+          -2.188446654006839,
+          -0.008990004907109217,
+          -0.4740222090684941
+        ],
+        "max": [
+          2.204307423904538,
+          2.238261685017502,
+          0.38773726582031337
+        ],
+        "size": [
+          4.392754077911377,
+          2.247251689924611,
+          0.8617594748888076
+        ]
+      },
+      "animations": [],
+      "skins": 0
+    }
+  ],
+  "failures": []
+}
