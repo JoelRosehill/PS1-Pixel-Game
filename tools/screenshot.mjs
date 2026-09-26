@@ -83,6 +83,16 @@ const VIEWS = {
     eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('breathRun', g.enemies.ctx); g.step(1.1);" },
   'boss-sovereign': { at: '0,20,0', yaw: 0, holdMs: 500,
     eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'sovereign'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('moonDescent', g.enemies.ctx); g.step(1.0);" },
+  // Story (Job 9): a kindled shrine, the rest menu, a lore tablet and the journal.
+  shrine: { at: '0,20,0', yaw: 0, holdMs: 700,
+    eval: "const g = window.__game, s = g.level.story.shrine('c1-0'), V = window.__three.Vector3; const out = s.rest.clone().sub(s.position).setY(0).normalize(); const p = s.rest.clone().addScaledVector(out, 2.5); p.y = g.level.heightAt(p.x, p.z); g.player.controller.teleport(p.x, p.y + 0.2, p.z, s.facing); g.player.camera.setYaw(s.facing, -0.12); g.level.setViewer(p, true); s.prop.setKindled(true); g.progress.kindle('c1-0');" },
+  'rest-menu': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, S = g.level.story; for (const id of ['c1-1', 'c1-3', 'c2-0', 'c2-4']) { S.shrine(id).prop.setKindled(true); g.progress.kindle(id); } const s = S.shrine('c1-0'); g.travelTo(s); s.prop.setKindled(true); g.playTime = 4520; g.deaths = 7; g.restAt(s);" },
+  'lore-reader': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, spot = g.level.story.lore.find(l => l.id === 'c1-2'); const p = spot.position; g.player.controller.teleport(p.x + 2, g.level.heightAt(p.x + 2, p.z) + 0.2, p.z, Math.PI / 2); g.level.setViewer(p, true); g.readLore(spot);" },
+  journal: { at: '6,2.1,11', yaw: 186, holdMs: 500,
+    eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0']) g.progress.discover(id); for (const id of ['hub-1', 'hub-2', 'c1-0', 'c1-2', 'c1-4', 'mem-1', 'c2-0']) g.progress.readLore(id); g.progress.remember('rem-gloomhorn'); g.storyUI.openJournal();" },
+  wanderer: { at: '5.6,2.1,8.2', yaw: 55, holdMs: 400 },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 

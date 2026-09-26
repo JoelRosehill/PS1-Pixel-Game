@@ -169,6 +169,11 @@ export class ChapterGates {
     if (instant) { gate.fade = 0; gate.curtain.uniforms.uFade.value = 0; }
   }
 
+  /** Opens (instantly) every gate recorded in progress — used after loading a save. */
+  sync(): void {
+    for (const gate of this.gates) if (this.progress.gates.has(gate.id)) this.setOpen(gate, true);
+  }
+
   /** Why a gate is still closed (null when its conditions are met). */
   blocker(gate: Gate): string | null {
     const chapter = this.atlas.chapters[gate.from - 1];

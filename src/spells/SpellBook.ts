@@ -69,6 +69,15 @@ export class SpellBook {
     if (this.has(id) || !SPELL_PAGES.some(p => p.id === id)) return false;
     this.pages.add(id); this.revision++; return true;
   }
+  /** Loads saved pages (unknown ids are ignored; Rune Burst is always bound). */
+  restore(ids: string[], selected: string): void {
+    this.pages.clear();
+    this.pages.add('rune-burst');
+    for (const id of ids) if (SPELL_PAGES.some(p => p.id === id)) this.pages.add(id as SpellId);
+    this.selected = this.pages.has(selected as SpellId) ? selected as SpellId : 'rune-burst';
+    this.revision++;
+  }
+  get ids(): SpellId[] { return [...this.pages]; }
   select(id: SpellId): boolean {
     if (!this.has(id)) return false;
     this.selected = id; this.revision++; return true;

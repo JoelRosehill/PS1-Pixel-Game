@@ -120,6 +120,17 @@ export class EnemyDirector implements GameSystem {
     if (this.focus === enemy) this.focus = null;
   }
 
+  /** Applies saved progress: cleared encounters stay cleared, felled bosses stay felled. */
+  restore(cleared: ReadonlySet<string>, bosses: ReadonlySet<string>): void {
+    for (const enc of this.encounters) if (cleared.has(enc.def.id)) { enc.state = 'cleared'; enc.timesCleared = Math.max(1, enc.timesCleared); }
+    for (const arena of this.arenas) if (bosses.has(arena.id)) { arena.state = 'defeated'; arena.lowerWalls(); }
+  }
+
+  /** Resting resets any fight in progress (cleared encounters stay cleared). */
+  resetActive(): void {
+    for (const enc of this.encounters) if (enc.state === 'active') this.resetEncounter(enc);
+  }
+
   /** Adds a boss arena (the world supplies these). */
   addArena(def: BossArenaDef): BossArena {
     const arena = new BossArena(def, this.deps.colliders);

@@ -105,7 +105,7 @@ strafing instead of being clamped to the run speed.
   E casts. Both menus pause gameplay and keep keyboard focus inside the menu.
 - Eight spells: Rune Burst, Ember Lance, Frost Needle, Violet Well, Windstep,
   Updraft, Ember Ward and Mend. See README for costs/effects and the book for clues.
-- Pages persist through death within the current session. Persistent saves are Job 9.
+- Pages persist through death and are saved with the journey (Job 9).
 
 ## Pillar 4 — World Structure
 
@@ -196,6 +196,45 @@ mist after a short cinematic; dying resets the fight.
 
 Gloomhorn and Vermilion also hold the keys to their chapters' gates.
 
+## Pillar 6 — Story, Shrines & Saves (Job 9)
+The story is never narrated; it is found. **The Long Night:** the Sunkeepers kept the
+day, the Moon-kings the night. The last Moon-king, the **Pale Sovereign**, could not bear
+endings and chained the moon to the world. Night has lasted four hundred years and the
+chained moon bleeds (the red moon in every sky). The **Emberwardens** planted their swords
+in the last fires to keep them burning — those are the Ember Shrines. The player is the
+last Emberwarden, woken at the Threshold by a hooded **Wanderer**.
+
+| Chapter | Arc |
+|---|---|
+| Threshold | The last lit shrine; the Wanderer; the way north |
+| I · Tranquil Reach | Peace that remembers; an empty keep; a door to a morning that never comes |
+| II · Violet Fen | Where Moon-kings were crowned; Gloomhorn, a gentle colossus poisoned by the moon's tears |
+| III · Sunkeepers' Coast | The sun-order's terraces; Keepers praying with burned eyes |
+| IV · Crystal Deep | The moon's tears frozen into singing crystal |
+| V · Bloodstone Wastes | The war on the sun; Vermilion, the sun's dragon, its fire stolen |
+| VI · Ashen March | A kingdom burned to hide the moon's wound |
+| VII · Frozen Choir | The choir that sang the moon down |
+| VIII · Last Garden | The Sovereign's garden where nothing ends; the Pale Citadel |
+
+How it is told:
+- **Lore tablets** — one beside every landmark (40) and three in the hub; short, concrete
+  fragments (logs, notes, inscriptions). Unread ones are marked ✦ in the prompt.
+- **Memorials** — one kneeling Emberwarden per chapter with a one-line epitaph; the last
+  one has your face.
+- **Remembrances** — item descriptions left by each boss.
+- **The Wanderer** — one line at a time, changing with the journey.
+- **Journal (J)** — collects chapter arcs as chapters are discovered, fragments read (gaps
+  shown), and remembrances.
+
+**Ember Shrines:** 41 (the Threshold + one per landmark), unlit until found. Resting
+(F) heals, resets spell cooldowns and any fight in progress, sets the respawn point and
+saves. It is refused mid-fight. The rest menu fast-travels between kindled shrines,
+summarises the journey and offers *Begin anew* (confirmed).
+
+**Saves:** localStorage, one slot. Everything in `Progress`, the spellbook, the rest
+shrine, play time and deaths. Written on rest/travel, shortly after any progress, and
+when the page closes.
+
 ---
 
 ## Code map
@@ -216,7 +255,11 @@ src/
   ui/GameHud.ts           health / Momentum / dash HUD
   ui/SpellbookUI.ts       reading screen, quick-wheel and spell HUD
   ui/EnemyHud.ts          target frame (enemy name, Vigour, poise, state cues)
-  world/                  World (streamed level), ProvingGrounds (the hub), prop builders
+  ui/StoryUI.ts           lore reader, shrine rest menu (fast travel), journal
+  story/Lore.ts           lore fragments, memorials, remembrances, arcs, Wanderer lines
+  core/SaveGame.ts        localStorage save slot; core/Progress.ts shared progress
+  world/                  World (streamed level), ProvingGrounds (the hub), prop builders,
+                          StoryProps (shrines, tablets, memorials), Interactions (F)
   world/engine/           WorldAtlas, WorldTerrain, TerrainStreamer, PropStreamer/Library,
                           Camps, Ambience
   world/biomes/           BiomeTypes, Archetypes, Chapters, BiomeLandmarks
@@ -230,4 +273,5 @@ tools/enemytest.mjs       deterministic enemy/encounter assertions (Game.step)
 tools/worldtest.mjs       world layout, streaming, biome and camp assertions
 tools/atlastest.mjs       atlas, landmarks, gates, map assertions
 tools/bosstest.mjs        boss framework and fight assertions
+tools/savetest.mjs        shrines, lore, journal, Wanderer and save/load assertions
 ```

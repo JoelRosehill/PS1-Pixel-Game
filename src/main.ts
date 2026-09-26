@@ -34,6 +34,9 @@ const opts: GameOptions = {
   playerYaw: q.has('yaw') ? (Number(q.get('yaw')) * Math.PI) / 180 : undefined,
   baseLines: q.has('lines') ? Number(q.get('lines')) : undefined,
   render: q.get('render') !== '0',
+  // Screenshots and test harnesses never touch the save unless they ask (&save=1).
+  save: q.get('shot') !== '1' || q.get('save') === '1',
+  fresh: q.get('fresh') === '1',
 };
 const shot = q.get('shot') === '1';
 

@@ -23,6 +23,7 @@ import { WorldTerrain } from './engine/WorldTerrain';
 import type { Level } from './Level';
 import { ProvingGrounds, ThresholdTerrain } from './ProvingGrounds';
 import { buildWater } from './Water';
+import { StoryProps } from './StoryProps';
 
 /**
  * The streamed world (Job 6): The Threshold as the hub at the centre, eight chapter
@@ -43,6 +44,8 @@ export class World implements Level {
   readonly ambience: Ambience;
   readonly encounters: EncounterDef[];
   readonly gates: ChapterGates;
+  /** Shrines, lore tablets and memorials (Job 9). */
+  readonly story: StoryProps;
   /** Where the bosses wait (Job 8). */
   readonly bossArenas: BossArenaDef[] = [];
   readonly biomeDriven = true;
@@ -89,6 +92,9 @@ export class World implements Level {
       this.reserved.add(center.x, center.z, radius + 8);
     }
     this.reserved.add(this.hub.citadelAt.x, this.hub.citadelAt.z, 360);
+
+    this.story = new StoryProps(this.atlas, this.landmarks, this.hub.shrine, this.hub.materials, this.terrain.heightAt, this.reserved);
+    this.root.add(this.story.group);
 
     const camps = generateCamps(this.atlas, this.terrain.heightAt, this.reserved);
     this.encounters = [...(this.hub.encounters ?? []), ...camps.encounters];
@@ -186,6 +192,7 @@ export class World implements Level {
     this.props.update(this.viewer, 3);
     this.water.position.set(Math.round(this.viewer.x / 64) * 64, 0, Math.round(this.viewer.z / 64) * 64);
     this.ambience.update(dt, this.viewer);
+    this.story.update(dt, elapsed, this.viewer);
     this.updateMood(dt, false);
     this.gateHint = this.gates.update(dt, this.viewer);
     this.lightTimer -= dt;
@@ -220,7 +227,7 @@ export class World implements Level {
 
   private assignLights(): void {
     const v = this.viewer;
-    const nearest = [...this.anchors]
+    const nearest = [...this.anchors, ...this.story.lightAnchors()]
       .map(a => ({ a, d: Math.hypot(a.x - v.x, a.z - v.z) }))
       .filter(e => e.d < 160)
       .sort((p, q) => p.d - q.d)
