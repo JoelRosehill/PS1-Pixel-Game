@@ -52,9 +52,24 @@ export const SFX: Record<string, Effect> = {
       case 'launch': sweep(c, out, t, 300, 2600, 0.45, 0.22, 0.8); break;
       case 'ward': pad(c, out, t, [midiToHz(62), midiToHz(69), midiToHz(74)], 0.6, 1.4, 1400); chime(c, out, t, [74, 78, 81], 0.05, 0.3); break;
       case 'heal': chime(c, out, t, [67, 71, 74, 79, 83], 0.06, 0.4, 1.4); break;
+      case 'starfall': sweep(c, out, t, 3200, 500, 0.9, 0.16, 1.2); chime(c, out, t, [88, 84, 81, 76, 72], 0.1, 0.3, 0.9); break;
+      case 'lance': sweep(c, out, t, 400, 5000, 0.3, 0.28, 0.9); thump(c, out, t, 90, 0.35, 0.3); chime(c, out, t, [93, 98], 0.02, 0.3, 0.6); break;
+      case 'chain': click(c, out, t, 4000, 0.25, 0.08); sweep(c, out, t, 6000, 800, 0.35, 0.22, 3); click(c, out, t + 0.07, 3000, 0.2, 0.05); break;
+      case 'rupture': chime(c, out, t, [96, 100, 103], 0.025, 0.3, 0.5); thump(c, out, t, 80, 0.35, 0.5); sweep(c, out, t, 5000, 2500, 0.3, 0.14); break;
+      case 'maw': blip(c, out, t, 'sawtooth', 220, 55, 1.2, 0.08); sweep(c, out, t, 1200, 90, 1.2, 0.2, 2); break;
+      case 'phoenix': sweep(c, out, t, 300, 3000, 0.4, 0.26, 0.8); thump(c, out, t, 120, 0.3, 0.3); break;
+      case 'aegis': pad(c, out, t, [midiToHz(62), midiToHz(69), midiToHz(74)], 0.6, 1.4, 1400); chime(c, out, t, [74, 78, 81, 86], 0.05, 0.3); break;
+      case 'bloom': thump(c, out, t, 70, 0.5, 0.45); pad(c, out, t, [midiToHz(49), midiToHz(56)], 0.5, 0.9, 700); chime(c, out, t, [67, 71, 74, 79], 0.06, 0.35, 1.2); break;
+      case 'prism': chime(c, out, t, [79, 83, 86, 91, 95], 0.03, 0.3, 0.8); sweep(c, out, t, 800, 4000, 0.4, 0.2); break;
+      case 'wisps': chime(c, out, t, [84, 88, 91, 96], 0.08, 0.35, 1.4); break;
+      case 'eclipse': thump(c, out, t, 45, 0.8, 1.4); pad(c, out, t, [midiToHz(38), midiToHz(45), midiToHz(50)], 1.6, 1.8, 600); sweep(c, out, t + 0.3, 200, 5000, 0.8, 0.3); break;
       default: sweep(c, out, t, 600, 2000, 0.25, 0.18);
     }
   },
+  bolt: (c, out, t, o) => { blip(c, out, t, 'triangle', 900 + o.strength * 300, 1600, 0.06, 0.035); click(c, out, t, 5000, 0.02); },
+  wave: (c, out, t, o) => { sweep(c, out, t, 900, 4200, 0.28, 0.22 * o.strength, 1.6, o.pan); chime(c, out, t, [88], 0, 0.15, 0.3); },
+  art: (c, out, t) => { sweep(c, out, t, 300, 3600, 0.35, 0.26, 1.1); thump(c, out, t, 100, 0.3, 0.3); chime(c, out, t + 0.05, [74, 81, 86], 0.04, 0.3, 0.8); },
+  flask: (c, out, t) => { blip(c, out, t, 'sine', 300, 500, 0.4, 0.05); chime(c, out, t + 0.5, [72, 76, 79], 0.08, 0.35, 1.2); },
   fizzle: (c, out, t) => blip(c, out, t, 'square', 180, 120, 0.12, 0.03),
   resonance: (c, out, t) => chime(c, out, t, [76, 83, 88, 95], 0.05, 0.35, 1),
 

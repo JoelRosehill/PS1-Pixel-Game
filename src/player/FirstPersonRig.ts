@@ -22,6 +22,8 @@ export class FirstPersonRig {
   private swayX = 0;
   private swayY = 0;
   private channel = 0;
+  private drink = 0;
+  private readonly tmpDrink = new THREE.Vector3();
   constructor() {
     this.scene.name = 'first-person-hands';
     this.scene.add(new THREE.HemisphereLight(0xe1dfff, 0x39274f, 2.4));
@@ -83,6 +85,14 @@ export class FirstPersonRig {
     this.book.root.rotation.set(0.45 + open * 0.45 - ch * 0.25, 0.1, 0.08);
     this.bookHand.position.set(-0.4 + ch * 0.22 + bobSide * 0.8 + this.swayX, -0.46 + open * 0.16 - bob + ch * 0.1 + this.swayY + tremble, -0.68 + ch * 0.08);
     this.bookHand.rotation.set(0, ch * 0.3, -0.08 - ch * 0.1);
+    // Ember Flask: the off hand tips a glowing flask toward the mouth.
+    this.drink = THREE.MathUtils.damp(this.drink, combat.drinking > 0 ? 1 : 0, 14, dt);
+    if (this.drink > 0.01) {
+      const k = this.drink;
+      this.bookHand.position.lerp(this.tmpDrink.set(-0.12, -0.16, -0.42), k);
+      this.bookHand.rotation.x += k * 0.9;
+      this.bookHand.rotation.z += k * 0.5;
+    }
     this.scene.visible = combat.alive;
   }
 }

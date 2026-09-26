@@ -446,7 +446,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 |---|---|---|
 | 11 | Creature Forge — rig and animate the user's models | ✅ |
 | 12 | Feel & Momentum — view bob, dash balance, channelled Momentum | ✅ |
-| 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ⏳ |
+| 13 | Spellblade Arsenal — ranged sword arts and a new spellbook | ✅ |
 | 14 | Bestiary — model-based enemies and hard, animated bosses | ⏳ |
 | 15 | The Long Road — one handcrafted 40-biome journey | ⏳ |
 | 16 | The Story — a specific storyline, characters and beats | ⏳ |
@@ -504,3 +504,34 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 - [x] Channel effects (rings and motes into the book) and sounds (`channel`, `channelFull`)
 - [x] Tests updated: kinetictest 19 (new: channel vs dash, one air dash), movetest,
       combattest, enemytest, spelltest, uitest all passing
+
+## Job 13 — Spellblade Arsenal ✅
+
+- [x] **The sword reaches** (`PlayerCombat` + `SwordEmitters`): the combo finisher throws a
+      crescent (12 m); **hold the attack** after a slash to charge a heavy that looses a
+      vertical crescent, or **three in a fan** at full charge; dash + attack fires a lance
+      of light; slide + attack sends a ground wave; plunges land with a ring of stone spears
+- [x] **Sword Arts** (R, X cycles; Momentum + cooldown): Moonlit Crescents (3-wave fan),
+      Skyfall (leap, shockwave, spear line), Tempest Cross (8 crescents all round), Phantom
+      Blades (6 homing swords), Bloodmoon Rend (untouchable dash-through, delayed bursts),
+      Sunder (20 m line of fire and stone). Two unlocked at start; the rest come from bosses
+- [x] **Starbolts** (right mouse, hold): free, 5/s, lightly homing — ranged pressure that
+      never needs Momentum (weaker than the sword by design)
+- [x] **The Chromatic Codex — 12 new pages** (`SpellBook.ts`, `SpellCasting.ts`):
+      Starfall (meteors on the aimed point), Comet Lance (hold to gather, 70 m piercing beam),
+      Chain Storm (6-foe lightning), Glacial Rupture (22 m spike line, slow), Void Maw
+      (singularity pull + burst), Phoenix Flight (untouchable fire dash with a burning
+      trail), Moon Aegis (6 orbiting moons eat projectiles and bite), Blood Bloom (nova +
+      lifesteal), Prism Ray (hold, rainbow beam, drains Momentum), Wisp Choir (4 hunting
+      wisps), Windstep (10 m 3D blink), Eclipse (100 Momentum capstone)
+- [x] `PlayerProjectiles`: one pooled system for crescents, bolts, lances, meteors, wisps,
+      void orbs — piercing, homing, gravity, splash, frost slow, wall/ground impact, wakes
+- [x] `SpellFx`: beams, beam-chain lightning, erupting spikes, expanding flashes
+- [x] Aim assist forgives height more than direction (`aimTarget`)
+- [x] **Ember Flasks** (G): 3 charges, heal 45 after a 0.75 s drink, refilled at shrines
+- [x] Frost slow on enemies (`HitInfo.slow`); new hit kinds `wave`, `bolt`, `spell`
+- [x] UI: 12-slot spell wheel (1–0, −, =), mouse-wheel cycling, spell/art/flask status
+      panel, new sounds (bolt, wave, art, flask, 12 cast variants); rebindable Sword Art,
+      Next Art, Flask; "Return to shrine" moves to K
+- [x] `npm run spelltest` rewritten (50 checks); combat 11, kinetic 19, enemy 26, ui 20,
+      save 25, boss 15 updated/passing

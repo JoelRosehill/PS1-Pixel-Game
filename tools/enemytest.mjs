@@ -305,17 +305,20 @@ try {
   });
 
   // --- spells against enemies ------------------------------------------------
-  await run('violet well pulls enemies inward', () => {
+  await run('void maw pulls enemies inward', () => {
     const { g, T, reset, spawn, freeze } = window.__et;
     const p = reset();
     const k = freeze(spawn('knight', 9, 3));
-    p.spells.collect('violet-well'); p.spells.book.select('violet-well');
+    p.spells.collect('void-maw'); p.spells.book.select('void-maw');
     p.combat.momentum.value = 100;
     p.spells.cast();
-    const well = p.spells.fields[0].mesh.position.clone();
-    const d0 = Math.hypot(k.position.x - well.x, k.position.z - well.z);
-    g.step(3.2);
-    const d1 = Math.hypot(k.position.x - well.x, k.position.z - well.z);
+    g.step(0.5);
+    const maw = p.spells.maws[0]?.pos.clone();
+    if (!maw) return { ok: false, detail: 'no maw opened' };
+    const d0 = Math.hypot(k.position.x - maw.x, k.position.z - maw.z);
+    g.step(1.5);
+    const d1 = Math.hypot(k.position.x - maw.x, k.position.z - maw.z);
+    g.step(1.5);
     return { ok: d1 < d0 - 0.3 && k.health < k.maxHealth, detail: `distance ${d0.toFixed(2)}→${d1.toFixed(2)} hp=${k.health.toFixed(0)}` };
   });
 

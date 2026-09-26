@@ -59,6 +59,8 @@ export abstract class Enemy implements Damageable {
   lastHitBy: HitKind | null = null;
   /** Seconds since the player last damaged this enemy. */
   sinceHit = 99;
+  /** Seconds left of a frost slow (movement and actions at 55 %). */
+  slowTimer = 0;
   /** Shared attack-token pool, assigned by the director. */
   tokens: AttackTokens | null = null;
 
@@ -220,6 +222,7 @@ export abstract class Enemy implements Damageable {
     if (!this.alive || this.spawnTimer > 0) return { hit: false };
     const r = this.receive(hit);
     this.lastHitBy = hit.kind;
+    if (hit.slow) this.slowTimer = Math.max(this.slowTimer, hit.slow);
     if (hit.source === 'player') { this.pendingAlert = true; this.sinceHit = 0; }
     if (r.damage <= 0 && !hit.parry) return { hit: true, damage: 0, blocked: r.blocked };
     this.health -= r.damage;
@@ -252,6 +255,7 @@ export abstract class Enemy implements Damageable {
     this.hitFlash = Math.max(0, this.hitFlash - dt * 5);
     this.barTimer = Math.max(0, this.barTimer - dt);
     this.sinceHit += dt;
+    this.slowTimer = Math.max(0, this.slowTimer - dt);
     for (const m of this.flashMaterials) m.emissive.setScalar(this.hitFlash * 0.9);
 
     if (!this.alive) {
@@ -325,8 +329,9 @@ export abstract class Enemy implements Damageable {
     const col = ctx.colliders;
     // Steer horizontal velocity toward the wish; knockback decays through the same blend.
     const k = 1 - Math.exp(-this.accel * dt);
-    this.velocity.x += (this.moveWish.x * this.moveSpeed - this.velocity.x) * k;
-    this.velocity.z += (this.moveWish.z * this.moveSpeed - this.velocity.z) * k;
+    const speed = this.moveSpeed * (this.slowTimer > 0 ? 0.55 : 1);
+    this.velocity.x += (this.moveWish.x * speed - this.velocity.x) * k;
+    this.velocity.z += (this.moveWish.z * speed - this.velocity.z) * k;
     this.velocity.y -= GRAVITY * dt;
 
     this.prev.copy(this.position);

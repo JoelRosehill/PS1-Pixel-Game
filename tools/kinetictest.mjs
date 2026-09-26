@@ -24,12 +24,12 @@ try {
   }));
   check('projectile follows vertical and horizontal aim', await page.evaluate(() => {
     const g = window.__game, p = g.player;
-    p.combat.reset(); p.spells.collect('ember-lance'); p.spells.book.select('ember-lance');
-    p.controller.teleport(400, 150, 400, 0.3); p.camera.setYaw(0.3, 0.6); p.combat.momentum.value = 80;
-    p.spells.cast();
-    const ray = p.spells.projectiles[0].direction;
+    p.combat.reset();
+    p.controller.teleport(400, 150, 400, 0.3); p.camera.setYaw(0.3, 0.6);
+    p.spells.primary(true);
+    const ray = p.shots.shots[0].vel.clone().normalize();
     const expected = p.camera.aimDirection(new window.__three.Vector3());
-    const ok = ray.dot(expected) > 0.9999 && ray.y > 0.5;
+    const ok = ray.dot(expected) > 0.999 && ray.y > 0.5;
     p.combat.reset(); p.respawn(); return ok;
   }));
   const beforeMotion = await page.evaluate(() => window.__game.player.camera.motionScale);

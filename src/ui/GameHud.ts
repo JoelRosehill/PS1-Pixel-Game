@@ -166,7 +166,7 @@ export class GameHud {
   }
 
   update(dt: number, combat: PlayerCombat, controller: PlayerController): void {
-    const health = combat.health / 100;
+    const health = combat.health / combat.maxHealth;
     // The "ghost" bar drains behind the real one so damage spikes are legible.
     this.ghost = this.ghost > health ? Math.max(health, this.ghost - dt * 0.5) : health;
     this.css(this.healthFill, 'width', `${(health * 100).toFixed(1)}%`);

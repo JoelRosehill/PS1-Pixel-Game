@@ -94,12 +94,13 @@ export class SpellbookUI {
     if (e.code === 'Escape' || code === 'KeyB') { e.preventDefault(); if (!e.repeat) this.close(); return; }
     if (this.mode === 'wheel') {
       if (code === 'Tab') { e.preventDefault(); return; }
-      const digit = /^Digit([1-8])$/.exec(e.code);
-      if (digit) { e.preventDefault(); this.highlight(Number(digit[1]) - 1); return; }
+      const slot = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal'].indexOf(e.code);
+      if (slot >= 0 && slot < SPELL_PAGES.length) { e.preventDefault(); this.highlight(slot); return; }
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
         e.preventDefault(); const d = ['ArrowLeft', 'ArrowUp'].includes(e.code) ? -1 : 1;
-        for (let step = 1; step <= 8; step++) {
-          const index = (this.wheelIndex + d * step + 16) % 8;
+        const n = SPELL_PAGES.length;
+        for (let step = 1; step <= n; step++) {
+          const index = (this.wheelIndex + d * step + n * 2) % n;
           if (this.player.spells.book.has(SPELL_PAGES[index].id)) { this.highlight(index); break; }
         }
       }
@@ -113,13 +114,13 @@ export class SpellbookUI {
     this.dialog.classList.toggle('wheel-mode', this.mode === 'wheel');
     if (this.mode === 'wheel') {
       this.dialog.innerHTML = `<div class="wheel-heading">Choose a spell <span>WORLD PAUSED</span></div>
-        <div class="spell-wheel">${SPELL_PAGES.map((p, i) => `<button type="button" data-slot="${i + 1}" style="--slot:${i};--rune:#${p.color.toString(16)}" ${book.has(p.id) ? '' : 'disabled'} aria-pressed="${i === this.wheelIndex}" aria-label="${p.name}${book.has(p.id) ? '' : ', page missing'}"><span class="slot-number">${i + 1}</span><span class="wheel-glyph">${book.has(p.id) ? p.glyph : '·'}</span><span>${book.has(p.id) ? p.name : 'Lost page'}</span><small>${book.has(p.id) ? this.player.combat.momentum.costOf(p.cost) + ' Momentum' : 'Explore to discover'}</small></button>`).join('')}
+        <div class="spell-wheel">${SPELL_PAGES.map((p, i) => `<button type="button" data-slot="${i + 1}" style="--slot:${i};--slots:${SPELL_PAGES.length};--rune:#${p.color.toString(16)}" ${book.has(p.id) ? '' : 'disabled'} aria-pressed="${i === this.wheelIndex}" aria-label="${p.name}${book.has(p.id) ? '' : ', page missing'}"><span class="slot-number">${i + 1}</span><span class="wheel-glyph">${book.has(p.id) ? p.glyph : '·'}</span><span>${book.has(p.id) ? p.name : 'Lost page'}</span><small>${book.has(p.id) ? this.player.combat.momentum.costOf(p.cost) + ' Momentum' : 'Explore to discover'}</small></button>`).join('')}
           <div class="wheel-centre"><span>BOUND SPELL</span><strong class="wheel-current">${book.current.name}</strong><small>Release Tab to equip</small></div></div>
-        <p class="wheel-help">Mouse or arrow keys to choose · 1–8 jump to a page · Esc cancels</p>`;
+        <p class="wheel-help">Mouse or arrow keys to choose · 1–0, −, = jump to a page · mouse wheel cycles in play · Esc cancels</p>`;
       return;
     }
     const equipped = book.selected === page.id;
-    this.dialog.innerHTML = `<header class="book-header"><div><span>THE LIVING SPELLBOOK</span><p>${book.count} / 8 pages recovered · ${book.tierName} binding</p></div><button type="button" data-action="close" aria-label="Close spellbook">Close <kbd>B</kbd></button></header>
+    this.dialog.innerHTML = `<header class="book-header"><div><span>THE LIVING SPELLBOOK</span><p>${book.count} / ${SPELL_PAGES.length} pages recovered · ${book.tierName} binding</p></div><button type="button" data-action="close" aria-label="Close spellbook">Close <kbd>B</kbd></button></header>
       <div class="book-spread" style="--rune:#${page.color.toString(16)}">
         <section class="book-illustration" aria-label="Page illustration"><span class="folio">FOLIO ${String(this.index + 1).padStart(2, '0')}</span><div class="sigil-frame ${owned ? '' : 'unfound'}"><span>${owned ? page.glyph : '?'}</span></div><blockquote>${owned ? page.lore : 'A space in the binding. A word still waiting to be found.'}</blockquote><span class="binding-mark">CHROMATIC ODYSSEY</span></section>
         <section class="book-page"><span class="page-school">${page.school} · ${owned ? 'Recovered' : 'Missing page'}</span><h1>${page.name}</h1><p class="spell-description">${owned ? page.description : 'This spell has not yet been bound into your book.'}</p>
@@ -127,7 +128,7 @@ export class SpellbookUI {
           <div class="page-location"><span>${owned ? 'Found in the world' : 'Follow the trace'}</span><p>${page.hint}</p></div>
           <button type="button" data-action="equip" class="bind-spell" ${!owned || equipped ? 'disabled' : ''}>${!owned ? 'Find this page to unlock' : equipped ? 'Equipped · E to cast' : 'Equip this spell'}</button>
         </section></div>
-      <footer class="book-footer"><button type="button" data-action="prev" aria-label="Previous page">← Previous</button><span>${this.index + 1} / 8 <small>· World paused</small></span><button type="button" data-action="next" aria-label="Next page">Next →</button></footer>`;
+      <footer class="book-footer"><button type="button" data-action="prev" aria-label="Previous page">← Previous</button><span>${this.index + 1} / ${SPELL_PAGES.length} <small>· World paused</small></span><button type="button" data-action="next" aria-label="Next page">Next →</button></footer>`;
   }
   /** `prompt` is the world's use prompt (pages, shrines, lore, the Wanderer). */
   update(dt: number, prompt = ''): void {
@@ -135,7 +136,14 @@ export class SpellbookUI {
     spells.messageTime = Math.max(0, spells.messageTime - dt);
     const remaining = spells.remaining(page.id);
     const cost = combat.momentum.costOf(page.cost);
-    const text = `<span class="hud-glyph" style="color:#${page.color.toString(16)}">${page.glyph}</span><div><strong>${page.name}</strong><span>${remaining > 0 ? `Recovering ${remaining.toFixed(1)} s` : `${cost} Momentum · E cast`}</span><small>Hold Tab · choose spell &nbsp; B · read book</small>${combat.wardTime > 0 ? `<span class="ward-status">Ward ${combat.wardTime.toFixed(1)} s · damage halved</span>` : ''}</div>`;
+    const art = combat.currentArt, artLeft = combat.artRemaining();
+    const artLine = combat.artMessageTime > 0 ? combat.artMessage
+      : artLeft > 0 ? `${art.name} · ${artLeft.toFixed(1)} s` : `${art.name} · ${combat.momentum.costOf(art.cost)} · R`;
+    const flasks = Array.from({ length: combat.maxFlasks }, (_, i) => `<i class="${i < combat.flasks ? 'full' : ''}"></i>`).join('');
+    const text = `<span class="hud-glyph" style="color:#${page.color.toString(16)}">${page.glyph}</span><div><strong>${page.name}</strong><span>${remaining > 0 ? `Recovering ${remaining.toFixed(1)} s` : `${cost} Momentum · E cast`}</span>`
+      + `<span class="art-line" style="color:#${art.color.toString(16)}">${art.glyph} ${artLine}</span>`
+      + `<span class="flask-line" aria-label="${combat.flasks} Ember Flasks">${flasks} G · Ember Flask</span>`
+      + `<small>RMB Starbolt · wheel/Tab spell · X art · B book</small>${combat.wardTime > 0 ? `<span class="ward-status">Ward ${combat.wardTime.toFixed(1)} s · damage halved</span>` : ''}</div>`;
     if (text !== this.lastHud) { this.status.innerHTML = text; this.lastHud = text; }
     this.status.classList.toggle('unaffordable', !combat.momentum.canAfford(page.cost));
     if (this.pickup.textContent !== prompt) this.pickup.textContent = prompt;
