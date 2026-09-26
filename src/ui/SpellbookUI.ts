@@ -1,6 +1,5 @@
 import type { Input } from '../core/Input';
 import type { Player } from '../player/Player';
-import type { PagePickups } from '../spells/PagePickups';
 import { SPELL_PAGES } from '../spells/SpellBook';
 import './spellbook.css';
 
@@ -16,7 +15,7 @@ export class SpellbookUI {
   private readonly toast = document.createElement('div');
   private previousFocus: HTMLElement | null = null;
   private lastHud = '';
-  constructor(private readonly player: Player, private readonly input: Input, private readonly pages: PagePickups, container: HTMLElement) {
+  constructor(private readonly player: Player, private readonly input: Input, container: HTMLElement) {
     this.dialog.className = 'spell-dialog';
     this.dialog.setAttribute('aria-label', 'The Living Spellbook');
     document.body.append(this.dialog);
@@ -129,7 +128,8 @@ export class SpellbookUI {
         </section></div>
       <footer class="book-footer"><button type="button" data-action="prev" aria-label="Previous page">← Previous</button><span>${this.index + 1} / 8 <small>· World paused</small></span><button type="button" data-action="next" aria-label="Next page">Next →</button></footer>`;
   }
-  update(dt: number): void {
+  /** `prompt` is the world's use prompt (pages, shrines, lore, the Wanderer). */
+  update(dt: number, prompt = ''): void {
     const spells = this.player.spells, combat = this.player.combat, page = spells.book.current;
     spells.messageTime = Math.max(0, spells.messageTime - dt);
     const remaining = spells.remaining(page.id);
@@ -137,9 +137,8 @@ export class SpellbookUI {
     const text = `<span class="hud-glyph" style="color:#${page.color.toString(16)}">${page.glyph}</span><div><strong>${page.name}</strong><span>${remaining > 0 ? `Recovering ${remaining.toFixed(1)} s` : `${cost} Momentum · E cast`}</span><small>Hold Tab · choose spell &nbsp; B · read book</small>${combat.wardTime > 0 ? `<span class="ward-status">Ward ${combat.wardTime.toFixed(1)} s · damage halved</span>` : ''}</div>`;
     if (text !== this.lastHud) { this.status.innerHTML = text; this.lastHud = text; }
     this.status.classList.toggle('unaffordable', !combat.momentum.canAfford(page.cost));
-    const near = this.pages.nearest;
-    this.pickup.textContent = near ? `F · Bind ${SPELL_PAGES.find(p => p.id === near.id)!.name}` : '';
-    this.pickup.hidden = !near || this.paused;
+    if (this.pickup.textContent !== prompt) this.pickup.textContent = prompt;
+    this.pickup.hidden = !prompt || this.paused;
     const message = spells.messageTime > 0 ? spells.message : '';
     if (this.toast.textContent !== message) this.toast.textContent = message;
     this.toast.hidden = !message || this.paused;

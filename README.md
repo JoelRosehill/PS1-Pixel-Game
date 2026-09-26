@@ -19,6 +19,9 @@ Job 7 fills the atlas: 40 biomes in 8 chapters. Each chapter's pass is sealed by
 veil of mist until you clear three of its camps; press M for the world map.
 Job 8 adds three bosses: Gloomhorn in the Violet Fen, the dragon Vermilion in the
 Bloodstone Wastes, and the Pale Sovereign waiting at the Heart of the Moon.
+Job 9 adds the story and saving: speak with the Wanderer beside the Threshold's shrine,
+kindle an Ember Shrine beside every landmark (rest, respawn, fast travel), read the lore
+tablets and memorials, and press J for the journal. Your journey saves automatically.
 
 ## Run it
 
@@ -42,6 +45,7 @@ npm run dev        # open http://localhost:5173 and click to explore
 | `npm run worldtest` | World layout, terrain/prop streaming, biome moods and camps |
 | `npm run atlastest` | The 40-biome atlas, landmarks, chapter gates and the world map |
 | `npm run bosstest` | Boss arenas, intros, phases, movesets, parries, posture and victory |
+| `npm run savetest` | Ember Shrines, fast travel, lore, journal, the Wanderer and save/load |
 | `npm run assets:build` | Extract sources, convert with Blender, validate and rebuild the manifest |
 | `npm run assets:validate` | Validate all GLBs and regenerate asset reports/manifest |
 | `npm run assettest` | Load every model, check animations/clones and capture asset previews |
@@ -57,14 +61,15 @@ npm run dev        # open http://localhost:5173 and click to explore
 | RMB (hold) | Charged heavy overhead |
 | Q | Parry (tap) · guard (hold) |
 | E | Cast the equipped spell using Momentum (Rune Burst initially) |
-| F | Bind a nearby Lost Page |
+| F | Use: bind a Lost Page · kindle/rest at an Ember Shrine · read lore · speak with the Wanderer |
+| J | Journal (pauses): chapter arcs, lore read, remembrances |
 | B | Open/close the spellbook; arrows or buttons turn pages and equip spells |
 | M | World map (pauses): discovered regions, landmarks, camps, gates, chapter progress |
 | Tab (hold) | Spell quick-wheel; mouse/arrows/1–8 choose, release Tab to equip; Esc cancels |
 | Shift | Dash (8-way, 3 charges, i-frames) |
 | Ctrl / C | Slide (keeps momentum, accelerates downhill) · in the air: gravity slam (Space on landing to rebound) |
 | W into a wall at speed | Wall-run (per-wall budget) · Space kicks off and refunds a dash |
-| R | Respawn |
+| R | Return to the last shrine rested at |
 | V | Debug fly camera (then WASD · Shift fast · Space/C up-down · G walk) |
 | F6 | Toggle camera motion (FOV kick, wall-run roll, shake) |
 | 1–4 | Debug sky presets: Cosmic Violet, Crimson Vigil, Sunlit Wilderness, Verdigris Mist |
@@ -75,9 +80,10 @@ npm run dev        # open http://localhost:5173 and click to explore
 | [ · ] | Change base pixel size |
 | H | Hide HUD |
 
-The book and quick-wheel pause gameplay. Melee hits, parries and perfect dodges
-earn Momentum; Resonance halves spell costs. Pages survive death, but progression
-currently lasts for the browser session (persistent saves are planned for Job 9).
+The book, quick-wheel, map, journal and shrine menus pause gameplay. Melee hits,
+parries and perfect dodges earn Momentum; Resonance halves spell costs. Pages survive
+death. Progress saves to the browser (localStorage) when you rest, shortly after
+anything changes, and when the page closes; *Begin anew* at any shrine wipes it.
 
 | Spell | Momentum | Effect |
 |---|---:|---|
@@ -120,3 +126,5 @@ set `RENDER=1` to keep rendering, or `CHROME_PATH` to choose a browser.
 `?preset=blood-moon&mode=smart&cam=9,4.6,17&look=6,10,-60&time=14&bands=1&lines=540`
 
 These open a fixed viewpoint, which is handy for sharing a shot. `tools/screenshot.mjs` uses the same parameters.
+With `shot=1` the save is neither read nor written unless `save=1` is added; `fresh=1`
+ignores an existing save.

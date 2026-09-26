@@ -57,6 +57,12 @@ export class Player implements GameSystem {
     this.respawn();
   }
 
+  /** Where death and R return the player (the last Ember Shrine rested at). */
+  setRespawn(position: THREE.Vector3, facing: number): void {
+    this.spawnPoint.copy(position);
+    this.spawnFacing = facing;
+  }
+
   respawn(): void {
     this.controller.teleport(this.spawnPoint.x, this.spawnPoint.y + 0.2, this.spawnPoint.z, this.spawnFacing);
     this.camera.setYaw(this.spawnFacing, -0.1);

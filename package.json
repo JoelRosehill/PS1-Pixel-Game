@@ -20,7 +20,8 @@
     "enemytest": "node tools/enemytest.mjs",
     "worldtest": "node tools/worldtest.mjs",
     "atlastest": "node tools/atlastest.mjs",
-    "bosstest": "node tools/bosstest.mjs"
+    "bosstest": "node tools/bosstest.mjs",
+    "savetest": "node tools/savetest.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

@@ -69,7 +69,9 @@ export class ProvingGrounds implements Level {
   private readonly heightFn: (x: number, z: number) => number;
   private readonly embedded: boolean;
   private get noise(): Noise2D { return this.ground.noise; }
-  private readonly shrine: EmberShrine;
+  readonly shrine: EmberShrine;
+  /** The robed figure at the plaza (the Wanderer, Job 9). */
+  readonly wanderer: THREE.Object3D;
   private readonly fireflies: Fireflies;
   private readonly course: ParkourCourse;
   get lostPage(): THREE.Object3D { return this.course.page; }
@@ -152,7 +154,7 @@ export class ProvingGrounds implements Level {
     columns.position.set(0, PLAZA_Y, 0);
     this.root.add(columns);
     col.addCylinder(0, PLAZA_Y + 0.4, 0, 1.45, 0.9); // ember shrine
-    const wanderer = buildWanderer(m);
+    const wanderer = (this.wanderer = buildWanderer(m));
     wanderer.position.set(3.2, PLAZA_Y + 0.03, 6.5);
     wanderer.rotation.y = Math.PI + 0.35;
     this.root.add(wanderer);

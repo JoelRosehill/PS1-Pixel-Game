@@ -21,6 +21,12 @@ import { WorldMap } from '../ui/WorldMap';
 import { BossHud } from '../ui/BossHud';
 import { INTRO_SECONDS } from '../enemies/bosses/BossArena';
 import { Progress } from './Progress';
+import { SaveGame, type SaveData } from './SaveGame';
+import { Interactions } from '../world/Interactions';
+import type { LoreSpot, Shrine } from '../world/StoryProps';
+import { StoryUI } from '../ui/StoryUI';
+import { REMEMBRANCES, WANDERER_LINES } from '../story/Lore';
+import { roman } from '../world/biomes/Chapters';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
 export interface GameSystem {
@@ -43,6 +49,10 @@ export interface GameOptions {
   playerYaw?: number;
   /** false skips drawing (logic-only test harnesses on software WebGL). */
   render?: boolean;
+  /** Read and write the save in localStorage (off for screenshots and tests unless asked). */
+  save?: boolean;
+  /** Ignore any existing save and start a new journey. */
+  fresh?: boolean;
 }
 
 const FIXED_DT = 1 / 60;
@@ -68,6 +78,16 @@ export class Game {
   readonly enemies: EnemyDirector;
   /** Discoveries, cleared encounters, opened gates (persisted by Job 9). */
   readonly progress = new Progress();
+  readonly interactions: Interactions;
+  readonly storyUI: StoryUI;
+  readonly save: SaveGame;
+  /** The Ember Shrine the player last rested at (respawn point, saved). */
+  restShrine = 'threshold';
+  /** Seconds of unpaused play, and deaths, across the whole journey (saved). */
+  playTime = 0;
+  deaths = 0;
+  /** A save was found and applied at startup. */
+  resumed = false;
   /** Tests set this to drive the simulation only through `step()`. */
   manual = false;
   /** Debug fly camera instead of the player's chase camera. */
@@ -88,6 +108,10 @@ export class Game {
   private readonly frozenTime: number | undefined;
   private readonly renderEnabled: boolean;
   private readonly focus = new THREE.Vector3();
+  private saveTimer = -1;
+  private bookRevision = -1;
+  private wasAlive = true;
+  private resetting = false;
   private readonly billboard = new THREE.Quaternion();
 
   constructor(container: HTMLElement, hudEl: HTMLElement, gameHudEl: HTMLElement, opts: GameOptions = {}) {
@@ -122,7 +146,7 @@ export class Game {
     this.gameHud = new GameHud(gameHudEl);
     this.pages = new PagePickups(this.level, this.player.spells);
     this.scene.add(this.pages.group, this.player.spells.group);
-    this.spellbookUI = new SpellbookUI(this.player, this.input, this.pages, gameHudEl);
+    this.spellbookUI = new SpellbookUI(this.player, this.input, gameHudEl);
     this.enemies = new EnemyDirector({
       player: this.player,
       colliders: this.level.colliders,
@@ -150,6 +174,8 @@ export class Game {
     this.enemies.onBossDefeated = arena => {
       const boss = arena.def.boss;
       this.progress.fellBoss(boss.id);
+      const rem = REMEMBRANCES.find(r => r.boss === boss.id);
+      if (rem) this.progress.remember(rem.id);
       this.player.combat.health = 100;
       this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED', boss.id === 'sovereign' ? 'The moon is free. Thank you for playing.' : `${boss.name}, ${boss.epithet}`);
       if (boss.id === 'sovereign') this.finale = true;
@@ -162,6 +188,15 @@ export class Game {
     this.enemyHud = new EnemyHud(gameHudEl);
     this.bossHud = new BossHud(gameHudEl);
     this.worldMap = new WorldMap(this.level, this.player, this.input, this.progress, this.enemies);
+    this.interactions = new Interactions(this.pages, this.level.story, this.level.hub.wanderer, id => this.progress.lore.has(id));
+    this.interactions.onRest = shrine => this.restAt(shrine);
+    this.interactions.onRead = spot => this.readLore(spot);
+    this.interactions.onTalk = () => this.talkToWanderer();
+    this.storyUI = new StoryUI(this.input, this.progress, () => this.player.active && this.player.combat.alive);
+    this.storyUI.shrines = () => this.level.story.shrines;
+    this.storyUI.summary = () => this.journeySummary();
+    this.storyUI.onTravel = shrine => this.travelTo(shrine);
+    this.storyUI.onReset = () => this.beginAnew();
     this.combatWorld.onHit = (target, hit, result) => {
       if (target === this.player.combat && result.hit) this.gameHud.onPlayerDamaged(result.damage ?? hit.damage);
       this.enemies.onHit(target, hit, result);
@@ -175,6 +210,15 @@ export class Game {
       this.fly.walk = false;
       this.setFlyMode(true);
     }
+    // Resume a saved journey (before any explicit test placement below).
+    this.save = new SaveGame(opts.save ?? true);
+    const saved = opts.fresh ? null : this.save.load();
+    if (saved) this.applySave(saved, !opts.camera && !opts.playerAt);
+    // The Threshold's fire has always been lit.
+    this.progress.kindle('threshold');
+    this.progress.onChange(() => this.requestSave());
+    this.bookRevision = this.player.spells.book.revision;
+    window.addEventListener('pagehide', () => this.saveNow());
     if (opts.playerAt) {
       const p = opts.playerAt;
       this.player.controller.teleport(p.x, p.y, p.z, opts.playerYaw ?? 0);
@@ -211,6 +255,8 @@ export class Game {
     // Hit-stop and slow motion scale everything except the camera's own smoothing.
     const dt = this.menuOpen ? 0 : this.time.update(realDt);
     this.elapsed = this.frozenTime ?? this.elapsed + dt;
+    if (!this.flyMode) this.playTime += dt;
+    this.updateAutosave(realDt);
 
     if (!this.menuOpen) this.handleDebugKeys();
     if (!this.flyMode && !this.menuOpen) this.player.camera.readLook();
@@ -243,7 +289,7 @@ export class Game {
     this.enemyHud.update(realDt, this.flyMode ? null : this.enemies.focus);
     this.bossHud.update(realDt, this.flyMode ? null : this.enemies.activeBoss, !!this.enemies.intro);
     this.gameHud.setHint(this.flyMode ? '' : this.level.gateHint ?? '');
-    this.spellbookUI.update(realDt);
+    this.spellbookUI.update(realDt, this.flyMode || this.menuOpen ? '' : this.interactions.prompt());
 
     if (this.renderEnabled) this.pixel.render(this.scene, this.camera, this.flyMode ? undefined : this.player.view);
     const pc = this.player.controller;
@@ -288,7 +334,7 @@ export class Game {
 
   /** A pausing menu (spellbook, quick-wheel or world map) is open. */
   get menuOpen(): boolean {
-    return this.spellbookUI.paused || this.worldMap.paused;
+    return this.spellbookUI.paused || this.worldMap.paused || this.storyUI.paused;
   }
 
   /** One 60 Hz simulation step: player, enemies, constructs and pickups. */
@@ -296,8 +342,131 @@ export class Game {
     const playerPos = this.player.controller.position;
     for (const s of this.systems) s.fixedUpdate?.(FIXED_DT);
     for (const e of this.level.enemies) e.update(FIXED_DT, playerPos, this.combatWorld, this.effects);
-    this.pages.update(FIXED_DT, playerPos, this.player.combat.alive && !this.flyMode);
-    if (this.input.takePressed('KeyF') && !this.flyMode) this.pages.collectNearest();
+    const alive = this.player.combat.alive;
+    this.pages.update(FIXED_DT, playerPos, alive && !this.flyMode);
+    this.interactions.update(playerPos, alive && !this.flyMode && this.player.active);
+    if (this.input.takePressed('KeyF') && !this.flyMode) this.interactions.interact();
+    if (this.wasAlive && !alive) { this.deaths++; this.requestSave(); }
+    this.wasAlive = alive;
+  }
+
+  // --- story, shrines and saving (Job 9) -------------------------------------------
+
+  /** Why resting is refused right now ('' when the ember answers). */
+  restBlocker(): string {
+    if (this.enemies.activeBoss) return 'Not while a great foe is near.';
+    if (this.enemies.encounters.some(e => e.state === 'active')) return 'Not while enemies are near.';
+    return '';
+  }
+
+  /** Kindles (first visit) and rests at a shrine: heal, set the respawn point, save. */
+  restAt(shrine: Shrine): boolean {
+    const blocked = this.restBlocker();
+    if (blocked) { this.gameHud.announce('THE EMBER WILL NOT ANSWER', blocked); return false; }
+    if (!shrine.prop.kindled) {
+      shrine.prop.setKindled(true);
+      this.effects.sparkBurst(shrine.position.clone().setY(shrine.position.y + 1), new THREE.Vector3(0, 1, 0), 0xff8a3a, 24, 6);
+    }
+    this.progress.kindle(shrine.id);
+    this.player.combat.health = 100;
+    this.player.spells.reset();
+    this.player.setRespawn(shrine.rest, shrine.facing);
+    this.restShrine = shrine.id;
+    this.enemies.resetActive();
+    this.saveNow();
+    this.storyUI.rest(shrine);
+    return true;
+  }
+
+  /** Fast travel to a kindled shrine. */
+  travelTo(shrine: Shrine): void {
+    if (!shrine.prop.kindled) return;
+    const r = shrine.rest;
+    this.player.controller.teleport(r.x, r.y + 0.2, r.z, shrine.facing);
+    this.player.camera.setYaw(shrine.facing, -0.1);
+    this.player.setRespawn(r, shrine.facing);
+    this.restShrine = shrine.id;
+    this.enemies.resetActive();
+    this.level.setViewer(r, true);
+    this.gameHud.announce(shrine.name.toUpperCase(), shrine.chapter ? `Chapter ${roman(shrine.chapter)}` : 'The last fire');
+    this.saveNow();
+  }
+
+  readLore(spot: LoreSpot): void {
+    this.progress.readLore(spot.id);
+    const f = spot.fragment;
+    const where = f.chapter ? `CHAPTER ${roman(f.chapter)} · ${this.level.atlas.chapters[f.chapter - 1]?.name.toUpperCase() ?? ''}` : 'THE THRESHOLD';
+    this.storyUI.read({ kicker: spot.kind === 'memorial' ? `${where} · THE KNEELING DEAD` : where, title: f.title, text: f.text });
+  }
+
+  /** The Wanderer's line for the current state of the journey. */
+  wandererLine(): string {
+    const state = {
+      bosses: this.progress.bosses, gates: this.progress.gates.size, kindled: this.progress.kindled.size,
+      pages: this.player.spells.book.count, cleared: this.progress.cleared.size, finale: this.finale || this.progress.bosses.has('sovereign'),
+    };
+    return WANDERER_LINES.find(l => l.when(state))!.text;
+  }
+
+  talkToWanderer(): void {
+    this.storyUI.read({ kicker: 'THE THRESHOLD', title: 'The Wanderer', text: this.wandererLine(), speaker: 'the Wanderer' });
+  }
+
+  private journeySummary(): string {
+    const p = this.progress;
+    const hours = Math.floor(this.playTime / 3600), minutes = Math.floor(this.playTime / 60) % 60;
+    return [
+      `Journey ${hours ? `${hours} h ` : ''}${minutes} min · ${this.deaths} death${this.deaths === 1 ? '' : 's'}`,
+      `${this.player.spells.book.count} / 8 pages · ${p.gates.size} / 7 gates open`,
+      `${p.bosses.size} / 3 great foes felled · ${p.lore.size} fragments read`,
+    ].join('\n');
+  }
+
+  /** Everything that goes into the save. */
+  snapshot(): Omit<SaveData, 'version' | 'savedAt'> {
+    const book = this.player.spells.book;
+    return { progress: this.progress.toJSON(), pages: book.ids, selected: book.selected, shrine: this.restShrine, playTime: this.playTime, deaths: this.deaths };
+  }
+
+  saveNow(): boolean {
+    this.saveTimer = -1;
+    if (this.resetting) return false;
+    return this.save.save(this.snapshot());
+  }
+
+  /** Debounced autosave (progress changes, new pages, deaths). */
+  requestSave(delay = 1.5): void {
+    this.saveTimer = this.saveTimer < 0 ? delay : Math.min(this.saveTimer, delay);
+  }
+
+  private updateAutosave(dt: number): void {
+    const revision = this.player.spells.book.revision;
+    if (revision !== this.bookRevision) { this.bookRevision = revision; this.requestSave(); }
+    if (this.saveTimer < 0) return;
+    this.saveTimer -= dt;
+    if (this.saveTimer <= 0) this.saveNow();
+  }
+
+  private applySave(data: SaveData, placePlayer: boolean): void {
+    this.progress.load(data.progress);
+    this.enemies.restore(this.progress.cleared, this.progress.bosses);
+    this.level.gates.sync();
+    this.player.spells.restore(data.pages, data.selected);
+    for (const shrine of this.level.story.shrines) if (this.progress.kindled.has(shrine.id)) shrine.prop.setKindled(true);
+    this.playTime = data.playTime;
+    this.deaths = data.deaths;
+    const shrine = this.level.story.shrine(data.shrine) ?? this.level.story.shrine('threshold')!;
+    this.restShrine = shrine.id;
+    this.player.setRespawn(shrine.rest, shrine.facing);
+    if (placePlayer) this.player.respawn();
+    this.resumed = true;
+  }
+
+  /** Forget the journey and start again. */
+  beginAnew(): void {
+    this.resetting = true;
+    this.save.clear();
+    location.reload();
   }
 
   /**

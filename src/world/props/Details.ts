@@ -11,12 +11,16 @@ import type { WorldMaterials } from './WorldMaterials';
  */
 export class EmberShrine {
   readonly group = new THREE.Group();
-  readonly light: THREE.PointLight;
+  readonly light: THREE.PointLight | null;
+  /** Lit embers and sparks; hidden while the shrine is unkindled. */
+  kindled = true;
+  private readonly embers: THREE.Object3D[] = [];
   private readonly sparks: THREE.InstancedMesh;
   private readonly sparkSeeds: { phase: number; speed: number; radius: number; angle: number }[] = [];
   private readonly tmp = new THREE.Matrix4();
 
-  constructor(m: WorldMaterials, seed = 'shrine') {
+  /** `withLight: false` for world shrines: they borrow the world's light pool instead. */
+  constructor(m: WorldMaterials, seed = 'shrine', withLight = true) {
     const rng = new Random(seed);
     const b = new GeoBucket();
     // Ring of stones
@@ -43,10 +47,15 @@ export class EmberShrine {
     ]);
     b.add(m.steel, place(sword, 0.05, 0.05, 0, 0.4, 0.12, 0.08));
     b.build(this.group);
+    for (const child of this.group.children) {
+      if (child instanceof THREE.Mesh && (child.material === m.ember || child.material === m.emberHot)) this.embers.push(child);
+    }
 
-    this.light = new THREE.PointLight(0xff8a3a, 30, 18, 1.8);
-    this.light.position.set(0, 1.1, 0);
-    this.group.add(this.light);
+    this.light = withLight ? new THREE.PointLight(0xff8a3a, 30, 18, 1.8) : null;
+    if (this.light) {
+      this.light.position.set(0, 1.1, 0);
+      this.group.add(this.light);
+    }
 
     const sparkCount = 40;
     this.sparks = new THREE.InstancedMesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), m.emberHot, sparkCount);
@@ -54,12 +63,20 @@ export class EmberShrine {
     for (let i = 0; i < sparkCount; i++)
       this.sparkSeeds.push({ phase: rng.next(), speed: 0.25 + rng.next() * 0.35, radius: rng.next() * 0.6, angle: rng.next() * 6.28 });
     this.group.add(this.sparks);
+    this.embers.push(this.sparks);
     this.group.name = 'ember-shrine';
   }
 
+  setKindled(on: boolean): void {
+    this.kindled = on;
+    for (const e of this.embers) e.visible = on;
+    if (this.light) this.light.visible = on;
+  }
+
   update(t: number): void {
+    if (!this.kindled) return;
     const flicker = 0.78 + 0.12 * Math.sin(t * 13.1) + 0.08 * Math.sin(t * 23.7 + 1.3) + 0.06 * Math.sin(t * 5.3);
-    this.light.intensity = 30 * flicker;
+    if (this.light) this.light.intensity = 30 * flicker;
     this.sparkSeeds.forEach((s, i) => {
       const k = (t * s.speed + s.phase) % 1;
       const a = s.angle + t * 0.8 + k * 3;

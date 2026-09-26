@@ -50,6 +50,11 @@ export class SpellCasting {
     this.notify(`Page found: ${this.book.current.id === id ? this.book.current.name : this.pageName(id)} · B to read`);
     return true;
   }
+  /** Restores saved pages without the pickup fanfare. */
+  restore(ids: string[], selected: string): void {
+    this.book.restore(ids, selected);
+    this.model.book.setPages(this.book.count, this.book.tier);
+  }
   private pageName(id: SpellId): string { return id.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' '); }
   remaining(id: SpellId): number { return this.cooldowns.get(id) ?? 0; }
   reset(): void {

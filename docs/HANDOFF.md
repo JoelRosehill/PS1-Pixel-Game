@@ -1,9 +1,9 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 8](sessions/2026-09-26-job-8.md)
-records the bosses, arenas and cinematic intros.
+**Latest verification:** [2026-09-26 Job 9](sessions/2026-09-26-job-9.md)
+records the story, Ember Shrines, fast travel, journal and the save system.
 
-**Last updated:** 2026-09-26, at the end of Job 8.
+**Last updated:** 2026-09-26, at the end of Job 9.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -79,7 +79,7 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–8 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–9 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
@@ -254,6 +254,27 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   - Models: Gloomhorn = shadow-demon GLB, Vermilion = animated red-dragon GLB; both have
     procedural stand-ins until loaded. The Sovereign is procedural.
 
+- **Job 9 — Story, shrines, saves** (`src/story/Lore.ts`, `src/world/StoryProps.ts`,
+  `src/world/Interactions.ts`, `src/ui/StoryUI.ts`, `src/core/SaveGame.ts`):
+  - `World.story` (`StoryProps`): `shrines` (41; `threshold` wraps the hub's `EmberShrine`,
+    the rest are unlit `EmberShrine(m, seed, false)` beside each landmark) and `lore`
+    spots (43 tablets + 8 memorials). Kindled shrines join the light-anchor pool.
+  - `Game.interactions` picks the nearest page/shrine/lore/Wanderer each fixed step; F calls
+    `interact()`; its `prompt()` feeds the SpellbookUI prompt line.
+  - `Game.restAt(shrine)` (refused while `restBlocker()`), `travelTo(shrine)`,
+    `readLore(spot)`, `talkToWanderer()`/`wandererLine()`; `Game.storyUI` (reader, rest
+    menu, journal on J). `Player.setRespawn` moves the death/R spawn point.
+  - `Game.save` (`SaveGame`): `snapshot()` → localStorage; `saveNow()`, debounced
+    `requestSave()` (progress `onChange`, book revision, deaths), `pagehide`. Startup
+    `applySave()` → `Progress.load`, `EnemyDirector.restore`, `ChapterGates.sync`,
+    `SpellCasting.restore`, lit shrines, respawn at the saved shrine. `Game.resumed`.
+  - `GameOptions.save/fresh` (URL: `shot=1` disables saving unless `save=1`; `fresh=1`).
+  - Boss kills add `REMEMBRANCES` to `progress.remembrances`.
+
+**Job 9 verification:** build passed; save 25/25, boss 15/15, atlas 17/17, world 19/19,
+enemy 26/26, spells 38/38, kinetic 17/17, movement 11/11, combat 11/11. Screenshots:
+shrine, rest-menu, lore-reader, journal, wanderer.
+
 **Job 8 verification:** build passed; boss 15/15, atlas 17/17, world 19/19, enemy 26/26,
 spells 38/38, kinetic 17/17, movement 11/11, combat 11/11 (see the session
 note). Screenshots: boss-intro, boss-gloomhorn, boss-vermilion, boss-sovereign.
@@ -276,6 +297,10 @@ session, so no frame-time numbers were taken.
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run savetest` must pass (25 checks: shrine/lore placement and spacing, kindle and
+  rest, fast travel, death respawn at the shrine, rest refused mid-fight, lore reading,
+  memorials, journal, the Wanderer's lines, remembrances, save/autosave/resume, fresh,
+  corrupt saves, Begin anew). It uses localStorage on the test origin and cleans up.
 - `npm run bosstest` must pass (15 checks: arenas, intro, full movesets per phase, phase
   roar, posture break, parry, Vermilion knockdown, jumpable shockwaves, reset on death,
   gate unlock, hub dragon, finale, boss bar).
@@ -352,13 +377,20 @@ session, so no frame-time numbers were taken.
   before striking them.
 - Headless tests racing the render loop: after a real key press, wait for a frame
   (`requestAnimationFrame` twice) before asserting.
+- Leaving a page runs `pagehide` → `saveNow()`. A test that plants a save and then
+  navigates must stop the old page from saving first (`game.resetting = true`), or the
+  old page overwrites it.
+- Anything placed near landmarks must reserve its ground (`ReservedMap.add`) and search
+  for free, dry, gentle ground; the first shrine/tablet placer fell back to one fixed
+  spot and stacked a shrine on a tablet.
 
 ---
 
-## 6. Next: Job 9 — Narrative, Rest Shrines & Saves
+## 6. Next: Job 10 — Audio, UI & Polish
 
-- Ember Shrines (rest/respawn), save/load.
-- Lore fragments, item descriptions, environmental storytelling set pieces.
-- Story outline and chapter arcs, told organically.
+- Procedural chill-fi ambient score + SFX (WebAudio).
+- Main menu (Continue / New Journey using `Game.resumed` and `SaveGame`), settings
+  (pixel scale, band count, keybinds), final HUD.
+- Pixel bloom/glow pass, performance pass, production build.
 
-See ROADMAP.md's Notes for Job 9.
+See ROADMAP.md's Notes for Job 10.

@@ -335,10 +335,45 @@ hitboxes. The procedural player and its future book are unchanged.
 - Boss arenas re-arm after death; felled arenas stay `defeated` — restore that from saves
   by marking arenas defeated for bosses in `progress.bosses` at load.
 
-## Job 9 — Narrative & Exploration
-- Ember Shrines (rest/respawn), save/load
-- Lore fragments, item descriptions, environmental storytelling set pieces
-- Story outline and chapter arcs, told Elden Ring style (organically)
+## Job 9 — Narrative, Rest Shrines & Saves ✅
+- [x] **Story spine** (`src/story/Lore.ts`): the Long Night — the last Moon-king, the Pale
+      Sovereign, chained the moon so night would never end; the moon bleeds; Emberwardens
+      planted their swords in the last fires. You are the last Emberwarden. Nine chapter
+      arcs (Threshold + I–VIII), told only through things found in the world
+- [x] **Ember Shrines** (`src/world/StoryProps.ts`): 41 — the Threshold's plus one beside
+      every landmark, unlit until found. **F** kindles/rests: full Vigour, spell cooldowns
+      reset, fights in progress reset, respawn point set, journey saved. Refused while a
+      fight or boss is active. Lit shrines borrow the world's light pool
+- [x] **Fast travel** from the rest menu to any kindled shrine (grouped by chapter)
+- [x] **Death and R** return you to the last shrine rested at; deaths are counted
+- [x] **Lore:** 43 fragments on tablets (three in the hub, one per landmark) and eight
+      **Emberwarden memorials** (kneeling dead, one per chapter) — environmental set pieces
+- [x] **The Wanderer** at the Threshold speaks (F); the line changes with progress
+      (pages, shrines, camps, gates, each boss, the ending)
+- [x] **Remembrances:** each boss leaves an item description when felled
+- [x] **Journal (J):** unlocked chapter arcs, every fragment read (gaps shown), remembrances
+- [x] One **use key** (`Interactions`): the nearest page, shrine, tablet, memorial or the
+      Wanderer; the prompt shows what F will do (✦ marks unread lore)
+- [x] **Save system** (`SaveGame`, localStorage `chromatic-odyssey.save.v1`): progress
+      (discoveries, camps, gates, bosses, shrines, lore, remembrances), pages + selected
+      spell, rest shrine, play time, deaths. Saves on rest/travel, debounced on any
+      progress, page or death, and on `pagehide`. Loading restores cleared camps, felled
+      arenas, open gates, lit shrines and puts you at your shrine. Corrupt/missing
+      storage is ignored. **Begin anew** (rest menu, confirmed) wipes it
+- [x] `?shot=1` never touches the save unless `&save=1`; `&fresh=1` ignores it
+- [x] `npm run savetest`: 25 checks
+
+**Notes for Job 10:**
+- Menus: `SpellbookUI`, `WorldMap`, `StoryUI` are native `<dialog>`s that set
+  `input.blocked`; `Game.menuOpen` pauses the sim. A main menu / settings dialog should
+  follow the same pattern (and `document.querySelector('dialog[open]')` guard).
+- `Game.resumed` tells whether a save was loaded — the main menu can offer Continue vs
+  New Journey (`SaveGame.clear()` + reload, as `beginAnew()` does).
+- Audio hooks worth wiring: `EnemyDirector.onAnnounce/onBossIntro/onBossDefeated`,
+  `CombatWorld.onHit`, `Game.restAt`/`travelTo`, `level.onRegion` (biome mood → music),
+  `Atmosphere` weights for per-biome ambience.
+- The splash in `index.html` lists controls; F now covers shrines/lore/Wanderer and J is
+  the journal.
 
 ## Job 10 — Audio, UI & Polish
 - Procedural chill-fi ambient score + SFX (WebAudio)
