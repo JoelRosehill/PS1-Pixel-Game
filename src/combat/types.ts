@@ -4,7 +4,8 @@ import type { CombatWorld } from './CombatWorld';
 
 export type Team = 'player' | 'enemy';
 
-export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy' | 'reflect';
+/** 'hazard': ground effects (shockwaves, fire, falling light) — dodge or jump, never parry or block. */
+export type HitKind = 'light' | 'heavy' | 'spin' | 'plunge' | 'thrust' | 'sweep' | 'burst' | 'riposte' | 'enemy' | 'reflect' | 'hazard';
 
 export interface HitInfo {
   damage: number;

@@ -183,6 +183,19 @@ knight pays 15 Momentum (wizard 10); clearing an encounter restores Vigour and M
 | Blinding Flash | 0.95 s halo swell; bursting within 22 m blinds a player looking within 40° of it for 1.8 s (partial further out). Look away or break line of sight |
 | Fragile | Any hit of 8+ damage during a cast interrupts it |
 
+### Bosses (Job 8)
+Every boss telegraphs, has phases (with a roar that shrugs off damage), and a **posture**
+meter that breaks into a long stun. Specific moves have **parry windows**. Arenas seal with
+mist after a short cinematic; dying resets the fight.
+
+| Boss | Where | Signature | Answer |
+|---|---|---|---|
+| **Gloomhorn**, the Mire Colossus (900) | Chapter II, a mudflat in Mirefall Thicket | slam → ground shockwave; lane charge; swipe | jump the wave, step off the lane, parry the swipe; below half it summons knights and spike lines |
+| **Vermilion**, Wyrm of the Red Hour (1200) | Chapter V, beside the Citadel of the Red Hour | airborne fire volleys, breath runs, dives, meteor rain | **parry a fireball back** to knock it down, then bite/tail/gust on the ground; wings tear at 25% (fire novas) |
+| **The Pale Sovereign**, Who Kept the Moon (1500) | Chapter VIII, before the Pale Citadel | great cleave, Moon Descent, moon blades, blink strikes, lunar lances, Moonfall | parry the cleaves, reflect the blades, read the lances, find the gaps in the moonfall |
+
+Gloomhorn and Vermilion also hold the keys to their chapters' gates.
+
 ---
 
 ## Code map
@@ -196,7 +209,8 @@ src/
   combat/                 CombatWorld registry, Momentum pool, shared hit types
   spells/                 SpellBook data/progression, SpellCasting, PagePickups
   enemies/                EnemyDirector, Enemy base, Perception, AttackTokens, Telegraphs,
-                          EnemyProjectiles, Encounters, ShadowKnight, SunkeeperWizard
+                          EnemyProjectiles, Hazards, Encounters, ShadowKnight, SunkeeperWizard
+  enemies/bosses/         Boss framework, BossArena, Gloomhorn, Vermilion, Sovereign
   player/                 PlayerController (tuning), PlayerCombat (attacks), PlayerModel,
                           FirstPersonCamera, FirstPersonRig (hands/sword/book), Player
   ui/GameHud.ts           health / Momentum / dash HUD
@@ -214,4 +228,6 @@ tools/spelltest.mjs       spell behavior, pickups, progression and menu assertio
 tools/kinetictest.mjs     first-person camera and kinetic movement assertions
 tools/enemytest.mjs       deterministic enemy/encounter assertions (Game.step)
 tools/worldtest.mjs       world layout, streaming, biome and camp assertions
+tools/atlastest.mjs       atlas, landmarks, gates, map assertions
+tools/bosstest.mjs        boss framework and fight assertions
 ```

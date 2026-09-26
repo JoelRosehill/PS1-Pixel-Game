@@ -1,8 +1,8 @@
-import type { Enemy, EnemyKind } from './Enemy';
+import type { Enemy } from './Enemy';
 
 /** One enemy placed by an encounter wave. `y` defaults to the terrain height. */
 export interface SpawnDef {
-  kind: EnemyKind;
+  kind: 'knight' | 'wizard';
   x: number;
   z: number;
   y?: number;

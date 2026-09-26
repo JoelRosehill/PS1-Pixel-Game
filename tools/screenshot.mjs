@@ -74,6 +74,15 @@ const VIEWS = {
     eval: "const g = window.__game, L = g.level, V = window.__three.Vector3; const gate = L.gates.gates[0]; const a = gate.pass.azimuth - 0.05; const p = new V(Math.sin(a) * (gate.pass.r - 40), 0, -Math.cos(a) * (gate.pass.r - 40)); p.y = L.heightAt(p.x, p.z) + 6; g.fly.setPose(p, new V(gate.pass.x, L.heightAt(gate.pass.x, gate.pass.z) + 14, gate.pass.z)); L.setViewer(p, true);" },
   map: { at: '6,2.1,11', yaw: 186, holdMs: 400,
     eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0', 'c8-0']) g.progress.discover(id); g.progress.clear(g.level.encounters.find(e => e.id.startsWith('camp:c1-0')).id); g.worldMap.open();" },
+  // Bosses (Job 8): an intro frame and a fight frame each.
+  'boss-intro': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(1.6); " },
+  'boss-gloomhorn': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'gloomhorn'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('slam', g.enemies.ctx); g.step(0.7);" },
+  'boss-vermilion': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'vermilion'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('breathRun', g.enemies.ctx); g.step(1.1);" },
+  'boss-sovereign': { at: '0,20,0', yaw: 0, holdMs: 500,
+    eval: "const g = window.__game, L = g.level; g.manual = true; const a = L.bossArenas.find(x => x.boss.id === 'sovereign'); const c = a.center; const p = g.player; p.controller.teleport(c.x + a.radius - 10, L.heightAt(c.x + a.radius - 10, c.z) + 0.2, c.z, 0); L.setViewer(p.controller.position.clone(), true); g.step(4.2); const b = g.enemies.activeBoss; b.startMove('moonDescent', g.enemies.ctx); g.step(1.0);" },
 };
 const DEFAULT_SET = ['spawn', 'spawn-bands', 'spawn-blood', 'plaza', 'castle', 'lake', 'day', 'hero', 'hero-course', 'fight'];
 

@@ -18,6 +18,8 @@ import { SpellbookUI } from '../ui/SpellbookUI';
 import { EnemyDirector } from '../enemies/EnemyDirector';
 import { EnemyHud } from '../ui/EnemyHud';
 import { WorldMap } from '../ui/WorldMap';
+import { BossHud } from '../ui/BossHud';
+import { INTRO_SECONDS } from '../enemies/bosses/BossArena';
 import { Progress } from './Progress';
 
 /** Anything that ticks with the game. Gameplay systems (Job 2+) use fixedUpdate. */
@@ -76,6 +78,9 @@ export class Game {
   private readonly hud: DebugHud;
   readonly gameHud: GameHud;
   private readonly enemyHud: EnemyHud;
+  private readonly bossHud: BossHud;
+  /** Set when the final boss falls (the ending card). */
+  finale = false;
   private elapsed = 0;
   private accumulator = 0;
   private last = 0;
@@ -126,13 +131,36 @@ export class Game {
       time: this.time,
       encounters: this.level.encounters,
       blind: (seconds, strength) => this.gameHud.blind(seconds, strength),
+      models: this.models,
+      isPaused: () => this.flyMode,
     });
+    for (const arena of this.level.bossArenas) this.enemies.addArena(arena);
+    this.enemies.onBossIntro = arena => {
+      // The cinematic: freeze the player, show the name, face the boss afterwards.
+      this.player.controller.frozen = true;
+      this.input.clear();
+      this.gameHud.announce(arena.def.boss.name.toUpperCase(), arena.def.boss.epithet);
+    };
+    this.enemies.onBossBegin = arena => {
+      this.player.controller.frozen = this.flyMode;
+      const b = arena.boss!;
+      const p = this.player.controller.position;
+      this.player.camera.setYaw(Math.atan2(-(b.position.x - p.x), -(b.position.z - p.z)), 0.08);
+    };
+    this.enemies.onBossDefeated = arena => {
+      const boss = arena.def.boss;
+      this.progress.fellBoss(boss.id);
+      this.player.combat.health = 100;
+      this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED', boss.id === 'sovereign' ? 'The moon is free. Thank you for playing.' : `${boss.name}, ${boss.epithet}`);
+      if (boss.id === 'sovereign') this.finale = true;
+    };
     this.enemies.onAnnounce = (title, subtitle) => this.gameHud.announce(title, subtitle);
     this.enemies.onCleared = (encounter) => this.progress.clear(encounter.def.id);
     this.level.onRegion = (title, subtitle) => this.gameHud.announce(title, subtitle);
     this.systems.push(this.enemies);
     this.scene.add(this.enemies.group);
     this.enemyHud = new EnemyHud(gameHudEl);
+    this.bossHud = new BossHud(gameHudEl);
     this.worldMap = new WorldMap(this.level, this.player, this.input, this.progress, this.enemies);
     this.combatWorld.onHit = (target, hit, result) => {
       if (target === this.player.combat && result.hit) this.gameHud.onPlayerDamaged(result.damage ?? hit.damage);
@@ -198,6 +226,7 @@ export class Game {
     for (const s of this.systems) s.update?.(dt, alpha);
 
     if (this.flyMode) this.fly.update(dt);
+    this.updateCinematic();
     this.level.setViewer?.(this.camera.position);
     this.level.update(dt, this.elapsed);
     sharedUniforms.uWindTime.value = this.elapsed;
@@ -212,6 +241,7 @@ export class Game {
     this.enemies.faceCamera(this.billboard);
     this.gameHud.update(realDt, this.player.combat, this.player.controller);
     this.enemyHud.update(realDt, this.flyMode ? null : this.enemies.focus);
+    this.bossHud.update(realDt, this.flyMode ? null : this.enemies.activeBoss, !!this.enemies.intro);
     this.gameHud.setHint(this.flyMode ? '' : this.level.gateHint ?? '');
     this.spellbookUI.update(realDt);
 
@@ -235,6 +265,26 @@ export class Game {
     this.frames++;
     requestAnimationFrame(this.tick);
   };
+
+  /**
+   * Boss intro camera: a slow orbit that closes in on the boss, then hands control
+   * back facing it. Runs after the player camera, so it simply overrides the frame.
+   */
+  private updateCinematic(): void {
+    const arena = this.enemies.intro;
+    if (!arena?.boss) return;
+    const b = arena.boss;
+    const k = Math.min(1, arena.introTime / INTRO_SECONDS);
+    const p = this.player.controller.position;
+    const start = Math.atan2(p.x - b.position.x, p.z - b.position.z);
+    const angle = start + 0.9 * (1 - k) - 0.35;
+    const dist = THREE.MathUtils.lerp(b.bodyHeight * 4 + 14, b.bodyHeight * 2 + 8, k * k);
+    const height = THREE.MathUtils.lerp(b.bodyHeight * 1.6, b.bodyHeight * 0.7, k);
+    this.camera.position.set(b.position.x + Math.sin(angle) * dist, b.position.y + height, b.position.z + Math.cos(angle) * dist);
+    this.camera.lookAt(b.position.x, b.position.y + b.bodyHeight * 0.6, b.position.z);
+    this.camera.updateMatrixWorld();
+    this.player.view.scene.visible = false;
+  }
 
   /** A pausing menu (spellbook, quick-wheel or world map) is open. */
   get menuOpen(): boolean {

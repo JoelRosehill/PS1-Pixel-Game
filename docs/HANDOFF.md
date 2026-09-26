@@ -1,9 +1,9 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 7](sessions/2026-09-26-job-7.md)
-records the 40-biome atlas, gating and the world map.
+**Latest verification:** [2026-09-26 Job 8](sessions/2026-09-26-job-8.md)
+records the bosses, arenas and cinematic intros.
 
-**Last updated:** 2026-09-26, at the end of Job 7.
+**Last updated:** 2026-09-26, at the end of Job 8.
 **For:** the next development session continuing this project. Read this file first, then
 [ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
 
@@ -79,7 +79,7 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–7 (including 3.5) complete ✅
+## 3. Current state: Jobs 1–8 (including 3.5) complete ✅
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
@@ -245,6 +245,19 @@ on RTX 2080 Ti (refresh capped). Reading screen, wheel and casting model inspect
   - `Game.progress` (`Progress`) ← `World` (discoveries), `EnemyDirector.onCleared`
     (encounters), gates. `Game.worldMap` (M); `Game.menuOpen` pauses for any menu.
 
+- **Job 8 — Bosses** (`src/enemies/bosses/`, `src/enemies/Hazards.ts`, `src/ui/BossHud.ts`):
+  - `Boss` extends `Enemy` (kind `'boss'`); `Gloomhorn`, `Vermilion`, `Sovereign` build their
+    move lists. `BossArena` + `EnemyDirector.addArena/arena/activeBoss/intro`; callbacks
+    `onBossIntro` (freeze + title), `onBossBegin` (unfreeze, face the boss), `onBossDefeated`.
+  - `World.bossArenas` (flattened with `WorldTerrain.addPlateau`), gate `bossRequirement`.
+  - `Game.updateCinematic()` drives the intro camera; `Game.finale` after the Sovereign.
+  - Models: Gloomhorn = shadow-demon GLB, Vermilion = animated red-dragon GLB; both have
+    procedural stand-ins until loaded. The Sovereign is procedural.
+
+**Job 8 verification:** build passed; boss 15/15, atlas 17/17, world 19/19, enemy 26/26,
+spells 38/38, kinetic 17/17, movement 11/11, combat 11/11 (see the session
+note). Screenshots: boss-intro, boss-gloomhorn, boss-vermilion, boss-sovereign.
+
 **Job 7 verification:** build passed; atlas 17/17, world 19/19, enemy 26/26, spells 38/38,
 kinetic 17/17, movement 11/11, combat 11/11 (see the
 session note). Screenshots: bones, great tree, portal, ruins, arch, gate, map.
@@ -263,6 +276,9 @@ session, so no frame-time numbers were taken.
 ## 4. How to verify work (important)
 
 - `npm run typecheck` and `npm run build` must pass.
+- `npm run bosstest` must pass (15 checks: arenas, intro, full movesets per phase, phase
+  roar, posture break, parry, Vermilion knockdown, jumpable shockwaves, reset on death,
+  gate unlock, hub dragon, finale, boss bar).
 - `npm run atlastest` must pass (17 checks: atlas data and variants, landmark kinds,
   walls, gates, progress, discovery, map).
 - `npm run worldtest` must pass (19 checks: layout, hub preservation, continuity,
@@ -329,15 +345,20 @@ session, so no frame-time numbers were taken.
   world's anchor pool.
 - The pass ramps must not be gated by the ridge falloff (that left a 38 m seam once);
   `worldtest`'s zoomed continuity check catches this class of bug.
+- Anything that must happen when a cinematic ends belongs in a director callback, not in
+  camera code: `Game.step()` never runs the camera path, and an intro that starts and ends
+  between rendered frames left the player frozen once.
+- Spawning enemies are immune (they are still rising). Tests must step past the rise
+  before striking them.
 - Headless tests racing the render loop: after a real key press, wait for a frame
   (`requestAnimationFrame` twice) before asserting.
 
 ---
 
-## 6. Next: Job 8 — Colossal Bosses
+## 6. Next: Job 9 — Narrative, Rest Shrines & Saves
 
-- Boss framework: phases, arenas, cinematic intros, boss HP bar.
-- A dragon-kin boss, a colossal beast boss, and one more.
-- Use `ChapterGates.bossRequirement` to make bosses the final key of each gate.
+- Ember Shrines (rest/respawn), save/load.
+- Lore fragments, item descriptions, environmental storytelling set pieces.
+- Story outline and chapter arcs, told organically.
 
-See ROADMAP.md's Notes for Job 8.
+See ROADMAP.md's Notes for Job 9.

@@ -19,7 +19,8 @@
     "kinetictest": "node tools/kinetictest.mjs",
     "enemytest": "node tools/enemytest.mjs",
     "worldtest": "node tools/worldtest.mjs",
-    "atlastest": "node tools/atlastest.mjs"
+    "atlastest": "node tools/atlastest.mjs",
+    "bosstest": "node tools/bosstest.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

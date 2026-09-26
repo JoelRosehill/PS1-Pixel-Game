@@ -22,8 +22,8 @@ that mention a chase camera or third person describe the state at the time.
 | 5 | Enemy Ecology I: Shadow Knights & Sunkeeper Wizards | 5 | ✅ Done |
 | 6 | World Engine & Biome Framework (5 archetypes) | 1, 4 | ✅ Done |
 | 7 | The 40-Biome Atlas & Chapter Structure | 4 | ✅ Done |
-| 8 | Colossal Bosses & Dragon-kin | 5 | ⏳ Next |
-| 9 | Narrative, Rest Shrines & Save System | 4 | — |
+| 8 | Colossal Bosses & Dragon-kin | 5 | ✅ Done |
+| 9 | Narrative, Rest Shrines & Save System | 4 | ⏳ Next |
 | 10 | Audio, UI, Bloom & Polish Pass | all | — |
 
 ---
@@ -302,9 +302,38 @@ hitboxes. The procedural player and its future book are unchanged.
 - `EnemyDirector` owns enemies; bosses can be `Enemy` subclasses with a bigger body and
   their own arena encounter (`EncounterDef` with a single wave).
 
-## Job 8 — Colossal Bosses
-- Boss framework: phases, arenas, cinematic intros, boss HP bar
-- A dragon-kin boss + a colossal beast boss (+ 1 more)
+## Job 8 — Colossal Bosses ✅
+- [x] **Boss framework** (`src/enemies/bosses/Boss.ts`): phases at health thresholds with a
+      roaring transition (damage resisted), a weighted move scheduler (range, phase,
+      cooldown, conditions), per-move parry windows, posture that breaks into a 3.2 s stun
+      (exposed ×1.5), back/plunge/reflect bonuses, staying inside the arena
+- [x] **Arenas** (`BossArena.ts`): levelled plateaus chosen near chapter landmarks; entering
+      starts a 3.6 s **cinematic intro** (orbiting camera, letterbox, title card, player
+      frozen, boss immune), then walls of mist seal the fight; death resets it; victory
+      dissolves the walls, heals, pays full Momentum and records the kill
+- [x] **Boss HUD:** long bar with a draining ghost, phase notches, posture meter, cues
+- [x] **Gloomhorn, the Mire Colossus** (colossal beast, Chapter II): slam + jumpable
+      shockwave, parryable swipe, lane-telegraphed charge, roar; below half it summons
+      knights and splits the ground with spike lines. Shadow-demon model at 10.5 m
+- [x] **Vermilion, Wyrm of the Red Hour** (dragon-kin, Chapter V): circles the arena throwing
+      fire volleys, breath runs (burning lanes), dives and meteor rain; lands to bite
+      (parryable), tail-sweep (jump) and gust. A **parried fireball knocks it out of the
+      sky**. At 25% its wings tear: grounded fire novas and breath cones. Animated red-dragon model
+- [x] **The Pale Sovereign, Who Kept the Moon** (finale, Chapter VIII): giant moon-knight —
+      parryable great cleave and Moon Descent, reflectable moon blades, blink strikes,
+      lunar lances, and Moonfall across the whole arena. Felling it ends the long night
+- [x] New shared hazards: jumpable **shockwaves**, lingering **fire/moon zones**, **lane**
+      telegraphs; `hazard` hits can't be parried or blocked; coloured orb kinds (sun/fire/moon)
+- [x] Gates: Chapter II's and V's gates also require their boss (`bossRequirement`); the
+      hub's display dragon disappears once Vermilion is felled
+- [x] `npm run bosstest`: 15 checks
+
+**Notes for Job 9:**
+- `Progress` already records `bosses`, `cleared`, `gates` and `discovered`; Job 9 should
+  persist it with the spellbook (`SpellBook` pages, selection) and the respawn shrine.
+- `Game.finale` flips when the Sovereign falls (the ending card is an announce for now).
+- Boss arenas re-arm after death; felled arenas stay `defeated` — restore that from saves
+  by marking arenas defeated for bosses in `progress.bosses` at load.
 
 ## Job 9 — Narrative & Exploration
 - Ember Shrines (rest/respawn), save/load
