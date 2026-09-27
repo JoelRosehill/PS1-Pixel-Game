@@ -240,7 +240,8 @@ export class MenuUI {
     this.dialog.innerHTML = `<div class="menu-panel menu-ending">
         <span class="menu-kicker">EPILOGUE</span>
         <h2>The Long Night Ends</h2>
-        <p>The chain is broken and the moon goes home. Over the Threshold, for the first time in four hundred years, the sky begins to pale. Somewhere a child asks what the light is for, and someone old enough to remember tells them: it is for waking up.</p>
+        <p>The Last Link breaks and the moon goes home. Along the whole of the Long Road the sky begins to pale — over the Dawnspire, over the Red Keep, over the fen, and last of all over Hollowmere, where the fire you kept is still burning. Somewhere a child asks what the light is for, and someone old enough to remember tells them: it is for waking up.</p>
+        <p>Isolde’s book is full. Every page is a colour, and every colour has come back.</p>
         <dl class="menu-stats">${rows}</dl>
         <nav class="menu-buttons"><button type="button" data-action="keep-exploring" data-autofocus>Keep exploring</button><button type="button" data-action="title">Return to title</button></nav>
         <p class="menu-foot">Chromatic Odyssey · thank you for playing</p>

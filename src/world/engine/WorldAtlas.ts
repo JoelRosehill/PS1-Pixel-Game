@@ -110,7 +110,7 @@ export class WorldAtlas {
       const p = this.road.pointAt(b.s0);
       this.gates.push({ from: a.chapter, to: b.chapter, s: b.s0, x: p.x, z: p.z, tx: p.tx, tz: p.tz, width: WORLD.gorge });
     }
-    const p0 = this.road.pointAt(60);
+    const p0 = this.road.pointAt(40);
     this.start = { x: p0.x, z: p0.z, yaw: Math.atan2(-p0.tx, -p0.tz) };
     this.profile = new Float64Array(this.road.count);
   }

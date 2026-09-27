@@ -70,8 +70,8 @@ export class StoryProps {
     for (const site of atlas.sites) {
       const first = site.index === 0;
       const side = site.index % 2 ? -1 : 1;
-      // Shrine: where the biome begins (the first one a few steps behind the spawn).
-      const at = spot(first ? 30 : site.s0 + 45, side * 10);
+      // Shrine: where the biome begins (the first a few steps ahead of where you wake).
+      const at = spot(first ? 54 : site.s0 + 45, side * 10);
       reserved.add(at.x, at.z, 5);
       const prop = new EmberShrine(m, `shrine:${site.id}`, first);
       prop.group.position.copy(at);
