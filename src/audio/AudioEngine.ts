@@ -10,7 +10,7 @@ export interface AudioVolumes {
 }
 
 export interface AudioState {
-  /** Chapter index (0 = the Threshold) or 'finale'. */
+  /** Chapter index (1–8) or 'finale'. */
   mood: number | 'finale';
   intensity: Intensity;
   /** A pausing menu is open (the score sinks under a low-pass). */

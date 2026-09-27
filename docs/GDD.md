@@ -57,183 +57,116 @@ flower meadows, pine lakes).
 ---
 
 ## Pillar 2 — Combat & Movement
-- **Movement verbs:** run, jump, physics slide, wall-slide, wall-jump, 8-way dash.
-  Momentum carries between verbs (slide → jump keeps speed, dash cancels recovery).
+*As remade in Jobs 12, 13 and 15b; history in ROADMAP.md.*
 
-- **Spellblade loop:** melee builds Momentum, spells spend it, evasion refunds it.
-- **Momentum Pool (no mana):** a 0–100 meter (implemented in Job 3).
-  - +8 per sword hit, +12 heavy, +15 per perfect dodge (dash i-frames), +25 per parry
-  - Drains 6/s after 2.5 s without aggression
-  - Spells cost 20–60. Filling it enters *Resonance* (spells −50%) until it drops below 35
+- **Movement verbs:** run (9 m/s), jump (2.3 m held / 1.3 m tapped), physics slide,
+  wall-run, wall-jump, air slam, and a **dash** with 2 charges (1.45 s refill each),
+  25 m/s × 0.18 s, i-frames only for the first 0.13 s, one air dash per jump.
+- **Feel:** stride view bob with a figure-eight sway, landing dip scaled by fall speed,
+  lean into strafes, dash roll and FOV punch; the hands and sword lag and sway.
+- **Momentum (no mana):** 0–100, starts full and never drains. **Hold Shift standing
+  still to channel** (+42/s after 0.35 s) — easy alone, dangerous in a fight: a hit while
+  channelling lands 30 % harder and breaks the channel. Hits, parries and perfect dodges
+  add a little. Spells and Sword Arts spend it; Resonance at 100 halves spell costs.
+- **The sword reaches:** LMB ×3 slash → backhand → spin that throws a crescent (12 m);
+  hold after a slash to charge a heavy that looses a vertical crescent (three in a fan at
+  full charge); dash + attack fires a lance of light; slide + attack sends a ground wave;
+  plunges land with a ring of stone spears; Q parries (riposte for 48).
+- **Sword Arts** (R, X cycles): Moonlit Crescents and Skyfall at the start; Tempest Cross,
+  Phantom Blades, Bloodmoon Rend and Sunder come from the bosses' remembrances.
+- **Starbolts** (RMB hold): free, 5/s, lightly homing — ranged pressure that never needs
+  Momentum. **Ember Flasks** (G): 3+ charges, 45 health, refilled at shrines.
+- The blade is the supplied ps1-sword-b, swung through keyed arcs around a shoulder pivot
+  with a ribbon traced by the blade; hits use an **analytic blade arc**, so hitboxes are
+  identical at any framerate. Impacts apply hit-stop, shake, knockback and stagger.
 
-### Attack set (Job 3, `ATTACKS` in PlayerCombat.ts)
-| Input | Attack | Damage | Notes |
-|---|---|---|---|
-| LMB ×3 | slash → backhand → spin | 11 / 13 / 20 | chains through recovery; dash or jump cancels |
-| RMB (hold) | charged overhead | 26 → 44 | 0.85 s stagger, biggest hit-stop |
-| LMB while dashing | thrust | 16 | keeps dash speed |
-| LMB while sliding | low sweep | 15 | 0.6 s trip |
-| LMB airborne | plunge | 24 + 3.2 m shockwave | slams to the ground |
-| Q tap → LMB | parry → riposte | 34 | parry staggers the attacker for 1.3 s |
-| E | Equipped spell (Rune Burst initially) | spell-dependent | costs Momentum; half cost in Resonance |
-
-Hit detection sweeps an **analytic blade arc**, not the animated mesh, so hitboxes are
-identical at any framerate. Impacts apply hit-stop, screen shake, knockback and stagger.
-
-### Measured movement (Job 2, `npm run movetest`)
-| Action | Value |
-|---|---|
-| Run speed | 9.2 m/s |
-| Jump (held / tapped) | 2.26 m / 1.27 m apex, ~0.7 s airborne |
-| Dash | 26 m/s burst, 0.16 s, 3 charges, 1.05 s refill each |
-| Slide | boosts to 12.6 m/s, reaches 19.5 m/s down the trial ramp |
-| Wall-jump | ~2.0 m rise + 8.5 m/s away from the wall |
-| Gravity | 30 m/s² (×1.3 falling, ×1.85 on early jump release) |
-
-Physics is a **custom kinematic controller**, not a rigid-body engine: the capsule is a
-stack of spheres resolved against an analytic terrain height function plus primitive
-colliders. Acceleration is Quake-style, so speed gained from slides and dashes survives
-strafing instead of being clamped to the run speed.
+Physics is a **custom kinematic controller**: the capsule is a stack of spheres resolved
+against the analytic terrain plus primitive colliders; Quake-style acceleration keeps
+earned speed.
 
 ## Pillar 3 — The Living Spellbook
-- The spell inventory is a **physical book** worn at the hip. It floats open when casting.
-- Each **Lost Page** found in the world adds one unique spell.
-- The book mesh is rebuilt from game state: thickness = page count;
-  ornament tier (leather → brass corners → gilded clasp → runic glow) = milestones.
-- Implemented in Job 4: thickness updates on collection; ornaments appear at 3, 5
-  and 8 pages. F binds nearby pages; B reads the book; hold Tab selects a spell;
-  E casts. Both menus pause gameplay and keep keyboard focus inside the menu.
-- Eight spells: Rune Burst, Ember Lance, Frost Needle, Violet Well, Windstep,
-  Updraft, Ember Ward and Mend. See README for costs/effects and the book for clues.
-- Pages persist through death and are saved with the journey (Job 9).
+- The **Chromatic Codex**, written by Isolde, worn at the hip; thickness and ornaments grow
+  with its pages. F binds a found page, B reads the book, hold Tab (or 1–0, −, =) selects,
+  E casts; the mouse wheel cycles.
+- **12 pages:** Starfall (bound from the start), Comet Lance, Chain Storm, Glacial
+  Rupture, Void Maw, Phoenix Flight, Moon Aegis, Blood Bloom, Prism Ray, Wisp Choir,
+  Windstep and Eclipse. The other eleven lie along the Long Road where their clues say
+  (Windstep on the fallen keyboard in the Obsolete Sea, Eclipse in Isolde's keeping).
 
-## Pillar 4 — World Structure
+## Pillar 4 — World Structure: the Long Road
+*Job 15.* One authored journey of 21.7 km: a road spiralling inward from **Hollowmere**
+on the western rim to the **Dawnspire** at the centre of the world, through 40 biomes in
+8 chapters of 5, in a fixed order. Colossal mountains (200–700 m) wall every valley and
+separate the turns of the spiral; the Sunkeepers' Coast opens onto the sea. Chapters meet
+at gorges spanned by colossal gateways of mist, which open once three of the chapter's
+camps are cleared and its boss has fallen. The Dawnspire (1.3 km) and the Chain rising
+from it to the moon are the lodestar over every horizon.
 
-### Implemented in Job 6 (the world engine)
-The world is a 9 km disc. The Threshold (the Job 1–5 diorama) is the hub at its centre.
-Eight chapter sectors of 45° fan out clockwise from due north, each with five biome
-sites. Jagged 60–130 m ridges separate chapters, with one walkable pass between each
-consecutive pair (the Chapter VIII → I ridge is sealed). The hub's only exit is its
-northern valley into Chapter I, where the Spire Citadel now stands 1.5 km away.
-World-edge mountains ring everything at 4.1–4.75 km.
-
-| Archetype | Ground | Props | Sky | Landmark |
-|---|---|---|---|---|
-| Tranquil Wilderness | rolling hills, lakes | pines, broadleaf, meadow flowers | Sunlit Wilderness | Wayward Watchtower |
-| Violet Marshes | flat, half glowing pools | reeds, glowing mushrooms, dead trees, obelisks | Violet Marshes | The Drowned Circle |
-| Sunkeeper's Terrace | 2 m stepped lawns, turquoise pools | columns, blossom trees | Sunkeeper's Dusk | Temple of the Low Sun |
-| Crystal Caverns | 40 m massif with an ice basin under a rock roof | crystals, ice spikes, bones | Crystal Caverns | The Singing Hall |
-| Bloodstone & Shadow | 34 m plateau cut by red canyons | red spires, dead trees, bones | Crimson Vigil | Citadel of the Red Hour |
-
-Biome borders blend over ~80 m (ground, colour and vegetation interleave); the sky blends
-over ~300 m and eases over about a second. Entering a new region shows its title card.
-
-### The atlas (Job 7)
-| Chapter | Name | Biomes |
+| Chapter | Biomes (in road order) | Boss |
 |---|---|---|
-| I | The Tranquil Reach | Tranquil Wilderness · Mirrorlake Shallows · Emberleaf Grove · Highpine Ridge · Glimmer Meadows |
-| II | The Violet Fen | Violet Marshes · Lantern Bog · Drowned Chapel Fen · Wisp Hollows · Mirefall Thicket |
-| III | The Sunkeepers' Coast | Sunkeeper's Terrace · Gilded Cascades · Coral Colonnade · Heliotrope Gardens · The Drowned Agora |
-| IV | The Crystal Deep | Crystal Caverns · Rimefrost Galleries · Rosequartz Vault · Geode Chasm · The Frozen Echo |
-| V | The Bloodstone Wastes | Bloodstone & Shadow · Carmine Canyons · Spirefield of Night · Ossuary Flats · The Weeping Portals |
-| VI | The Ashen March | Ashfall Barrens · Cinder Marsh · Obsidian Steps · Smoulder Wood · Emberdeep |
-| VII | The Frozen Choir | The Choir of Ice · Snowbound Pines · Frostmere · Glacier Terraces · Aurora Steppe |
-| VIII | The Last Garden | Garden of the Last Sun · Starfall Grove · Moonpetal Marsh · Celestine Caverns · The Heart of the Moon |
+| I · The Hollow Reach | Hollowmere · Whisperpine Wood · Mirrorlake · The Graveyard of St Aldric · Highpine Gate | Morrow the Gravewarden |
+| II · The Violet Fen | Lantern Bog · The Violet Marshes · Drowned Chapel Fen · Wisp Hollows · The Drowned Circle | Gloomhorn |
+| III · The Sunkeepers' Coast | Sunkeepers' Terrace · Gilded Cascades · Coral Colonnade · Heliotrope Gardens · Temple of the Sun | Solenne |
+| IV · The Crystal Deep | Rimefrost Galleries · The Crystal Caverns · Rosequartz Vault · Geode Chasm · The Frozen Echo | The Glutton Below |
+| V · The Bloodstone Wastes | Bloodstone and Shadow · Carmine Canyons · Spirefield of Night · Ossuary Flats · The Red Keep | Vermilion |
+| VI · The Knight's March | Ashfall Barrens · The Sword Graveyard · Cinder Marsh · Smoulder Wood · Caddoc's Moat | Sir Caddoc |
+| VII · The Dreaming Wastes | Snowbound Pines · The Obsolete Sea · Bard's Rest · The Humming Orchard · The Hive | The Hive Queen |
+| VIII · The Dawnspire | Garden of the Last Sun · Starfall Grove · The Pale Cathedral · The Chain Road · The Dawnspire | Maelor |
 
-**Gating:** each chapter's pass is sealed by a veil of mist until three of the chapter's
-camps are cleared (Job 8 adds its boss). The map (M) reveals regions as they are found.
-- Elden Ring-style pacing: long walks, landmarks visible from far away (made readable by
-  Smart-Pixel), and a story found organically.
-- **40+ biomes in 8 chapters of 5.** Required archetypes are anchored as:
-  - Ch.1 *Tranquil Wilderness* (pine lakes, sunlit)
-  - Ch.2 *Violet Marshes* (bioluminescent wetlands)
-  - Ch.3 *Sunkeeper's Terrace* (classical ruins over colourful water)
-  - Ch.4 *Crystal Caverns* (ice + pink/blue crystal)
-  - Ch.5 *Bloodstone & Shadow* (red canyons, gothic citadels, portals)
-  - Ch.6–8: expansion variants (see Job 7)
+**Structures** (the user's supplied models) stand on levelled ground in the biomes they
+belong to: St Aldric's chapel and graveyards, the Highpine Wall, the forest dioramas, the
+Temple of the Sun under its kept sun, the Crimson Pavilion, the Red Keep, the Sword
+Graveyard, Caddoc's moat keep, the Obsolete Sea (CRT, keyboard, mouse, CPU), the Bard's
+Rest (a colossal guitar) and the Pale Cathedral. Nothing is piled up at the start.
 
 ## Pillar 5 — Enemy Ecology
-- **Shadow Knights:** armoured, methodical, glowing seams; test parry + heavy sword.
-- **Sunkeeper Wizards:** evasive, blinding light, long-range AoE; test movement.
-- **Dark Fauna:** colossal beasts and dragon-kin as regional bosses.
+*Jobs 11 and 14.* Every enemy and boss is one of the user's PS1 creatures, rigged and
+animated in Blender (`tools/creatures/`).
 
-### Implemented in Job 5 (`src/enemies/`)
-**Shared rules.** Enemies perceive through a view cone plus a hearing radius, with
-line-of-sight sweeps; awareness fills faster up close. Allies in an encounter share
-alerts. At most 2 melee and 2 ranged enemies commit to attacks at once, with 0.35 s
-between attack starts, so every telegraph is readable. Dragged beyond their leash,
-enemies walk home and heal. Deaths dissolve through a dithered pixel shader. Killing a
-knight pays 15 Momentum (wizard 10); clearing an encounter restores Vigour and Momentum.
+**Normal foes are average, Elden Ring style:** readable wind-ups timed to the animation's
+hit frame, at most two attackers at once, poise and armour, guards that chip frontal
+blows (spells and backstabs get through), parry → stagger → exposed (×1.6), backstab ×1.3,
+leash and heal. They grow tougher along the road (health +16 %, damage +10 % per level).
 
-| Shadow Knight (190 HP) | |
-|---|---|
-| Guard | While duelling, frontal blows deal 20% and drain poise (100). Light 17, spin 26, heavy 55, plunge 60, riposte 100, spells 32. Poise 0 = guard break: 1.8 s stagger + exposed |
-| Weak point | The rune on its back: ×1.5 and ignores the shield |
-| Parry | Parrying any swing staggers it 2.1 s and exposes it (×1.6 damage) |
-| Armour | Light hits never interrupt its swings; heavy, plunge, riposte and ≥1 s-stagger spells do. Spells pierce the shield |
-| Cleave → backhand | 0.55 s tell, 16 dmg; 45% chains a 0.38 s backhand (14) |
-| Doom Descent | 1.05 s overhead with blazing seams, 30 dmg — the parry bait |
-| Lunge | From 5–9 m: 0.5 s tell, then a 13 m/s thrust (18). Perfect-dodge it |
+| Foe | Model · weapon | Where |
+|---|---|---|
+| Pale Hollow, Crystal Hollow | pale | I–II, IV |
+| Hollow Pilgrim | pale · sickle | I–III, VII |
+| Stitched Brute | nemesis · machete | I, V |
+| Shadow Knight | nemesis · long sword, guard | I, III, VI, VIII |
+| Ashen Knight | nemesis · war axe | V–VI, VIII |
+| Sunkeeper | wanderer · orbs, blink, sunfall | III, VII–VIII |
+| Umbral Stalker | demon | II, IV–V |
+| Pale Gnawer | bingus | I, IV, VII |
+| Gloom Wasp | bee (flies) | II, VII |
+| Nightmare Steed | horse | VI, VIII |
+| Wyrmling | dragon (small) | V |
 
-| Sunkeeper Wizard (95 HP) | |
-|---|---|
-| Range | Keeps 10–24 m; blinks (3.8 s cooldown) to perches or open ground 12–17 m away when the player closes to 6.5 m |
-| Sun Orb | 0.6 s cast, 15 m/s gently homing orb, 14 dmg. Dash through it, or parry to reflect it for 34 |
-| Solar Lance | Marks a 3.2 m circle where the player is heading; light falls 1.15 s later (24 dmg) |
-| Blinding Flash | 0.95 s halo swell; bursting within 22 m blinds a player looking within 40° of it for 1.8 s (partial further out). Look away or break line of sight |
-| Fragile | Any hit of 8+ damage during a cast interrupts it |
+**Bosses are hard:** eight multi-phase creature fights with posture breaks, parry
+windows and sealed arenas across the road before each gate (an idle player dies in
+6–20 s). Morrow (nemesis with a war axe), Gloomhorn (demon), Solenne (wanderer under a sun
+halo), the Glutton Below (bingus), **Vermilion** (the dragon — ground and air; a reflected
+fireball knocks it down; its wing tears in the last phase), Sir Caddoc (a rider who
+dismounts), the Hive Queen (flying, summons daughters) and Maelor, the Pale Sovereign.
 
-### Bosses (Job 8)
-Every boss telegraphs, has phases (with a roar that shrugs off damage), and a **posture**
-meter that breaks into a long stun. Specific moves have **parry windows**. Arenas seal with
-mist after a short cinematic; dying resets the fight.
+## Story, Shrines & Saves (Jobs 9, 16)
+Told the Elden Ring way — in fragments, the kneeling dead, remembrances and one voice.
+**Queen Liriel died at dawn.** King Maelor swore no dawn would come again and had Oswin
+the Chainwright forge a Chain from his knights' oaths; the moon has hung above the
+Dawnspire for four hundred years. Eight great servants each hold a Link. **Isolde** of
+Hollowmere wrote the Chromatic Codex and walked the Long Road to break the Chain, hiding
+its pages along the way. Her sister **Wren**, the last Emberwarden, wakes in burned
+Hollowmere and follows. Oswin waits ahead at each chapter's first fire; before the
+Dawnspire he confesses he forged the Chain. The ending: the Last Link breaks, the moon
+goes home, dawn comes over Hollowmere.
 
-| Boss | Where | Signature | Answer |
-|---|---|---|---|
-| **Gloomhorn**, the Mire Colossus (900) | Chapter II, a mudflat in Mirefall Thicket | slam → ground shockwave; lane charge; swipe | jump the wave, step off the lane, parry the swipe; below half it summons knights and spike lines |
-| **Vermilion**, Wyrm of the Red Hour (1200) | Chapter V, beside the Citadel of the Red Hour | airborne fire volleys, breath runs, dives, meteor rain | **parry a fireball back** to knock it down, then bite/tail/gust on the ground; wings tear at 25% (fire novas) |
-| **The Pale Sovereign**, Who Kept the Moon (1500) | Chapter VIII, before the Pale Citadel | great cleave, Moon Descent, moon blades, blink strikes, lunar lances, Moonfall | parry the cleaves, reflect the blades, read the lances, find the gaps in the moonfall |
-
-Gloomhorn and Vermilion also hold the keys to their chapters' gates.
-
-## Story, Shrines & Saves (Job 9 · serves Pillar 4)
-The story is never narrated; it is found. **The Long Night:** the Sunkeepers kept the
-day, the Moon-kings the night. The last Moon-king, the **Pale Sovereign**, could not bear
-endings and chained the moon to the world. Night has lasted four hundred years and the
-chained moon bleeds (the red moon in every sky). The **Emberwardens** planted their swords
-in the last fires to keep them burning — those are the Ember Shrines. The player is the
-last Emberwarden, woken at the Threshold by a hooded **Wanderer**.
-
-| Chapter | Arc |
-|---|---|
-| Threshold | The last lit shrine; the Wanderer; the way north |
-| I · Tranquil Reach | Peace that remembers; an empty keep; a door to a morning that never comes |
-| II · Violet Fen | Where Moon-kings were crowned; Gloomhorn, a gentle colossus poisoned by the moon's tears |
-| III · Sunkeepers' Coast | The sun-order's terraces; Keepers praying with burned eyes |
-| IV · Crystal Deep | The moon's tears frozen into singing crystal |
-| V · Bloodstone Wastes | The war on the sun; Vermilion, the sun's dragon, its fire stolen |
-| VI · Ashen March | A kingdom burned to hide the moon's wound |
-| VII · Frozen Choir | The choir that sang the moon down |
-| VIII · Last Garden | The Sovereign's garden where nothing ends; the Pale Citadel |
-
-How it is told:
-- **Lore tablets** — one beside every landmark (40) and three in the hub; short, concrete
-  fragments (logs, notes, inscriptions). Unread ones are marked ✦ in the prompt.
-- **Memorials** — one kneeling Emberwarden per chapter with a one-line epitaph; the last
-  one has your face.
-- **Remembrances** — item descriptions left by each boss.
-- **The Wanderer** — one line at a time, changing with the journey.
-- **Journal (J)** — collects chapter arcs as chapters are discovered, fragments read (gaps
-  shown), and remembrances.
-
-**Ember Shrines:** 41 (the Threshold + one per landmark), unlit until found. Resting
-(F) heals, resets spell cooldowns and any fight in progress, sets the respawn point and
-saves. It is refused mid-fight. The rest menu fast-travels between kindled shrines,
-summarises the journey and offers *Begin anew* (confirmed).
-
-**Saves:** localStorage, one slot. Everything in `Progress`, the spellbook, the rest
-shrine, play time and deaths. Written on rest/travel, shortly after any progress, and
-when the page closes.
+- **Prologue** when a journey begins; **40 fragments** beside the road; **8 memorials**
+  (the last is Isolde); **8 remembrances**, each breaking a Link and giving a gift (Sword
+  Arts, vigour, flasks); the **journal** (J) collects arcs, fragments and remembrances.
+- **Ember Shrines:** one where every biome begins (40), the first always lit. Resting heals,
+  refills flasks, resets fights, sets the respawn point and saves; the rest menu
+  fast-travels between kindled shrines.
+- **Saves:** localStorage, one slot, written on rest/travel, after progress and on exit.
 
 ---
 
@@ -252,7 +185,7 @@ low drone. A tape wobble, a crackle bed and a speed-driven wind layer carry the
 metallic ring, perfect dodges chime, each spell type has its own voice, enemy telegraphs
 give a small two-note tell (audio support for readable attacks), bosses roar.
 
-**Menus.** A title screen over a slowly drifting view of the Threshold (Continue shows
+**Menus.** A title screen looking down Hollowmere's valley to the Dawnspire (Continue shows
 the shrine and play time), Esc pauses, and settings cover audio levels, pixel size,
 depth band count (a performance lever), pixel bloom, outlines, FOV, camera motion,
 compass, hints, sensitivity/invert and rebindable keys. The ending card shows the
@@ -275,9 +208,10 @@ src/
   physics/Colliders.ts    static collision world (terrain + primitives, grid broadphase)
   combat/                 CombatWorld registry, Momentum pool, shared hit types
   spells/                 SpellBook data/progression, SpellCasting, PagePickups
+  assets/                 ModelLibrary (supplied GLBs), Creatures (animated creature library)
   enemies/                EnemyDirector, Enemy base, Perception, AttackTokens, Telegraphs,
-                          EnemyProjectiles, Hazards, Encounters, ShadowKnight, SunkeeperWizard
-  enemies/bosses/         Boss framework, BossArena, Gloomhorn, Vermilion, Sovereign
+                          EnemyProjectiles, Hazards, Encounters, Bestiary, CreatureEnemy
+  enemies/bosses/         Boss, BossArena, CreatureBoss, Roster and the eight bosses
   player/                 PlayerController (tuning), PlayerCombat (attacks), PlayerModel,
                           FirstPersonCamera, FirstPersonRig (hands/sword/book), Player
   ui/GameHud.ts           health / Momentum / dash HUD
@@ -289,11 +223,15 @@ src/
   core/Settings.ts        persisted preferences and rebindable actions
   story/Lore.ts           lore fragments, memorials, remembrances, arcs, Wanderer lines
   core/SaveGame.ts        localStorage save slot; core/Progress.ts shared progress
-  world/                  World (streamed level), ProvingGrounds (the hub), prop builders,
-                          StoryProps (shrines, tablets, memorials), Interactions (F)
-  world/engine/           WorldAtlas, WorldTerrain, TerrainStreamer, PropStreamer/Library,
-                          Camps, Ambience
-  world/biomes/           BiomeTypes, Archetypes, Chapters, BiomeLandmarks
+  world/                  World (the Long Road), prop builders, StoryProps (shrines,
+                          tablets, memorials), Interactions (F)
+  world/route/            Road (the spiral), Structures (supplied models, grounded),
+                          Dawnspire (tower, Chain, moon anchor), ModelBounds
+  world/engine/           WorldAtlas (sites by arc length), WorldTerrain (valleys,
+                          mountains, plateaus), TerrainStreamer, PropStreamer/Library,
+                          Camps, ChapterGates, Ambience
+  world/biomes/           BiomeTypes, Archetypes, Atlas (biome variants), Journey (the
+                          40 legs), Chapters, BiomeLandmarks
   debug/                  fly camera, debug HUD
 tools/screenshot.mjs      headless Chrome screenshots for visual verification
 tools/movetest.mjs        headless movement assertions
@@ -301,8 +239,10 @@ tools/combattest.mjs      headless combat assertions
 tools/spelltest.mjs       spell behavior, pickups, progression and menu assertions
 tools/kinetictest.mjs     first-person camera and kinetic movement assertions
 tools/enemytest.mjs       deterministic enemy/encounter assertions (Game.step)
-tools/worldtest.mjs       world layout, streaming, biome and camp assertions
-tools/atlastest.mjs       atlas, landmarks, gates, map assertions
+tools/worldtest.mjs       the Long Road: layout, terrain, structures, streaming, camps
+tools/creatures/          Blender pipeline that rigs and animates the supplied creatures
+tools/creaturetest.mjs    creature library assertions
+tools/atlastest.mjs       biome order, structures in their biomes, valley edge, gates, map
 tools/bosstest.mjs        boss framework and fight assertions
 tools/savetest.mjs        shrines, lore, journal, Wanderer and save/load assertions
 tools/uitest.mjs          audio, menus, settings, rebinding, HUD and bloom assertions

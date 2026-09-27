@@ -1,12 +1,12 @@
 # Session Handoff — Project Chromatic Odyssey
 
-**Latest verification:** [2026-09-26 Job 10](sessions/2026-09-26-job-10.md)
-records the audio, menus, settings, final HUD, bloom, performance pass and build.
-**All ten jobs of the roadmap are complete.**
+**Latest verification:** [2026-09-27 Job 17](sessions/2026-09-27-job-17.md) — the remake
+(Jobs 11–17) is complete: animated creatures, the new combat, the Long Road world and the
+story. All 13 test suites pass.
 
-**Last updated:** 2026-09-26, at the end of Job 10.
+**Last updated:** 2026-09-27, at the end of Job 17.
 **For:** the next development session continuing this project. Read this file first, then
-[ROADMAP.md](ROADMAP.md) (job plan and checklists) and [GDD.md](GDD.md) (design pillars).
+[ROADMAP.md](ROADMAP.md) (Part II is the remake) and [GDD.md](GDD.md) (design pillars).
 
 The full chat history for Jobs 1–3 is archived in [sessions/](sessions/) — read
 [sessions/session-transcript.md](sessions/session-transcript.md) only when you need the
@@ -80,7 +80,49 @@ user can review it. Here is the master prompt in full (lightly reformatted):
 
 ---
 
-## 3. Current state: Jobs 1–10 (including 3.5) complete ✅
+## 3. Current state — the remake (Jobs 11–17) ✅
+
+After playing Jobs 1–10 the user asked for a remake (ROADMAP Part II lists the feedback).
+**Where this section and the history below disagree, this section is right.**
+
+- **The world is the Long Road** (`src/world/World.ts`, `src/world/route/`,
+  `src/world/biomes/Journey.ts`, `src/world/engine/`):
+  - `Road.ts`: an Archimedean spiral from Hollowmere (4 km west) inward to the Dawnspire
+    at the centre, meanders, a curved approach (≥ 260 m radius) onto the plaza; 21.7 km.
+    `nearest(x, z)` via a 200 m grid of candidate segments; `pointAt(s)`, `offset(s, lateral)`
+    (positive lateral = left of travel).
+  - `Journey.ts`: the 40 legs in road order — biome (remixed from `Atlas.ts` variants),
+    length, valley width, level, Bestiary foes, structures, sea side, boss arena fraction.
+  - `WorldAtlas`: sites by arc length (`s0/s1`, ids `c<chapter>-<slot>`), `weightsAtS`,
+    `widthAt` (gorges at chapter gates), `roadHeight` (smoothed profile), `near` (cached).
+  - `WorldTerrain`: valley relief on the road profile, levelled road bed, ridged mountains
+    beyond `W`, sea on the Sunkeepers' Coast, the plaza, gridded plateaus (`addPlateau`).
+  - `Structures.ts`: supplied models placed on levelled plateaus from `ModelBounds.ts`
+    (regenerate with `node tools/model-bounds.mjs`), kit filtering (`parts`), planted
+    weapons, glow, double-sided environments, collision baked from geometry (`bake`) and
+    registered near the player; `proc:` pieces built at the origin and scaled up with their
+    collision replayed.
+  - The valley edge is `ColliderWorld.boundary` (distance to the road), not wall boxes.
+  - `Dawnspire.ts`: the tower, the Chain (dims per boss, breaks at the end),
+    `Atmosphere.moonAnchor` puts the sky's moon at the chain's end.
+  - Gates: `ChapterGates` gateways over gorges; camps along the road (`Camps.ts`);
+    `StoryProps` shrine per biome (`hollowmere` is the first, always lit).
+  - `World.testSite` (plaza, quiet) and `World.trainingYard()` exist for tests/tools.
+- **Creatures** (Job 11): `tools/creatures/` (Blender `bpy` pipeline) →
+  `public/models/creatures/*.glb` + `creatures.json`; runtime `src/assets/Creatures.ts`.
+- **Feel & combat** (Jobs 12, 13, 15b): `FirstPersonCamera` (bob, landing dip, lean),
+  `Momentum` (channel by holding Shift standing still), dash (2 charges, short i-frames),
+  `PlayerCombat` (crescents, charged heavies, six Sword Arts, flasks), `SwordEmitters`,
+  `PlayerProjectiles`, `SpellFx`, the 12-page Codex (`SpellBook`/`SpellCasting`).
+  The sword is the supplied `ps1-sword-b` (`PlayerModel.setSwordModel` orients any
+  imported blade); `FirstPersonRig` swings it along keyed arcs and draws its ribbon.
+- **Enemies & bosses** (Job 14): `Bestiary.ts` + `CreatureEnemy.ts` (12 foes);
+  `bosses/CreatureBoss.ts` + eight boss files, `Roster.ts`.
+- **Story** (Job 16): `src/story/Lore.ts` (prologue, 40 fragments, memorials, remembrances
+  with gifts, arcs, Oswin's lines). `World.placeWanderer` moves Oswin ahead one chapter per
+  boss; `Game.applyRemembrances` grants arts/vigour/flasks (also on load).
+
+## 3b. History: Jobs 1–10 (superseded where section 3 says so)
 
 **Run:** `npm install && npm run dev`, then open http://localhost:5173 and click. Controls are in [README.md](../README.md).
 You play a spellblade in first person: WASD, Space jump, Shift dash, Ctrl slide (C in the air slams),
@@ -321,6 +363,20 @@ session, so no frame-time numbers were taken.
 
 ## 4. How to verify work (important)
 
+**Current suites (all must pass; counts at the end of Job 17):** `npm run typecheck`,
+`build`, then `worldtest` 23 (the road, valleys, mountains, coast, structures level and
+clear of the road, spire, streaming, moods, camps, walking), `atlastest` 20 (biomes in
+order, structures in their biomes, nothing piled at the start, the valley edge, gates and
+the boss key, map), `enemytest` 27, `bosstest` 21 (eight bosses: animation, difficulty,
+whole movesets), `combattest` 11, `movetest` 11, `kinetictest` 19, `spelltest` 54,
+`savetest` 27, `uitest` 20, `buildtest` 9, `creaturetest` 63, `assettest`.
+Suites run in parallel fine except timing-sensitive checks (streaming budget); rerun
+those alone. Screenshot views (`npm run shot -- --view=...`): spawn, vista, road-ahead,
+gate, church, red-keep, sword-graveyard, obsolete-sea, temple-of-the-sun, moat-keep,
+pale-cathedral, dawnspire, boss-*, shrine, rest-menu, lore-reader, journal, wanderer,
+prologue, title, pause, settings, controls, ending. `npm run perf` places five road
+scenarios. The notes below describe the suites as they were in Jobs 1–10.
+
 - `npm run typecheck` and `npm run build` must pass.
 - `npm run uitest` must pass (19 checks: every mood and effect rendered offline, title,
   live score, sound hooks, music state, pause, settings live-apply, rebinding, compass,
@@ -368,6 +424,18 @@ session, so no frame-time numbers were taken.
   to hold keys before the shot, which is how action poses get captured.
 
 ## 5. Pitfalls already hit
+
+Remake-era (Jobs 11–17):
+- Nearest-point parametrisation jumps inside curves tighter than the valley; keep road
+  curvature radius above the widest valley near it (worldtest's 5 cm continuity check).
+- Offset-polyline walls leave gaps on curves — use the analytic boundary.
+- Plateaus must be registered before anything samples the ground; structure footprints
+  come from `ModelBounds.ts`, not from the loaded models. A raised plateau's blend counts
+  toward its clearance from the road.
+- Enclosed environments (creepy-forest) face inward: draw them double-sided.
+- Tests must not rely on random AI choices (force the attack, e.g. `startAttack`).
+- The glTF importer's bone names lose their dots in three.js (`sanitizeNodeName`).
+
 
 - This machine uses PowerShell. Prefer file-based scripts for multiline code and
   careful shell quoting. Blender includes Python; see the asset pipeline paths.
@@ -425,8 +493,7 @@ session, so no frame-time numbers were taken.
 
 ## 6. Next
 
-The roadmap is complete. Candidates for further jobs (ask the user first):
-- GPU profiling on real hardware (per band count, bloom on/off) and tuning from it.
-- Gamepad support (the rebinding layer maps codes; a gamepad layer would feed Input).
-- Positional enemy audio, more boss music, more lore and side encounters.
-- More biome-specific enemies and mini-bosses per chapter.
+The remake is complete. Candidates (ask the user first):
+- Playtest feedback on the Long Road's pacing (21.7 km) and boss difficulty.
+- More encounter variety per biome (mini-bosses, patrols), more NPCs along the road.
+- GPU profiling on real hardware; gamepad support; positional audio.

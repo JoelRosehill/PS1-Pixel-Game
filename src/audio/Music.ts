@@ -34,7 +34,7 @@ export interface Mood {
   tone: number;
 }
 
-/** One mood per chapter (0 = the Threshold), plus the ending. */
+/** One mood per chapter (index 0 is unused since the hub was removed), plus the ending. */
 export const MOODS: Mood[] = [
   { id: 'threshold', root: 50, bpm: 72, chords: [[0, 'min9'], [5, 'sus'], [-2, 'maj7'], [-5, 'min7']], melody: MINOR_PENT, bells: 0.5, pad: false, tone: 3200 },
   { id: 'reach', root: 53, bpm: 76, chords: [[0, 'maj9'], [4, 'min7'], [5, 'maj7'], [7, 'add9']], melody: MAJOR_PENT, bells: 0.6, pad: false, tone: 4200 },
