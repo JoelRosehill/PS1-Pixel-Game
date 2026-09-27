@@ -450,7 +450,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | 14 | Bestiary — model-based enemies and hard, animated bosses | ✅ |
 | 15 | The Long Road — one handcrafted 40-biome journey | ✅ |
 | 15b | The Blade — a real sword and swings you can read | ✅ |
-| 16 | The Story — a specific storyline, characters and beats | ⏳ |
+| 16 | The Story — a specific storyline, characters and beats | ✅ |
 | 17 | Integration — tests, performance, docs | ⏳ |
 
 ## Job 11 — Creature Forge ✅
@@ -638,4 +638,32 @@ the sword tactics of the earlier build felt poor.
 - [x] **The blade draws its own ribbon** (base to tip, additive, in the attack's colour)
       during each strike, replacing the flat world-space sheet
 - [x] Tests: kinetic 19, combat 11, ui 20, spell 54 passing
+
+## Job 16 — The Story ✅
+
+- [x] **A specific storyline** (`story/Lore.ts`). Queen Liriel died at dawn; King Maelor,
+      the Pale Sovereign, swore no dawn would come again and chained the moon above the
+      Dawnspire with a Chain forged by Oswin the Chainwright from the oaths of his knights.
+      Eight great servants each hold a Link. Isolde of Hollowmere wrote the Chromatic Codex
+      — every colour the night took — and walked the Long Road to break the Chain, hiding
+      its pages along the way. You are her sister Wren, the last Emberwarden, woken in
+      burned Hollowmere
+- [x] **Prologue** card when a new journey begins (once)
+- [x] **40 fragments** rewritten for the road's biomes in order (Isolde's notes, the
+      Gravewarden's register, the Sunkeepers' false sun, the Choir the Glutton ate, the
+      oaths in the Oathblade, the old gods of glass…), **8 memorials** — the last is Isolde
+      herself on the Chain Road — and **8 chapter arcs** for the journal
+- [x] **Oswin the Wanderer** (the wanderer creature) waits by the first fire of the
+      furthest chapter you have opened, gestures as he speaks, and his lines follow the
+      Links you break — until, before the Dawnspire, he confesses he forged the Chain
+- [x] **Remembrances for all eight bosses**, each breaking a Link and giving a gift:
+      Tempest Cross (Morrow), Phantom Blades (Solenne), Bloodmoon Rend (Vermilion), Sunder
+      (Caddoc); +10–15 vigour each; an extra Ember Flask from Gloomhorn, the Glutton and the
+      Hive Queen. Applied on victory and on load
+- [x] The Chain over the spire dims with every Link broken and shatters when Maelor
+      falls; boss announcements name the Link; the epilogue ends over Hollowmere
+- [x] Page hints name the road's places; the first fire and Oswin stand just ahead of
+      where you wake
+- [x] Tests: save 27 (gifts, Oswin moving ahead, the prologue once), ui 20 (prologue on
+      begin), enemy 27 (sunfall made deterministic), world 23, atlas 20, spell 54 passing
 

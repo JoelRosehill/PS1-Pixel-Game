@@ -29,7 +29,7 @@ import { SaveGame, type SaveData } from './SaveGame';
 import { Interactions } from '../world/Interactions';
 import type { LoreSpot, Shrine } from '../world/StoryProps';
 import { StoryUI } from '../ui/StoryUI';
-import { REMEMBRANCES, WANDERER_LINES } from '../story/Lore';
+import { PROLOGUE, REMEMBRANCES, WANDERER_LINES } from '../story/Lore';
 import { roman } from '../world/biomes/Chapters';
 import { AudioEngine } from '../audio/AudioEngine';
 import { SoundDirector } from '../audio/SoundDirector';
@@ -211,9 +211,12 @@ export class Game {
       this.progress.fellBoss(boss.id);
       const rem = REMEMBRANCES.find(r => r.boss === boss.id);
       if (rem) this.progress.remember(rem.id);
+      this.applyRemembrances();
       this.audio?.play('bossDefeat');
       this.player.combat.restore();
-      this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED', boss.id === 'sovereign' ? 'The moon is free. Thank you for playing.' : `${boss.name}, ${boss.epithet}`);
+      const links = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh'];
+      this.gameHud.announce(boss.id === 'sovereign' ? 'THE LONG NIGHT ENDS' : 'GREAT FOE FELLED',
+        boss.id === 'sovereign' ? 'The Last Link breaks. The moon is free.' : `${boss.name} · the ${links[this.progress.bosses.size - 1] ?? 'next'} Link breaks`);
       if (boss.id === 'sovereign') this.finale = true;
     };
     this.enemies.onAnnounce = (title, subtitle) => this.gameHud.announce(title, subtitle);
@@ -269,7 +272,7 @@ export class Game {
       applySettings: () => this.applySettings(),
       resumed: () => this.resumed,
       continueLabel: () => `${this.level.story.shrine(this.restShrine)?.name ?? 'Hollowmere'} · ${this.formatTime(this.playTime)}`,
-      begin: () => this.audio.start(),
+      begin: () => { this.audio.start(); if (!this.resumed) this.showPrologue(); },
       newJourney: () => this.beginAnew(),
       toTitle: () => { this.saveNow(); this.resetting = true; location.reload(); },
       openJournal: () => this.storyUI.openJournal(),
@@ -565,6 +568,18 @@ export class Game {
     this.storyUI.read({ kicker: spot.kind === 'memorial' ? `${where} · THE KNEELING DEAD` : where, title: f.title, text: f.text });
   }
 
+  /** Sword Arts, vigour and flasks from every remembrance held. */
+  applyRemembrances(): void {
+    this.player.combat.applyRemembrances(REMEMBRANCES.filter(r => this.progress.remembrances.has(r.id)));
+  }
+
+  /** The prologue card, once, when a new journey begins. */
+  showPrologue(): void {
+    if (this.progress.lore.has(PROLOGUE.id)) return;
+    this.progress.readLore(PROLOGUE.id);
+    this.storyUI.read({ kicker: 'PROLOGUE', title: PROLOGUE.title, text: PROLOGUE.text });
+  }
+
   /** The Wanderer's line for the current state of the journey. */
   wandererLine(): string {
     const state = {
@@ -576,7 +591,10 @@ export class Game {
 
   talkToWanderer(): void {
     this.audio.play('lore');
-    this.storyUI.read({ kicker: 'THE THRESHOLD', title: 'The Wanderer', text: this.wandererLine(), speaker: 'the Wanderer' });
+    const w = this.level.wanderer.position;
+    const where = this.level.siteAt(w.x, w.z).biome.name.toUpperCase();
+    this.level.wandererSpeaks();
+    this.storyUI.read({ kicker: where, title: 'Oswin, the Wanderer', text: this.wandererLine(), speaker: 'Oswin' });
   }
 
   private journeySummary(): string {
@@ -622,6 +640,7 @@ export class Game {
     this.level.gates.sync();
     this.player.spells.restore(data.pages, data.selected);
     for (const shrine of this.level.story.shrines) if (this.progress.kindled.has(shrine.id)) shrine.prop.setKindled(true);
+    this.applyRemembrances();
     this.playTime = data.playTime;
     this.deaths = data.deaths;
     const shrine = this.level.story.shrine(data.shrine) ?? this.level.story.shrine(FIRST_SHRINE)!;

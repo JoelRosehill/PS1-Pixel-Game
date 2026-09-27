@@ -199,14 +199,10 @@ export class World implements Level {
       position: new THREE.Vector3(st.x, sy, st.z),
       lookAt: new THREE.Vector3(ahead.x, this.terrain.heightAt(ahead.x, ahead.z) + 6, ahead.z),
     };
-    // The Wanderer stands across the fire from where you wake.
-    const first = this.story.shrines[0];
-    const w = road.offset(34, -8);
-    this.wanderer.position.set(w.x, this.terrain.heightAt(w.x, w.z), w.z);
-    this.wanderer.rotation.y = Math.atan2(first.position.x - w.x, first.position.z - w.z);
+    // Oswin, the Wanderer, waits by the first fire of the furthest chapter you have opened.
     this.wanderer.name = 'wanderer';
     this.root.add(this.wanderer);
-    col.addCylinder(w.x, this.wanderer.position.y + 1, w.z, 0.5, 2);
+    this.placeWanderer(1);
 
     // A small, constant pool of point lights lent to the nearest landmark anchors
     // (a fixed light count keeps every shader's light loop the same size).
@@ -233,6 +229,37 @@ export class World implements Level {
       this.colliders.addBody(c.collider);
     }
     return this.enemies as SparringConstruct[];
+  }
+
+  private talkTime = 0;
+
+  /** Oswin gestures while he speaks, then settles back into stillness. */
+  wandererSpeaks(seconds = 5): void {
+    if (!this.wandererModel?.has('talk')) return;
+    this.wandererModel.play('talk', { fade: 0.2, restart: true });
+    this.talkTime = seconds;
+  }
+
+  /** Chapter whose first fire Oswin is waiting at. */
+  wandererChapter = 0;
+
+  /** Moves Oswin to stand across the road from the first shrine of `chapter`. */
+  placeWanderer(chapter: number): void {
+    if (chapter === this.wandererChapter) return;
+    this.wandererChapter = chapter;
+    const site = this.atlas.sites.find(s => s.chapter === chapter && s.slot === 0)!;
+    const shrine = this.story.shrines[site.index];
+    const hit = this.atlas.road.nearest(shrine.position.x, shrine.position.z);
+    // Beside the fire, a few steps further along and back from the road, so he stands in
+    // view (on the fire's side, clear of the sword hand) as you walk up to it.
+    const lateral = hit.side * (hit.d + 3);
+    const p = this.atlas.road.offset(hit.s + 4, lateral);
+    this.wanderer.position.set(p.x, this.terrain.heightAt(p.x, p.z), p.z);
+    this.wanderer.rotation.y = Math.atan2(shrine.position.x - p.x, shrine.position.z - p.z);
+    if (this.colliders.hasGroup('wanderer')) this.colliders.removeGroup('wanderer');
+    this.colliders.beginGroup('wanderer');
+    this.colliders.addCylinder(p.x, this.wanderer.position.y + 1, p.z, 0.5, 2);
+    this.colliders.endGroup();
   }
 
   // --- Level contract ------------------------------------------------------
@@ -278,8 +305,16 @@ export class World implements Level {
     this.ambience.update(dt, this.viewer);
     this.story.update(dt, elapsed, this.viewer);
     this.dawnspire.update(elapsed);
+    this.dawnspire.setLinksBroken(this.progress.bosses.size);
     if (this.progress.bosses.has('sovereign')) this.dawnspire.breakChain();
+    if (this.talkTime > 0) {
+      this.talkTime -= dt;
+      if (this.talkTime <= 0) this.wandererModel?.play('idle', { fade: 0.4 });
+    }
     this.wandererModel?.update(dt);
+    // Oswin goes on ahead: one chapter further for every great foe felled.
+    const felled = BOSSES.filter(b => b.chapter < 8 && this.progress.bosses.has(b.id)).length;
+    this.placeWanderer(Math.min(8, 1 + felled));
     this.updateMood(dt, false);
     this.gateHint = this.gates.update(dt, this.viewer);
     this.lightTimer -= dt;

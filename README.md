@@ -15,6 +15,12 @@ kept sun, the Crimson Pavilion, the Red Keep, the Sword Graveyard, Caddoc's moat
 Obsolete Sea, the Bard's Rest and the Pale Cathedral. The chain from the spire to the
 moon is visible from everywhere. Press M for the map.
 
+**The story** (Job 16): Queen Liriel died at dawn, and King Maelor chained the moon so no
+dawn would ever come again. Your sister Isolde walked the Long Road to break the Chain
+and never came back. You are Wren, the last Emberwarden. Eight great foes each hold a
+Link of the Chain; Oswin, the masked Wanderer, waits ahead of you at each chapter's first
+fire — and knows more about the Chain than he first admits.
+
 **Enemies and bosses are the supplied PS1 creatures, rigged and animated in Blender**
 (Job 11): twelve Bestiary foes (Job 14) and eight hard bosses — Morrow, Gloomhorn,
 Solenne, the Glutton, the dragon Vermilion (ground and air), Sir Caddoc, the Hive Queen

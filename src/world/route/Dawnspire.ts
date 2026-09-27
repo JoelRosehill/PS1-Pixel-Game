@@ -88,6 +88,16 @@ export class Dawnspire {
     this.group.add(this.chain);
   }
 
+  private readonly chainBase = new THREE.Color(0xd8d0ff).multiplyScalar(1.8);
+  private linksBroken = -1;
+
+  /** Each great foe felled breaks a Link; the chain's light fades with every one. */
+  setLinksBroken(n: number): void {
+    if (n === this.linksBroken) return;
+    this.linksBroken = n;
+    this.chainMat.color.copy(this.chainBase).multiplyScalar(1 - Math.min(7, n) * 0.1);
+  }
+
   /** After the last boss: the chain breaks and the moon goes home. */
   breakChain(): void {
     if (this.broken) return;

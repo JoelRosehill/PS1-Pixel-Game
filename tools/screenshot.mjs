@@ -48,6 +48,7 @@ const VIEWS = {
     eval: "const g = window.__game, spot = g.level.story.lore.find(l => l.id === 'c1-2'); const p = spot.position; g.player.controller.teleport(p.x + 2, g.level.heightAt(p.x + 2, p.z) + 0.2, p.z, Math.PI / 2); g.level.setViewer(p, true); g.readLore(spot);" },
   journal: { at: 'spawn', holdMs: 500,
     eval: "const g = window.__game; for (const id of ['c1-0', 'c1-1', 'c1-2', 'c2-0']) g.progress.discover(id); for (const id of ['c1-0', 'c1-2', 'c1-4', 'mem-1', 'c2-0']) g.progress.readLore(id); g.progress.remember('rem-gloomhorn'); g.storyUI.openJournal();" },
+  prologue: { at: 'spawn', holdMs: 500, eval: "window.__game.progress.lore.delete('prologue'); window.__game.showPrologue();" },
   wanderer: { at: 'spawn', holdMs: 400,
     eval: "const g = window.__game, w = g.level.wanderer.position, p = g.player.controller.position; g.player.camera.setYaw(Math.atan2(-(w.x - p.x), -(w.z - p.z)), -0.05);" },
   // Title, menus, HUD, ending, pixel bloom.

@@ -261,6 +261,24 @@ export class PlayerCombat implements Damageable {
     this.holdTime = 0;
   }
 
+  /**
+   * What the great foes left behind (Job 16): Sword Arts, vigour and Ember Flasks from
+   * every remembrance held. Idempotent; call after a boss falls or a save loads.
+   */
+  applyRemembrances(gifts: { art?: string; vigour?: number; flask?: number }[]): void {
+    let vigour = 0, flasks = 0;
+    for (const g of gifts) {
+      if (g.art) this.artsUnlocked.add(g.art);
+      vigour += g.vigour ?? 0;
+      flasks += g.flask ?? 0;
+    }
+    const grewBy = COMBAT_TUNING.maxHealth + vigour - this.maxHealth;
+    this.maxHealth = COMBAT_TUNING.maxHealth + vigour;
+    this.maxFlasks = COMBAT_TUNING.flasks + flasks;
+    if (grewBy > 0) this.health = Math.min(this.maxHealth, this.health + grewBy);
+    this.flasks = Math.min(this.flasks, this.maxFlasks);
+  }
+
   /** Rest at a shrine: full health, flasks and Momentum without the death reset. */
   restore(): void {
     this.health = this.maxHealth;

@@ -151,7 +151,7 @@ export class StoryUI {
 
   private renderJournal(): void {
     const pr = this.progress;
-    const chapters = new Set<number>([0]);
+    const chapters = new Set<number>();
     for (const id of pr.discovered) { const m = /^c(\d+)-/.exec(id); if (m) chapters.add(Number(m[1])); }
     const fragments: LoreFragment[] = [...Object.values(LORE), ...Object.values(MEMORIALS)];
     const arcs = ARCS.filter(a => chapters.has(a.chapter)).map(a => {

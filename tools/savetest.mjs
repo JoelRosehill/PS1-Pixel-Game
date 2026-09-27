@@ -196,8 +196,8 @@ try {
     const d = g.storyUI.dialog;
     const arcs = [...d.querySelectorAll('.journal-arc h2')].map(h => h.textContent);
     const text = d.textContent;
-    const ok = g.storyUI.mode === 'journal' && g.menuOpen && arcs.some(a => a.includes('Tranquil Reach')) && !arcs.some(a => a.includes('Frozen Choir'))
-      && text.includes('Watchman') && text.includes('An unread fragment') && text.includes('Remembrances');
+    const ok = g.storyUI.mode === 'journal' && g.menuOpen && arcs.some(a => a.includes('Hollow Reach')) && !arcs.some(a => a.includes('Dreaming Wastes'))
+      && text.includes('Isolde went east') && text.includes('An unread fragment') && text.includes('Remembrances');
     window.__press('KeyJ');
     return { ok: ok && !g.storyUI.mode, detail: `arcs=${arcs.length} mode after J=${g.storyUI.mode}` };
   });
@@ -219,14 +219,39 @@ try {
     const last = g.wandererLine();
     g.finale = false;
     g.progress.bosses.delete('gloomhorn');
-    const ok = kind === 'wanderer' && prompt === 'F · Speak with the Wanderer' && cite.includes('Wanderer')
-      && first.includes('kindled a shrine') && later.includes('colossus') && last.includes('silver');
+    const ok = kind === 'wanderer' && prompt === 'F · Speak with the Wanderer' && cite.includes('Oswin')
+      && first.includes('kindled a shrine') && later.includes('colossus') && last.includes('shadow');
     return { ok, detail: `kind=${kind} first="${first.slice(0, 40)}…"` };
   });
-  await run('a felled boss leaves a remembrance', () => {
+  await run('a felled boss leaves a remembrance, and its gifts', () => {
+    const g = window.__game, c = g.player.combat;
+    const hp = c.maxHealth, arts = c.artsUnlocked.has('art-rend');
+    g.enemies.onBossDefeated({ def: { boss: { id: 'vermilion', name: 'Vermilion', epithet: 'the Red Calamity' } } });
+    return { ok: g.progress.remembrances.has('rem-vermilion') && g.progress.bosses.has('vermilion') && !arts && c.artsUnlocked.has('art-rend') && c.maxHealth === hp + 10,
+      detail: `${[...g.progress.remembrances].join(',')} hp ${hp}→${c.maxHealth}` };
+  });
+  await run('Oswin goes on ahead as the Links break', () => {
+    const g = window.__game, L = g.level;
+    const before = L.wandererChapter;
+    for (const b of ['morrow', 'gloomhorn']) g.progress.fellBoss(b);
+    L.update(1 / 60, 0);
+    const w = L.wanderer.position;
+    const chapter = L.atlas.chapterAt(w.x, w.z);
+    const shrine = L.story.shrines[L.atlas.sites.find(s => s.chapter === chapter && s.slot === 0).index];
+    const d = Math.hypot(w.x - shrine.position.x, w.z - shrine.position.z);
+    // Vermilion fell in the previous check, so Oswin starts at Chapter II.
+    return { ok: before === 2 && L.wandererChapter === 4 && chapter === 4 && d < 20, detail: `chapter ${before}→${L.wandererChapter}, ${d.toFixed(1)} m from the fire` };
+  });
+  await run('the prologue is told once', () => {
     const g = window.__game;
-    g.enemies.onBossDefeated({ def: { boss: { id: 'vermilion', name: 'Vermilion', epithet: 'the Red Hour' } } });
-    return { ok: g.progress.remembrances.has('rem-vermilion') && g.progress.bosses.has('vermilion'), detail: [...g.progress.remembrances].join(',') };
+    g.progress.lore.delete('prologue');
+    g.showPrologue();
+    const told = g.storyUI.mode === 'reader' && /Isolde/.test(g.storyUI.dialog.textContent);
+    window.__closeAll();
+    g.showPrologue();
+    const again = g.storyUI.mode === 'reader';
+    window.__closeAll();
+    return { ok: told && !again, detail: `told=${told} again=${again}` };
   });
 
   // --- saving -----------------------------------------------------------------------
@@ -272,6 +297,7 @@ try {
     const ok = g.resumed && d < 1.5 && s.prop.kindled && window.__shrine('c1-1').prop.kindled === false
       && g.player.spells.book.has('comet-lance') && g.player.spells.book.selected === 'comet-lance'
       && g.progress.lore.has('c1-3') && g.progress.remembrances.has('rem-gloomhorn') && g.progress.discovered.has('c3-2')
+      && g.player.combat.maxHealth === 110 && g.player.combat.maxFlasks === 4
       && (!camp || camp.state === 'cleared') && arena?.state === 'defeated' && g.deaths === 3 && g.playTime >= 754 && g.restShrine === 'c2-1';
     return { ok, detail: `resumed=${g.resumed} d=${d.toFixed(2)} camp=${camp?.state} arena=${arena?.state} deaths=${g.deaths}` };
   });

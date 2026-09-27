@@ -265,9 +265,17 @@ try {
     p.combat.health = 99999;
     const w = spawn('sunkeeper', 14);
     w.perception.alert(p.controller.position);
-    let marked = 0;
-    for (let i = 0; i < 60 * 14 && !marked; i++) { g.step(1 / 60); marked = g.enemies.telegraphs.pendingStrikes; }
-    return { ok: marked > 0, detail: `pending=${marked}` };
+    g.step(1);
+    // Call it down (the Sunkeeper would choose it in its own time).
+    w.startAttack(w.spec.attacks.find(a => a.id === 'sunfall'), g.enemies.ctx);
+    let marked = 0, landed = false;
+    for (let i = 0; i < 60 * 4; i++) {
+      g.step(1 / 60);
+      const n = g.enemies.telegraphs.pendingStrikes;
+      if (n > 0 && !marked) marked = n;
+      if (marked && n === 0) landed = true;
+    }
+    return { ok: marked > 0 && landed, detail: `pending=${marked} landed=${landed}` };
   });
   await run('a parried orb flies back and burns its caster', () => {
     const { g, T, reset, spawn, freeze } = window.__et;

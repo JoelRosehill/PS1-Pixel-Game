@@ -1,20 +1,24 @@
 /**
- * The story of Chromatic Odyssey (Job 9), told the Elden Ring way: in fragments found
- * beside landmarks, in the kneeling dead, in what bosses leave behind, and in what the
- * Wanderer at the Threshold is willing to say.
+ * The story of Chromatic Odyssey (Jobs 9, 16), told the Elden Ring way: in fragments beside
+ * the Long Road, in the kneeling dead, in what the eight great foes leave behind, and in
+ * what Oswin the Wanderer is willing to say as he waits for you further along the road.
  *
- * The spine: long ago the Sunkeepers kept the day and the Moon-kings kept the night.
- * The last Moon-king, the Pale Sovereign, could not bear endings, so he chained the moon
- * to the world and night never ended. The chained moon bleeds — the red moon over every
- * sky. The Emberwardens planted their swords in the last fires to keep them burning;
- * those are the Ember Shrines. You are the last Emberwarden, woken at the Threshold.
+ * The spine. Queen Liriel died at dawn. Her husband Maelor, the Pale Sovereign, could not
+ * bear another dawn to come, so he had Oswin the Chainwright forge a chain from the oaths
+ * of his knights and bound the moon above the Dawnspire, where it has hung for four
+ * hundred years. Night never ended; the sun's order went blind, the sun's dragon was
+ * chained, and eight great servants each hold a Link of the Chain. The Emberwardens kept
+ * the last fires burning along the Long Road. Isolde of Hollowmere wrote the Chromatic
+ * Codex, a book of every colour the night had stolen, and walked east to break the Chain;
+ * she tore the pages out and hid them along the road so Maelor's knights could not take
+ * them all. Her sister Wren — you — wakes in burned Hollowmere, the last Emberwarden.
  */
 
 export interface LoreFragment {
   id: string;
   title: string;
   text: string;
-  /** 0 = the Threshold (hub). */
+  /** 1–8, the chapter it belongs to (0 = the prologue). */
   chapter: number;
 }
 
@@ -24,6 +28,10 @@ export interface Remembrance {
   boss: string;
   name: string;
   text: string;
+  /** What it gives: a Sword Art, more vigour (max health), another Ember Flask. */
+  art?: string;
+  vigour?: number;
+  flask?: number;
 }
 
 export interface ChapterArc {
@@ -32,147 +40,159 @@ export interface ChapterArc {
   text: string;
 }
 
-/** One fragment per biome site, keyed by site id (`c<chapter>-<slot>`), plus the hub's. */
-export const LORE: Record<string, LoreFragment> = {
-  // --- The Threshold ---------------------------------------------------------------
-  'hub-1': { id: 'hub-1', chapter: 0, title: 'Scratched into the shrine stones',
-    text: 'Keep it burning. Whatever else goes dark, keep this one burning. — the last of the Emberwardens, to the next.' },
-  'hub-2': { id: 'hub-2', chapter: 0, title: 'A page pinned to the castle gate',
-    text: 'The night has lasted four hundred years. The children born in it have never seen a shadow cast by the sun, and ask what the word "morning" is for.' },
-  'hub-3': { id: 'hub-3', chapter: 0, title: 'Carved into the bridge',
-    text: 'The Warden holds this crossing for a king who no longer remembers him. Knights of the Moon keep their oaths long after the reasons rot.' },
-
-  // --- Chapter I · The Tranquil Reach -------------------------------------------------
-  'c1-0': { id: 'c1-0', chapter: 1, title: 'Watchman’s log, last entry',
-    text: 'Still no dawn. The pines don’t seem to mind. I have started to envy them.' },
-  'c1-1': { id: 'c1-1', chapter: 1, title: 'A child’s drawing, weighted by a stone',
-    text: 'Two moons over a lake: one in the sky, one in the water. Only the one in the water is silver. Underneath, in careful letters: "the real one".' },
-  'c1-2': { id: 'c1-2', chapter: 1, title: 'Bark tag on the elder tree',
-    text: 'The Sunkeepers planted this grove to count the autumns. The leaves turned, and turned, and then stopped turning. They have been burning red ever since, waiting for a winter that never comes.' },
-  'c1-3': { id: 'c1-3', chapter: 1, title: 'Muster roll, Highpine Keep',
-    text: 'Forty names. Thirty-nine struck through. Beside the last: "went up to the pass to see if the mist would part. It will not part for one."' },
-  'c1-4': { id: 'c1-4', chapter: 1, title: 'Words around the meadow door',
-    text: 'This door opens onto the morning. Knock twice, and wait for it to rise. (Someone has added, much later: "it doesn’t.")' },
-
-  // --- Chapter II · The Violet Fen ------------------------------------------------------
-  'c2-0': { id: 'c2-0', chapter: 2, title: 'Inscription on the drowned circle',
-    text: 'Here the Moon-kings were crowned, standing in the water so the moon would see herself behind them. The water still remembers. That is why it glows.' },
-  'c2-1': { id: 'c2-1', chapter: 2, title: 'A lantern-keeper’s tally',
-    text: 'One light for every soul lost in the bog. I have run out of lanterns. The bog has not run out of souls. The mushrooms have taken over the counting.' },
-  'c2-2': { id: 'c2-2', chapter: 2, title: 'Hymn-sheet from the drowned chapel',
-    text: '"Sleep, moon, sleep; the world will keep." The last verse is scratched out, and written over it: "the world will keep you. He will make sure of it."' },
-  'c2-3': { id: 'c2-3', chapter: 2, title: 'A warning in wisp-light',
-    text: 'Do not follow the pink lights. They are not guides. They are the fen’s grief looking for somewhere warm to rest.' },
-  'c2-4': { id: 'c2-4', chapter: 2, title: 'Note beside the great bones',
-    text: 'The mire-beasts were gentle once. They carried the drowned to the shore so they could be buried. Then the moon began to weep into the water, and they drank.' },
-
-  // --- Chapter III · The Sunkeepers' Coast ------------------------------------------------
-  'c3-0': { id: 'c3-0', chapter: 3, title: 'Temple dedication',
-    text: 'To the Low Sun, who sets but never leaves. — The Sunkeepers built for a sun that would always come back. When it did not, they did not know how to stop praying.' },
-  'c3-1': { id: 'c3-1', chapter: 3, title: 'Water-clock inscription',
-    text: 'Every step of the cascade is one hour of daylight. Count them: there are twelve. The water has fallen past the last step for four hundred years, and the clock has been striking midnight ever since.' },
-  'c3-2': { id: 'c3-2', chapter: 3, title: 'Coral-stone tablet',
-    text: 'We blinded ourselves with our own light so we would not see the dark. Forgive the Keepers you meet. They are still trying to make the morning, with their eyes closed.' },
-  'c3-3': { id: 'c3-3', chapter: 3, title: 'Gardener’s ledger',
-    text: 'The heliotropes turn to face the sun. Where there is no sun, they turn toward the brightest thing they can find. Lately that has been you.' },
-  'c3-4': { id: 'c3-4', chapter: 3, title: 'Last minutes of the agora',
-    text: 'Motion: to ask the Moon-king to release the moon. Carried unanimously. Delegation sent. Delegation did not return. The sea rose that night and has not gone down.' },
-
-  // --- Chapter IV · The Crystal Deep -------------------------------------------------------
-  'c4-0': { id: 'c4-0', chapter: 4, title: 'Engraved on the singing hall',
-    text: 'The crystals are the moon’s tears, fallen and frozen. Listen closely: they are not singing. They are calling someone by name.' },
-  'c4-1': { id: 'c4-1', chapter: 4, title: 'Frost-scratched warning',
-    text: 'Do not breathe on the galleries. They grow toward warmth. So did the last Emberwarden who slept here.' },
-  'c4-2': { id: 'c4-2', chapter: 4, title: 'Miner’s letter, unsent',
-    text: 'The rose vault pulses slow as a heart. Tomorrow we break it open to see what beats inside. My love to the children. If there is a tomorrow, I will tell you what we found.' },
-  'c4-3': { id: 'c4-3', chapter: 4, title: 'Chalk on the geode wall',
-    text: 'The world is hollow here. That is where the Sovereign keeps the chain’s other end.' },
-  'c4-4': { id: 'c4-4', chapter: 4, title: 'Echo-stone',
-    text: 'Speak your name into the stone and it speaks back someone else’s. Mine came back as the Sovereign’s. I do not think it was a mistake.' },
-
-  // --- Chapter V · The Bloodstone Wastes ------------------------------------------------------
-  'c5-0': { id: 'c5-0', chapter: 5, title: 'Plaque at the citadel gate',
-    text: 'Here the sun’s dragon was brought low and its fire taken, so that the night would have no enemy. Vermilion still burns. It simply has nothing left to burn for.' },
-  'c5-1': { id: 'c5-1', chapter: 5, title: 'Canyon wall graffiti',
-    text: 'The rock is red because the moon bled onto it for four hundred years. Touch it. It is still warm.' },
-  'c5-2': { id: 'c5-2', chapter: 5, title: 'Oath carved into a spire',
-    text: 'We swore to keep the night until the king released us. He never will. We have become the night we kept. — a Knight of the Moon, before the shadow took his face.' },
-  'c5-3': { id: 'c5-3', chapter: 5, title: 'Ossuary register',
-    text: 'The Sovereign’s war on the sun lasted one afternoon. The burying has lasted four hundred years.' },
-  'c5-4': { id: 'c5-4', chapter: 5, title: 'Inscription on the weeping door',
-    text: 'Through this door, the way to the king’s garden. It weeps because it knows what is on the other side, and would rather not be opened.' },
-
-  // --- Chapter VI · The Ashen March ------------------------------------------------------------
-  'c6-0': { id: 'c6-0', chapter: 6, title: 'Scorched decree',
-    text: 'By order of the Pale Sovereign: the March shall burn, so that the smoke may hide the moon’s wound from the other kingdoms. — The smoke hid nothing. The kingdoms were already gone.' },
-  'c6-1': { id: 'c6-1', chapter: 6, title: 'Marsh-keeper’s complaint',
-    text: 'The water here is warm. The fish have learned to live in ash. I have not.' },
-  'c6-2': { id: 'c6-2', chapter: 6, title: 'Glass tablet',
-    text: 'The sea here burned and cooled into steps. The Sunkeepers walked up them to beg the sky for morning. The sky did not answer; it was busy being chained.' },
-  'c6-3': { id: 'c6-3', chapter: 6, title: 'Charcoal-rubbing of a ring',
-    text: 'The burning elder remembers every leaf it has lost. It glows from the inside because it cannot stop remembering.' },
-  'c6-4': { id: 'c6-4', chapter: 6, title: 'Ember-hall rune',
-    text: 'The deepest fire in the world burns here, far from the moon. The Emberwardens took their first flames from it. Take yours.' },
-
-  // --- Chapter VII · The Frozen Choir ------------------------------------------------------------
-  'c7-0': { id: 'c7-0', chapter: 7, title: 'The choir’s last song',
-    text: 'We sang the moon down from the sky so the king could hold her. We did not know he meant to never let go. Now the ice sings our song back to us, forever, and we cannot stop listening.' },
-  'c7-1': { id: 'c7-1', chapter: 7, title: 'Lamp-keeper’s oath',
-    text: 'The last lamp in the north is lit. As long as it burns, someone is waiting for someone to come home. It burns still.' },
-  'c7-2': { id: 'c7-2', chapter: 7, title: 'Words frozen into the mere',
-    text: 'The mere froze mid-wave the night the moon was chained. Those who drowned that night are still falling.' },
-  'c7-3': { id: 'c7-3', chapter: 7, title: 'Frost-temple prayer',
-    text: 'Low Sun, if you can hear us from wherever the dark has put you: we kept your temple. We kept it cold, but we kept it.' },
-  'c7-4': { id: 'c7-4', chapter: 7, title: 'Carved into the sky-whale’s rib',
-    text: 'The sky-whales swam between the stars and the moon. When she was chained, they had nowhere left to swim. This one came down to die where it could still see her.' },
-
-  // --- Chapter VIII · The Last Garden ----------------------------------------------------------------
-  'c8-0': { id: 'c8-0', chapter: 8, title: 'The gardener’s promise',
-    text: 'The king asked for a garden where nothing ever ends. I planted one. I did not tell him that nothing growing here can ever bloom.' },
-  'c8-1': { id: 'c8-1', chapter: 8, title: 'A root of starlight',
-    text: 'Stars fell here when the moon was pulled from the sky. They took root rather than go out. Everything wants to keep burning. That is not the same as wanting to live.' },
-  'c8-2': { id: 'c8-2', chapter: 8, title: 'Moon-petal note',
-    text: 'She opens her petals only for the moon. The moon has been right here, in the garden, for four hundred years. She has never closed them.' },
-  'c8-3': { id: 'c8-3', chapter: 8, title: 'Gold vein inscription',
-    text: 'The king had every treasure in the world brought down into the dark, so the moon would have something to look at besides him.' },
-  'c8-4': { id: 'c8-4', chapter: 8, title: 'Before the Pale Citadel',
-    text: 'He is not cruel. He was afraid. Every night he held her, he told her: "One more." Four hundred years of one more. Be gentle with him, Emberwarden. Then set her free.' },
+/** Shown once when a new journey begins. */
+export const PROLOGUE: LoreFragment = {
+  id: 'prologue', chapter: 0, title: 'The Long Night',
+  text: 'Four hundred years ago Queen Liriel died as the sun came up, and King Maelor swore that no dawn would ever come again. '
+    + 'He chained the moon above the Dawnspire. It has not moved since. Your sister Isolde wrote a book of every colour the night took '
+    + 'and walked the Long Road east to break the Chain. She did not come back. Last night the Moon-knights burned Hollowmere. '
+    + 'You are the last Emberwarden. The fire is still lit. The road begins at your door.',
 };
 
-/** The kneeling dead: one Emberwarden memorial per chapter (environmental storytelling). */
+/** One fragment per biome, keyed by site id (`c<chapter>-<slot>`), in road order. */
+export const LORE: Record<string, LoreFragment> = {
+  // --- Chapter I · The Hollow Reach ---------------------------------------------------
+  'c1-0': { id: 'c1-0', chapter: 1, title: 'Scorched into the village sign',
+    text: 'HOLLOWMERE. Someone has cut beneath it, fresh: "Isolde went east with the book. Wren — follow the road. Keep the fire."' },
+  'c1-1': { id: 'c1-1', chapter: 1, title: 'A page of Isolde’s, pinned to a pine',
+    text: 'The pines here never lose their needles, so they never learned that time was passing. I envy them. I have torn the first page out and hidden it on the watch stone. If you are reading this, little sister, climb.' },
+  'c1-2': { id: 'c1-2', chapter: 1, title: 'A child’s drawing, weighted by a stone',
+    text: 'Two moons over a lake: one in the sky, one in the water. Only the one in the water is silver. Underneath, in careful letters: "the real one".' },
+  'c1-3': { id: 'c1-3', chapter: 1, title: 'Burial register of St Aldric',
+    text: 'Emberwardens interred this year: forty. Emberwardens who stayed interred: none. The Gravewarden has been asked to dig deeper.' },
+  'c1-4': { id: 'c1-4', chapter: 1, title: 'Order nailed to the Highpine Wall',
+    text: 'By command of the Sovereign: the gate is closed to all who carry fire. The Gravewarden holds the First Link. Let the dead keep the road.' },
+
+  // --- Chapter II · The Violet Fen -----------------------------------------------------
+  'c2-0': { id: 'c2-0', chapter: 2, title: 'A lantern-keeper’s tally',
+    text: 'Lanterns lit for the drowned tonight: one thousand and six. Lanterns answered: none. I will light one more. It costs nothing to be wrong kindly.' },
+  'c2-1': { id: 'c2-1', chapter: 2, title: 'Inscription on the drowned stones',
+    text: 'Here the Moon-kings were crowned, standing in the water so the moon would see herself behind them. The water still remembers. That is why it glows.' },
+  'c2-2': { id: 'c2-2', chapter: 2, title: 'Hymn-sheet from the drowned chapel',
+    text: 'Hush now, the moon is watching, / Hush now, she cannot leave, / We tied her to the tower / So none of us would grieve. (The last line has been scratched out, and rewritten: "So only one would grieve.")' },
+  'c2-3': { id: 'c2-3', chapter: 2, title: 'A warning in wisp-light',
+    text: 'The lights here are the fen’s memory of lanterns. Follow one and it will follow you home. Isolde followed three; they led her true.' },
+  'c2-4': { id: 'c2-4', chapter: 2, title: 'Chalk on the drowned circle',
+    text: 'Gloomhorn carried the drowned to the shore for a thousand years. Then the moon wept into the fen, and it drank, and it has been carrying them the other way since. It holds the Second Link, in its horn.' },
+
+  // --- Chapter III · The Sunkeepers’ Coast -----------------------------------------------
+  'c3-0': { id: 'c3-0', chapter: 3, title: 'Dedication of the Temple of the Low Sun',
+    text: 'To the sun, who rose every morning without once being asked. We keep this temple so that she knows where to come back to.' },
+  'c3-1': { id: 'c3-1', chapter: 3, title: 'Water-clock inscription',
+    text: 'The water falls a finger’s width each hour. It has filled the lower terraces and the sea. By the Keepers’ count it is now the four hundredth year, eleventh hour, of the night.' },
+  'c3-2': { id: 'c3-2', chapter: 3, title: 'Coral-stone tablet',
+    text: 'When the sun did not come back, Solenne made one. She hung it over the temple and told us it was real. When she could no longer bear to look at the lie, she put out her own eyes. We still pray to it. It is warm, at least.' },
+  'c3-3': { id: 'c3-3', chapter: 3, title: 'Gardener’s ledger',
+    text: 'Heliotropes turned toward the false sun: all of them. Toward the moon: one. I have not had the heart to pull it up. Isolde asked for a cutting.' },
+  'c3-4': { id: 'c3-4', chapter: 3, title: 'Beneath the kept sun',
+    text: 'Solenne, Blind Sunkeeper, holds the Third Link: the Link of Light. She believes the Chain keeps the world from seeing the dark. She is not entirely wrong.' },
+
+  // --- Chapter IV · The Crystal Deep -------------------------------------------------------
+  'c4-0': { id: 'c4-0', chapter: 4, title: 'Frost-scratched warning',
+    text: 'The Prism Choir sang the colours back into the world, one note for each. Then the Glutton came up from below. Do not sing here.' },
+  'c4-1': { id: 'c4-1', chapter: 4, title: 'Engraved on the Singing Hall',
+    text: 'Red was the first note and violet the last. Between them, every colour a morning can hold. The choir is gone. The crystals still hum the scale, without the words.' },
+  'c4-2': { id: 'c4-2', chapter: 4, title: 'Miner’s letter, unsent',
+    text: 'Love — the rose quartz here is warm, like a hand. The foreman says it is the Choir, still inside the Glutton, singing. I do not go down to the lower galleries any more.' },
+  'c4-3': { id: 'c4-3', chapter: 4, title: 'Chalk on the geode wall, in Isolde’s hand',
+    text: 'The Codex needs every colour. The Glutton ate the Choir, so the Glutton has the colours. It holds the Fourth Link too. I am not strong enough. Maybe the next one will be.' },
+  'c4-4': { id: 'c4-4', chapter: 4, title: 'Echo-stone',
+    text: 'Speak your name into the stone and it answers in the voice of the last person who did. It says, in your sister’s voice: "Wren. Keep going."' },
+
+  // --- Chapter V · The Bloodstone Wastes ---------------------------------------------------
+  'c5-0': { id: 'c5-0', chapter: 5, title: 'Plaque at the canyon mouth',
+    text: 'Here the war on the sun was fought, in one afternoon, by one king, against one dragon. The stone has been red since.' },
+  'c5-1': { id: 'c5-1', chapter: 5, title: 'Graffiti beneath the Crimson Pavilion',
+    text: 'THEY HANGED THE LAST SUNKEEPERS HERE. THE PAVILION WAS BUILT OVER THEM SO THE KING WOULD NOT HAVE TO SEE. WE SEE.' },
+  'c5-2': { id: 'c5-2', chapter: 5, title: 'Oath carved into a spire',
+    text: 'By this blade and this dark I swear: no light shall pass the Red Keep while the Sovereign mourns. (Beneath, a knight’s name, and the words "I am so tired".)' },
+  'c5-3': { id: 'c5-3', chapter: 5, title: 'Ossuary register',
+    text: 'Remains catalogued: eleven thousand. Remains of dragon-hunters: all of them. Remains of the dragon: none. It is still up there.' },
+  'c5-4': { id: 'c5-4', chapter: 5, title: 'Inscription over the Red Keep’s gate',
+    text: 'Vermilion, the sun’s own dragon, whose fire the Sovereign took and chained here, holds the Fifth Link. It does not guard the Keep. It is kept in it.' },
+
+  // --- Chapter VI · The Knight’s March -----------------------------------------------------
+  'c6-0': { id: 'c6-0', chapter: 6, title: 'Scorched decree',
+    text: 'Every knight of the March shall swear upon the Chain. The oaths shall be taken from them and worked into iron. — by the Sovereign’s hand, witnessed by the Chainwright.' },
+  'c6-1': { id: 'c6-1', chapter: 6, title: 'Carved on the Oathblade',
+    text: 'When the knights gave their oaths to the Chain they had nothing left to swear by, so they planted their swords and left them. The swords grew. Oaths do that, unkept.' },
+  'c6-2': { id: 'c6-2', chapter: 6, title: 'Marsh-keeper’s complaint',
+    text: 'The water here is warm and it should not be. Something under the March is still burning from the war. Nobody will come and look.' },
+  'c6-3': { id: 'c6-3', chapter: 6, title: 'Charcoal-rubbing of a ring',
+    text: 'CADDOC, FIRST TO SWEAR. The ring’s owner rode out against the last dawn alone, and turned it back. He has been riding against it ever since.' },
+  'c6-4': { id: 'c6-4', chapter: 6, title: 'Nailed to the moat bridge',
+    text: 'Sir Caddoc, the Last Charge, holds the Sixth Link: the Link of Oaths. He will not stop. He does not know how.' },
+
+  // --- Chapter VII · The Dreaming Wastes -----------------------------------------------------
+  'c7-0': { id: 'c7-0', chapter: 7, title: 'Lamp-keeper’s oath',
+    text: 'I will keep this lamp until morning. (Below, many times, in different hands, each fainter than the last: "Still keeping it.")' },
+  'c7-1': { id: 'c7-1', chapter: 7, title: 'Scratched on the fallen glass',
+    text: 'Old gods of glass and plastic, from a world before this one. They remember a light that came from inside them. Isolde left something on the great keyboard — the one thing she could not carry any further.' },
+  'c7-2': { id: 'c7-2', chapter: 7, title: 'Words on the Bard’s Rest',
+    text: 'He sang the moon a song so long she stayed to hear the end of it. He lay down in the song to rest. We are still waiting for the last verse.' },
+  'c7-3': { id: 'c7-3', chapter: 7, title: 'An orchard-keeper’s note',
+    text: 'The bees of the orchard carry sleep, not pollen. The Queen keeps the whole world dreaming so nobody notices how long the night has been. Wake up. WAKE UP.' },
+  'c7-4': { id: 'c7-4', chapter: 7, title: 'Wax seal on the Hive',
+    text: 'The Hive Queen holds the Seventh Link: the Link of Dreams. Beyond her, the Dawnspire. Beyond that, nothing but the moon.' },
+
+  // --- Chapter VIII · The Dawnspire ----------------------------------------------------------
+  'c8-0': { id: 'c8-0', chapter: 8, title: 'The gardener’s promise',
+    text: 'Liriel planted this garden to watch the sun come up. Maelor keeps it exactly as it was that morning. Nothing ends here. Nothing blooms.' },
+  'c8-1': { id: 'c8-1', chapter: 8, title: 'A root of starlight',
+    text: 'Stars fell here, and grew roots, because there was no morning to fade them. Isolde wrote: "Even the stars are tired. Hurry."' },
+  'c8-2': { id: 'c8-2', chapter: 8, title: 'Coronation stone, the Pale Cathedral',
+    text: 'Here Liriel was crowned, at dawn, as queens of the Long Road always were. Here she died, at dawn, forty years later. Maelor painted the cathedral white so it would never again look golden in the morning.' },
+  'c8-3': { id: 'c8-3', chapter: 8, title: 'Links, underfoot',
+    text: 'The Chain Road is paved with spare links. Each one is stamped with a knight’s name and the oath that was taken from him. Oswin’s mark is on every one.' },
+  'c8-4': { id: 'c8-4', chapter: 8, title: 'At the foot of the Dawnspire',
+    text: 'Maelor holds the Last Link himself. He does not want to keep the moon. He wants to keep the morning from coming, because the last morning took her.' },
+};
+
+/** The kneeling dead: one Emberwarden per chapter, the last of them your sister. */
 export const MEMORIALS: Record<number, LoreFragment> = {
   1: { id: 'mem-1', chapter: 1, title: 'An Emberwarden, kneeling', text: 'Her sword is planted in a fire that went out long ago. She is still holding it.' },
   2: { id: 'mem-2', chapter: 2, title: 'An Emberwarden, half sunk', text: 'He waded in to carry a lantern to the drowned. The lantern is still lit.' },
-  3: { id: 'mem-3', chapter: 3, title: 'An Emberwarden among the columns', text: 'She shaded her eyes against a sun that was not there. Her hand is still raised.' },
+  3: { id: 'mem-3', chapter: 3, title: 'An Emberwarden among the heliotropes', text: 'She shaded her eyes against the kept sun. Her hand is still raised; she knew it was false and looked anyway.' },
   4: { id: 'mem-4', chapter: 4, title: 'An Emberwarden, frozen at rest', text: 'He sat down to warm his hands at a crystal. The crystal is warm. He is not.' },
-  5: { id: 'mem-5', chapter: 5, title: 'An Emberwarden facing the citadel', text: 'Her armour is scorched from the front. She never turned her back on the dragon.' },
+  5: { id: 'mem-5', chapter: 5, title: 'An Emberwarden facing the Red Keep', text: 'Her armour is scorched from the front. She never turned her back on the dragon.' },
   6: { id: 'mem-6', chapter: 6, title: 'An Emberwarden in the ash', text: 'He carried an ember all the way from the deep fire. It went out in his hands, one step from here.' },
-  7: { id: 'mem-7', chapter: 7, title: 'An Emberwarden listening', text: 'She knelt to hear the choir. She is still listening; you can tell by the tilt of her helm.' },
-  8: { id: 'mem-8', chapter: 8, title: 'The Emberwarden before you', text: 'The one who came here before you. Your own face, older, under the helm. The sword is yours now.' },
+  7: { id: 'mem-7', chapter: 7, title: 'An Emberwarden, dreaming', text: 'She lay down in the orchard to rest for a moment. She is smiling. Whatever she is dreaming, it is morning there.' },
+  8: { id: 'mem-8', chapter: 8, title: 'Isolde',
+    text: 'Your sister, kneeling on the Chain Road, her sword planted, her book gone — its last page is in your hand now. She got further than anyone. The frost on her helm is shaped like a sunrise.' },
 };
 
+/** What the great foes leave behind; each also frees a Link of the Chain. */
 export const REMEMBRANCES: Remembrance[] = [
-  { id: 'rem-gloomhorn', boss: 'gloomhorn', name: 'Remembrance of the Mire Colossus',
-    text: 'A horn, heavy and still damp. Gloomhorn carried the drowned to shore for a thousand years before the moon’s tears poisoned the water. In its last breath it tried to carry you.' },
-  { id: 'rem-vermilion', boss: 'vermilion', name: 'Remembrance of the Red Hour',
-    text: 'A scale that is warm to hold. Vermilion was the sun’s own dragon; the king took its fire to leave the day with no champion. The fire is yours now. Keep it better than he did.' },
+  { id: 'rem-morrow', boss: 'morrow', name: 'Remembrance of the Gravewarden', art: 'art-tempest', vigour: 10,
+    text: 'A grave-bell’s clapper. Morrow buried every Emberwarden who fell on the road, and dug them up again when the Sovereign asked. The First Link is broken; St Aldric’s dead can rest. Their last fury is yours: Tempest Cross.' },
+  { id: 'rem-gloomhorn', boss: 'gloomhorn', name: 'Remembrance of the Drowned Shadow', vigour: 10, flask: 1,
+    text: 'A horn, heavy and still damp. Gloomhorn carried the drowned to shore for a thousand years before the moon’s tears turned it. In its last breath it tried to carry you. The Second Link is broken.' },
+  { id: 'rem-solenne', boss: 'solenne', name: 'Remembrance of the Blind Sunkeeper', art: 'art-phantom', vigour: 10,
+    text: 'A disc of the kept sun, cooling. Solenne made a false dawn so the world would not despair, and put out her eyes so she would not have to see it was false. The Third Link is broken. Her light guides your blades: Phantom Blades.' },
+  { id: 'rem-glutton', boss: 'glutton', name: 'Remembrance of the Glutton', vigour: 15, flask: 1,
+    text: 'A prism, humming. Every colour the Choir sang was inside the Glutton; they pour out of it now, into the Codex. The Fourth Link is broken.' },
+  { id: 'rem-vermilion', boss: 'vermilion', name: 'Remembrance of the Red Calamity', art: 'art-rend', vigour: 10,
+    text: 'A scale that is warm to hold. Vermilion was the sun’s own dragon; the king took its fire and chained it in the Red Keep to leave the day with no champion. The Fifth Link is broken. The fire is yours now: Bloodmoon Rend.' },
+  { id: 'rem-caddoc', boss: 'caddoc', name: 'Remembrance of the Last Charge', art: 'art-sunder', vigour: 15,
+    text: 'A lance-head, notched from four hundred years of riding against the dawn. Caddoc swore first and fell last. The Sixth Link is broken, and every oath worked into it is free: Sunder.' },
+  { id: 'rem-hivequeen', boss: 'hivequeen', name: 'Remembrance of the Hive Queen', vigour: 15, flask: 1,
+    text: 'A drop of amber with a dream inside. The Queen kept the world asleep so it would not notice the night. The Seventh Link is broken. Everywhere along the road, people are waking up.' },
   { id: 'rem-sovereign', boss: 'sovereign', name: 'Remembrance of the Pale Sovereign',
-    text: 'A crown of cold light, already fading. He only wanted one more night with the moon, and then one more. At the end, he let go. The sky will be silver tomorrow.' },
+    text: 'A crown of cold light, already fading. He only wanted one more night without a morning, and then one more. At the end, he let go. The Last Link is broken; the moon goes home, and the sun comes up over Hollowmere.' },
 ];
 
 export const ARCS: ChapterArc[] = [
-  { chapter: 0, title: 'The Threshold', text: 'You woke beside the last Ember Shrine, under a moon that bleeds. A hooded Wanderer tends the fire and says the way north is open. Everything else is sealed behind mist.' },
-  { chapter: 1, title: 'The Tranquil Reach', text: 'The pines and lakes of the Reach still remember peace. Its keep stands empty, its door promises a morning that never comes. The mist at its eastern pass waits for proof that you can fight.' },
-  { chapter: 2, title: 'The Violet Fen', text: 'Where the Moon-kings were crowned in glowing water. The fen’s gentle colossus drank the moon’s tears and went mad; it holds the key to the coast.' },
-  { chapter: 3, title: 'The Sunkeepers’ Coast', text: 'The sun-order’s terraces descend into water the colour of a dawn that never came. The Keepers who remain pray with their eyes burned shut.' },
-  { chapter: 4, title: 'The Crystal Deep', text: 'Beneath the stone, the moon’s tears froze into singing crystal. Something below calls the Sovereign by name.' },
-  { chapter: 5, title: 'The Bloodstone Wastes', text: 'Red canyons where the war on the sun was fought in one afternoon. The sun’s dragon, Vermilion, still circles the citadel where its fire was taken.' },
-  { chapter: 6, title: 'The Ashen March', text: 'A kingdom burned to hide the moon’s wound. The deepest fire in the world still burns beneath it.' },
-  { chapter: 7, title: 'The Frozen Choir', text: 'The choir that sang the moon out of the sky. The ice sings their song back to them forever.' },
-  { chapter: 8, title: 'The Last Garden', text: 'The Sovereign’s garden, where nothing ends and nothing blooms. At its heart, the Pale Citadel, and the moon held in a pair of cold hands.' },
+  { chapter: 1, title: 'The Hollow Reach', text: 'Hollowmere burned; its fire did not. Oswin, a masked wanderer, kept it for you. Isolde went east along the Long Road with the Codex. The Gravewarden holds the Highpine Gate and the First Link.' },
+  { chapter: 2, title: 'The Violet Fen', text: 'Where the Moon-kings were crowned in glowing water. The fen’s colossus drank the moon’s tears; it holds the Second Link, and the road to the coast.' },
+  { chapter: 3, title: 'The Sunkeepers’ Coast', text: 'The sun-order’s terraces fall into a sea the colour of a dawn that never came. Over the Temple of the Sun hangs a sun Solenne made herself. She holds the Third Link.' },
+  { chapter: 4, title: 'The Crystal Deep', text: 'The Prism Choir sang the colours back into the world, until the Glutton ate them. Isolde could not pass it. The Fourth Link, and every colour, are inside it.' },
+  { chapter: 5, title: 'The Bloodstone Wastes', text: 'Red canyons where the war on the sun was fought in one afternoon. The sun’s dragon, Vermilion, is chained in the Red Keep with the Fifth Link.' },
+  { chapter: 6, title: 'The Knight’s March', text: 'The knights of the March gave their oaths to the Chain and planted their swords. Sir Caddoc, first to swear, still rides against the dawn. He holds the Sixth Link.' },
+  { chapter: 7, title: 'The Dreaming Wastes', text: 'A waste of old gods of glass, a sleeping bard, an orchard that hums. The Hive Queen keeps the world dreaming. Oswin has something to tell you before you climb.' },
+  { chapter: 8, title: 'The Dawnspire', text: 'Liriel’s garden, her white cathedral, the Chain Road — and the tower at the centre of the world, where Maelor holds the Last Link and the moon.' },
 ];
 
-/** What the Wanderer says, in order of precedence (first matching line wins). */
+/** What Oswin says, in order of precedence (first matching line wins). */
 export interface WandererState {
   bosses: Set<string>;
   gates: number;
@@ -183,12 +203,16 @@ export interface WandererState {
 }
 
 export const WANDERER_LINES: { when: (s: WandererState) => boolean; text: string }[] = [
-  { when: s => s.finale, text: 'The moon is silver again. Look — you have a shadow. Rest now, Emberwarden. There is a morning to wake up for.' },
-  { when: s => s.bosses.has('vermilion'), text: 'The dragon’s fire is in you now; I can see it in your eyes. The Last Garden lies at the end of every road. He is waiting. Be gentle, but do not stop.' },
-  { when: s => s.bosses.has('gloomhorn'), text: 'You put the colossus to rest. It was kind once, you know. The coast is open to you; mind the Keepers’ light. Look away when it swells.' },
-  { when: s => s.gates > 0, text: 'The mist parted for you. It has not done that in a long time. Somewhere in the fen, something large is weeping. It holds the next key.' },
-  { when: s => s.cleared > 0, text: 'Blood on your blade. The knights you fought were oathbound to a king who forgot them. Clear enough of their camps and the mist at the pass will know you.' },
-  { when: s => s.kindled > 1, text: 'You kindled a shrine out there. Good. Rest at them; they remember where you fell, and they keep the night from keeping you.' },
-  { when: s => s.pages > 1, text: 'Your book grows heavier. Every page is a word the dark forgot to take. Find the rest; you will need all of them.' },
-  { when: () => true, text: 'Ah. Awake at last. I kept the fire for you. The moon has bled for four hundred years; someone has to go and ask the king to let her go. Take the northern valley. Rest at every ember you find.' },
+  { when: s => s.finale, text: 'Look — you have a shadow. So do I; I had forgotten. Go home, Wren. Hollowmere will want to see the morning with you. I will stay a while and watch it take my chain apart.' },
+  { when: s => s.bosses.has('hivequeen'), text: 'Before you climb, the truth. I am the Chainwright. Maelor came to me the morning Liriel died and asked for something that could hold the moon still. I made it from the oaths of his knights. Isolde found my mark on the links. She forgave me. Break what I made.' },
+  { when: s => s.bosses.has('caddoc'), text: 'Caddoc was the first to swear on the Chain. I remember the sound his oath made going into the iron. The Wastes ahead will try to make you sleep. Do not lie down, whatever you see.' },
+  { when: s => s.bosses.has('vermilion'), text: 'The dragon’s fire is in you now; I can see it in your eyes. The March ahead is full of swords with no one holding them. The one who still holds his will not stop until you stop him.' },
+  { when: s => s.bosses.has('glutton'), text: 'The colours are back in the Codex. Can you feel how heavy it is now? The Wastes beyond are red. The dragon up there was never the enemy. Free it.' },
+  { when: s => s.bosses.has('solenne'), text: 'Solenne’s sun is out. Poor woman; it was a kindness, in its way. Below the coast is the Deep, where Isolde turned back once. She went on anyway. So will you.' },
+  { when: s => s.bosses.has('gloomhorn'), text: 'You put the colossus to rest. It was kind once. The coast ahead is bright; mind the Keepers’ light — look away when it swells.' },
+  { when: s => s.bosses.has('morrow'), text: 'The Gravewarden is down and the gate is open. Eight links hold the moon, Wren, one for each of Maelor’s great servants. One is broken. I will be waiting at the next fire.' },
+  { when: s => s.cleared > 0, text: 'Blood on your blade. Clear the Moon-knights’ camps along the road and the mist at the gate will know you. The Gravewarden waits before it.' },
+  { when: s => s.kindled > 1, text: 'You kindled a shrine out there. Good. Rest at them; they remember where you fell, and they carry you back along the road.' },
+  { when: s => s.pages > 1, text: 'Your sister’s handwriting. Every page is a colour the night forgot to take. She hid them where only an Emberwarden would look. Find the rest.' },
+  { when: () => true, text: 'Ah. Awake at last. I kept the fire for you. Your sister went east with her book; the road goes where she went, all the way to the tower you can see under the moon. Hold Shift and be still to gather your strength. Rest at every ember you find.' },
 ];

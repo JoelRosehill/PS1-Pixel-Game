@@ -121,13 +121,16 @@ try {
     g.menu.show('title');
     return { ok: /^v\d+\.\d+\.\d+(-dev)?$/.test(onTitle) && corner && inSettings, detail: `${onTitle} corner=${corner}` };
   });
-  await run('beginning starts the score', async () => {
+  await run('beginning tells the prologue and starts the score', async () => {
     const g = window.__game;
     g.menu.dialog.querySelector('[data-action="new"]').click();
     // Music changes land on the next bar line.
     for (let i = 0; i < 40 && g.audio.music?.intensity !== 'explore'; i++) await new Promise(r => setTimeout(r, 200));
     const m = g.audio.music;
-    return { ok: !g.menu.screen && g.audio.running && m && m.notes > 4 && m.intensity === 'explore', detail: `state=${g.audio.ctx?.state} notes=${m?.notes} intensity=${m?.intensity}` };
+    // A new journey opens with the prologue; read it and close it.
+    const prologue = g.storyUI.mode === 'reader' && /Hollowmere/.test(g.storyUI.dialog.textContent);
+    g.storyUI.close(false);
+    return { ok: prologue && !g.menu.screen && g.audio.running && m && m.notes > 4 && m.intensity === 'explore', detail: `prologue=${prologue} state=${g.audio.ctx?.state} notes=${m?.notes} intensity=${m?.intensity}` };
   });
 
   // --- sound hooks -----------------------------------------------------------------------
