@@ -35,7 +35,7 @@ const BAKE_CELL = 2.5;
 const COLLIDE_IN = 520;
 const COLLIDE_OUT = 640;
 /** Beyond this they are hidden (the fog has long since taken them). */
-const VISIBLE = 3600;
+const VISIBLE = 2600;
 
 /**
  * The supplied structures on the Long Road (Job 15). Each is placed beside the road at

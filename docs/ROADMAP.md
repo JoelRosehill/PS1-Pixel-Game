@@ -451,7 +451,7 @@ After playing Jobs 1–10 the user asked for a remake. Their feedback, in short:
 | 15 | The Long Road — one handcrafted 40-biome journey | ✅ |
 | 15b | The Blade — a real sword and swings you can read | ✅ |
 | 16 | The Story — a specific storyline, characters and beats | ✅ |
-| 17 | Integration — tests, performance, docs | ⏳ |
+| 17 | Integration — tests, performance, docs | ✅ |
 
 ## Job 11 — Creature Forge ✅
 
@@ -666,4 +666,17 @@ the sword tactics of the earlier build felt poor.
       where you wake
 - [x] Tests: save 27 (gifts, Oswin moving ahead, the prologue once), ui 20 (prologue on
       begin), enemy 27 (sunfall made deterministic), world 23, atlas 20, spell 54 passing
+
+## Job 17 — Integration ✅
+
+- [x] All 13 suites pass together: world 23, atlas 20, enemy 27, boss 21, combat 11,
+      move 11, kinetic 19, spell 54, save 27, ui 20, build 9, creature 63, asset
+- [x] CPU frame cost (`npm run perf`, logic only): 0.6–1.5 ms mean on the road, the
+      camps and the Vermilion fight. At the spawn the world holds ~600k triangles before
+      culling (terrain 265k, props 247k, structures 85k); structures hide beyond 2.6 km
+- [x] Docs: HANDOFF (current state of the remake first, history after), GDD pillars 2–5
+      and the story, README, session notes for Jobs 14–17
+- [x] Tools: screenshot views and perf scenarios on the road; `tools/model-bounds.mjs`
+
+**The remake is complete.** Next steps are in HANDOFF §6 (ask the user first).
 
