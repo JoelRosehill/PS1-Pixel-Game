@@ -1,9 +1,20 @@
-# Chromatic Odyssey
+<h1 align="center">Chromatic Odyssey</h1>
+
+<p align="center">
+  <em>A Chill-Fi dark fantasy action RPG that runs in the browser.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/three.js-webgl-000000?style=flat-square&labelColor=0a0a0a&logo=three.js&logoColor=white">
+  <img src="https://img.shields.io/badge/typescript-5-3178c6?style=flat-square&labelColor=0a0a0a&logo=typescript&logoColor=white">
+  <img src="https://img.shields.io/badge/build-vite-646cff?style=flat-square&labelColor=0a0a0a&logo=vite&logoColor=white">
+  <img src="https://img.shields.io/badge/status-in%20development-d29922?style=flat-square&labelColor=0a0a0a">
+</p>
+
+---
 
 A "Chill-Fi Dark Fantasy" Action-RPG built with Three.js. The game is built in jobs.
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan and [docs/GDD.md](docs/GDD.md) for the design pillars.
-**Continuing in a new AI session?** Start with [docs/HANDOFF.md](docs/HANDOFF.md).
-The chat history that produced this project is archived in [docs/sessions/](docs/sessions/).
 
 **The world is the Long Road** (Job 15): one journey of about 22 km, spiralling inward
 from Hollowmere on the western rim to the Dawnspire at the centre of the world, through
